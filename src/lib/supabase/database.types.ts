@@ -5,91 +5,159 @@ export interface Database {
         Row: {
           id: string
           email: string
-          name: string
+          username: string
+          password_hash: string
+          name: string | null
           phone: string | null
-          role: 'customer' | 'admin' | 'manager'
-          is_active: boolean
+          role: string | null
+          is_active: boolean | null
           created_at: string
           updated_at: string
           last_login: string | null
-          total_spent: number
+          total_spent: number | null
           whatsapp_number: string | null
           preferred_payment_method: string | null
         }
         Insert: {
           id?: string
           email: string
-          name: string
+          username: string
+          password_hash: string
+          name?: string | null
           phone?: string | null
-          role?: 'customer' | 'admin' | 'manager'
-          is_active?: boolean
+          role?: string | null
+          is_active?: boolean | null
           created_at?: string
           updated_at?: string
           last_login?: string | null
-          total_spent?: number
+          total_spent?: number | null
           whatsapp_number?: string | null
           preferred_payment_method?: string | null
         }
         Update: {
           id?: string
           email?: string
-          name?: string
+          username?: string
+          password_hash?: string
+          name?: string | null
           phone?: string | null
-          role?: 'customer' | 'admin' | 'manager'
-          is_active?: boolean
+          role?: string | null
+          is_active?: boolean | null
           created_at?: string
           updated_at?: string
           last_login?: string | null
-          total_spent?: number
+          total_spent?: number | null
           whatsapp_number?: string | null
           preferred_payment_method?: string | null
+        }
+      }
+      admins: {
+        Row: {
+          id: string
+          email: string
+          username: string
+          password_hash: string
+          full_name: string | null
+          role: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          email: string
+          username: string
+          password_hash: string
+          full_name?: string | null
+          role?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          username?: string
+          password_hash?: string
+          full_name?: string | null
+          role?: string | null
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       services: {
         Row: {
           id: string
-          name: string
-          description: string
+          category_id: string | null
+          name_ar: string
+          name_en: string
+          description_ar: string | null
+          description_en: string | null
           price: number
-          duration: string
-          features: string[]
-          is_active: boolean
-          category: string
-          category_name: string
-          is_form: boolean
+          currency: string | null
+          duration_days: number | null
+          duration_text: string | null
+          features: string[] | null
+          requirements: string | null
+          deliverables: string | null
+          is_featured: boolean | null
+          is_active: boolean | null
+          sort_order: number | null
+          created_at: string | null
+          updated_at: string | null
+          category: string | null
+          category_name: string | null
+          is_form: boolean | null
           form_type: string | null
-          created_at: string
-          updated_at: string
+          duration: string | null
         }
         Insert: {
           id?: string
-          name: string
-          description: string
+          category_id?: string | null
+          name_ar: string
+          name_en: string
+          description_ar?: string | null
+          description_en?: string | null
           price: number
-          duration: string
-          features: string[]
-          is_active?: boolean
-          category: string
-          category_name: string
-          is_form?: boolean
+          currency?: string | null
+          duration_days?: number | null
+          duration_text?: string | null
+          features?: string[] | null
+          requirements?: string | null
+          deliverables?: string | null
+          is_featured?: boolean | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+          category?: string | null
+          category_name?: string | null
+          is_form?: boolean | null
           form_type?: string | null
-          created_at?: string
-          updated_at?: string
+          duration?: string | null
         }
         Update: {
           id?: string
-          name?: string
-          description?: string
+          category_id?: string | null
+          name_ar?: string
+          name_en?: string
+          description_ar?: string | null
+          description_en?: string | null
           price?: number
-          duration?: string
-          features?: string[]
-          is_active?: boolean
-          category?: string
-          category_name?: string
-          is_form?: boolean
+          currency?: string | null
+          duration_days?: number | null
+          duration_text?: string | null
+          features?: string[] | null
+          requirements?: string | null
+          deliverables?: string | null
+          is_featured?: boolean | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+          category?: string | null
+          category_name?: string | null
+          is_form?: boolean | null
           form_type?: string | null
-          created_at?: string
-          updated_at?: string
+          duration?: string | null
         }
       }
       orders: {

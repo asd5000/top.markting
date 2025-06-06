@@ -88,13 +88,85 @@ export const userOperations = {
   }
 }
 
+// Admin operations for managers
+export const managerOperations = {
+  async getAllManagers() {
+    const { data, error } = await supabase
+      .from('admins')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) handleSupabaseError(error)
+    return data || []
+  },
+
+  async createManager(managerData: Database['public']['Tables']['admins']['Insert']) {
+    const { data, error } = await supabase
+      .from('admins')
+      .insert({
+        ...managerData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async updateManager(id: string, updates: Database['public']['Tables']['admins']['Update']) {
+    const { data, error } = await supabase
+      .from('admins')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async deleteManager(id: string) {
+    const { error } = await supabase
+      .from('admins')
+      .delete()
+      .eq('id', id)
+
+    if (error) handleSupabaseError(error)
+    return { success: true }
+  },
+
+  async getManagerByEmail(email: string) {
+    const { data, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('email', email)
+      .single()
+
+    if (error && error.code !== 'PGRST116') handleSupabaseError(error)
+    return data
+  }
+}
+
 // Service operations
 export const serviceOperations = {
   async getAllServices() {
     const { data, error } = await supabase
-      .from('app_services')
+      .from('services')
       .select('*')
-      .order('category', { ascending: true })
+      .order('sort_order', { ascending: true })
+
+    if (error) handleSupabaseError(error)
+    return data || []
+  },
+
+  async getActiveServices() {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
 
     if (error) handleSupabaseError(error)
     return data || []
@@ -106,7 +178,7 @@ export const serviceOperations = {
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (error) handleSupabaseError(error)
     return data
   },
@@ -114,10 +186,14 @@ export const serviceOperations = {
   async createService(serviceData: Database['public']['Tables']['services']['Insert']) {
     const { data, error } = await supabase
       .from('services')
-      .insert(serviceData)
+      .insert({
+        ...serviceData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .select()
       .single()
-    
+
     if (error) handleSupabaseError(error)
     return data
   },
@@ -129,7 +205,7 @@ export const serviceOperations = {
       .eq('id', id)
       .select()
       .single()
-    
+
     if (error) handleSupabaseError(error)
     return data
   },
@@ -139,8 +215,21 @@ export const serviceOperations = {
       .from('services')
       .delete()
       .eq('id', id)
-    
+
     if (error) handleSupabaseError(error)
+    return { success: true }
+  },
+
+  async getServicesByCategory(category: string) {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('category', category)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
+    if (error) handleSupabaseError(error)
+    return data || []
   }
 }
 

@@ -19,20 +19,35 @@ import {
 import { useAuth, usePermissions } from '@/lib/auth/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { servicesData, ServiceItem, ServiceCategory } from '@/data/services/services-data'
 import { toast } from 'react-hot-toast'
-import { storageManager } from '@/lib/storage/local-storage'
+import { serviceOperations } from '@/lib/supabase/client'
+
+interface Service {
+  id: string
+  name_ar: string
+  name_en: string
+  description_ar: string | null
+  description_en: string | null
+  price: number
+  currency: string | null
+  duration_text: string | null
+  features: string[] | null
+  is_active: boolean | null
+  category: string | null
+  category_name: string | null
+}
 
 export default function AdminServicesPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const { isAdmin } = usePermissions()
   const router = useRouter()
-  const [categories, setCategories] = useState<ServiceCategory[]>(servicesData)
+  const [services, setServices] = useState<Service[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null)
+  const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
-  const [editingService, setEditingService] = useState<ServiceItem | null>(null)
+  const [editingService, setEditingService] = useState<Service | null>(null)
+  const [isLoadingServices, setIsLoadingServices] = useState(false)
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin())) {
@@ -41,18 +56,25 @@ export default function AdminServicesPage() {
     }
   }, [user, isAuthenticated, isLoading, isAdmin, router])
 
-  // Load services from localStorage on component mount
+  // Load services from database
   useEffect(() => {
-    const savedServices = storageManager.getServices()
-    if (savedServices.length > 0) {
-      setCategories(savedServices)
-    }
-  }, [])
+    const loadServices = async () => {
+      if (!isAuthenticated || !isAdmin()) return
 
-  // Save services to localStorage whenever categories change
-  useEffect(() => {
-    storageManager.saveServices(categories)
-  }, [categories])
+      try {
+        setIsLoadingServices(true)
+        const data = await serviceOperations.getAllServices()
+        setServices(data || [])
+      } catch (error) {
+        console.error('Error loading services:', error)
+        toast.error('حدث خطأ أثناء تحميل الخدمات')
+      } finally {
+        setIsLoadingServices(false)
+      }
+    }
+
+    loadServices()
+  }, [isAuthenticated, isAdmin])
 
 
 

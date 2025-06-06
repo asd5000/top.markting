@@ -20,18 +20,17 @@ import {
 import { useAuth, usePermissions } from '@/lib/auth/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { userOperations, adminOperations } from '@/lib/supabase/client'
+import { managerOperations, adminOperations } from '@/lib/supabase/client'
 import { toast } from 'react-hot-toast'
 
 interface Manager {
   id: string
   email: string
-  name: string
-  phone?: string
-  role: 'admin' | 'manager'
-  is_active: boolean
-  created_at: string
-  last_login?: string
+  username: string
+  full_name: string | null
+  role: string | null
+  created_at: string | null
+  updated_at: string | null
   permissions: string[]
 }
 
@@ -48,53 +47,17 @@ export default function AdminManagersPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const { isAdmin } = usePermissions()
   const router = useRouter()
-  // Mock managers data
-  const mockManagers: Manager[] = [
-    {
-      id: 'admin-1',
-      name: 'أحمد المدير العام',
-      email: 'admin@topmarketing.com',
-      phone: '+201068275557',
-      role: 'admin',
-      permissions: ['all'],
-      is_active: true,
-      created_at: '2024-01-01T00:00:00Z',
-      last_login: '2024-01-25T10:30:00Z'
-    },
-    {
-      id: 'manager-1',
-      name: 'سارة مديرة المبيعات',
-      email: 'sara.manager@topmarketing.com',
-      phone: '+201234567890',
-      role: 'manager',
-      permissions: ['orders', 'customers', 'reports'],
-      is_active: true,
-      created_at: '2024-01-05T00:00:00Z',
-      last_login: '2024-01-24T14:20:00Z'
-    },
-    {
-      id: 'manager-2',
-      name: 'محمد مدير التسويق',
-      email: 'mohamed.manager@topmarketing.com',
-      phone: '+201987654321',
-      role: 'manager',
-      permissions: ['services', 'reports'],
-      is_active: true,
-      created_at: '2024-01-10T00:00:00Z',
-      last_login: '2024-01-23T09:15:00Z'
-    }
-  ]
-
-  const [managers, setManagers] = useState<Manager[]>(mockManagers)
+  const [managers, setManagers] = useState<Manager[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedManager, setSelectedManager] = useState<Manager | null>(null)
   const [isLoadingManagers, setIsLoadingManagers] = useState(false)
   const [newManager, setNewManager] = useState({
     email: '',
-    name: '',
-    phone: '',
-    role: 'manager' as 'admin' | 'manager',
+    username: '',
+    full_name: '',
+    password: '',
+    role: 'manager' as string,
     permissions: [] as string[]
   })
 
@@ -112,34 +75,33 @@ export default function AdminManagersPage() {
 
       try {
         setIsLoadingManagers(true)
-        const data = await userOperations.getUsers()
+        const data = await managerOperations.getAllManagers()
 
         if (data && data.length > 0) {
           // تحويل البيانات إلى تنسيق Manager مع تحميل الصلاحيات
           const managersData: Manager[] = await Promise.all(
-            data.map(async (user) => {
+            data.map(async (admin) => {
               let permissions: string[] = []
 
               // تحميل الصلاحيات من الإعدادات
               try {
-                const permissionsSetting = await adminOperations.getSetting(`user_permissions_${user.id}`)
+                const permissionsSetting = await adminOperations.getSetting(`admin_permissions_${admin.id}`)
                 if (permissionsSetting?.value) {
                   permissions = permissionsSetting.value
                 }
               } catch (error) {
-                console.log('No permissions found for user:', user.id)
+                console.log('No permissions found for admin:', admin.id)
               }
 
               return {
-                id: user.id,
-                name: user.name || user.email,
-                email: user.email,
-                phone: user.phone || '',
-                role: user.role as 'admin' | 'manager',
-                permissions: user.role === 'admin' ? ['all'] : permissions,
-                is_active: user.is_active ?? true,
-                created_at: user.created_at || new Date().toISOString(),
-                last_login: user.last_login
+                id: admin.id,
+                username: admin.username,
+                full_name: admin.full_name,
+                email: admin.email,
+                role: admin.role || 'manager',
+                permissions: admin.role === 'admin' ? ['all'] : permissions,
+                created_at: admin.created_at,
+                updated_at: admin.updated_at
               }
             })
           )
@@ -160,12 +122,13 @@ export default function AdminManagersPage() {
 
 
   const filteredManagers = managers.filter(manager =>
-    manager.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    manager.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (manager.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+    manager.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (manager.username?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
   )
 
   const handleAddManager = async () => {
-    if (!newManager.email || !newManager.name) {
+    if (!newManager.email || !newManager.username || !newManager.full_name || !newManager.password) {
       toast.error('يرجى ملء جميع الحقول المطلوبة')
       return
     }
@@ -173,49 +136,52 @@ export default function AdminManagersPage() {
     try {
       setIsLoadingManagers(true)
 
-      const manager: Manager = {
-        id: `manager-${Date.now()}`,
-        name: newManager.name,
-        email: newManager.email,
-        phone: newManager.phone,
-        role: newManager.role,
-        permissions: newManager.role === 'admin' ? ['all'] : newManager.permissions,
-        is_active: true,
-        created_at: new Date().toISOString()
-      }
+      // إنشاء hash للكلمة السرية (في التطبيق الحقيقي يجب استخدام bcrypt)
+      const passwordHash = btoa(newManager.password) // مؤقت - يجب استخدام bcrypt
 
       // إضافة المدير إلى قاعدة البيانات
-      const data = await userOperations.createUser({
-        email: manager.email,
-        name: manager.name,
-        phone: manager.phone,
-        role: manager.role,
-        is_active: manager.is_active
+      const data = await managerOperations.createManager({
+        email: newManager.email,
+        username: newManager.username,
+        password_hash: passwordHash,
+        full_name: newManager.full_name,
+        role: newManager.role
       })
 
       // حفظ الصلاحيات في إعدادات منفصلة
-      if (manager.permissions.length > 0) {
+      if (newManager.permissions.length > 0) {
         await adminOperations.setSetting(
-          `user_permissions_${manager.id}`,
-          manager.permissions,
-          `صلاحيات المدير ${manager.name}`
+          `admin_permissions_${data.id}`,
+          newManager.permissions,
+          `صلاحيات المدير ${newManager.full_name}`
         )
       }
 
-      // تحديث القائمة المحلية بالبيانات الجديدة
-      const newManagerData = data || manager
+      // تحديث القائمة المحلية
+      const newManagerData: Manager = {
+        id: data.id,
+        username: data.username,
+        full_name: data.full_name,
+        email: data.email,
+        role: data.role || 'manager',
+        permissions: newManager.role === 'admin' ? ['all'] : newManager.permissions,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      }
+
       setManagers(prev => [...prev, newManagerData])
 
       // إعادة تعيين النموذج
       setNewManager({
         email: '',
-        name: '',
-        phone: '',
+        username: '',
+        full_name: '',
+        password: '',
         role: 'manager',
         permissions: []
       })
       setShowAddModal(false)
-      toast.success(`تم إضافة المدير "${manager.name}" بنجاح!`)
+      toast.success(`تم إضافة المدير "${newManager.full_name}" بنجاح!`)
 
     } catch (error) {
       console.error('Error adding manager:', error)
@@ -225,19 +191,22 @@ export default function AdminManagersPage() {
     }
   }
 
-  const toggleManagerStatus = async (managerId: string, currentStatus: boolean) => {
+  const toggleManagerStatus = async (managerId: string, currentRole: string) => {
     try {
       setIsLoadingManagers(true)
 
+      // تبديل الحالة (نشط/غير نشط) عبر تغيير الدور
+      const newRole = currentRole === 'inactive' ? 'manager' : 'inactive'
+
       // تحديث في قاعدة البيانات
-      await userOperations.updateUser(managerId, {
-        is_active: !currentStatus
+      await managerOperations.updateManager(managerId, {
+        role: newRole
       })
 
       // تحديث القائمة المحلية
       setManagers(prev => prev.map(manager =>
         manager.id === managerId
-          ? { ...manager, is_active: !currentStatus }
+          ? { ...manager, role: newRole }
           : manager
       ))
       toast.success('تم تحديث حالة المدير')
@@ -264,7 +233,14 @@ export default function AdminManagersPage() {
       setIsLoadingManagers(true)
 
       // حذف من قاعدة البيانات
-      await userOperations.deleteUser(managerId)
+      await managerOperations.deleteManager(managerId)
+
+      // حذف الصلاحيات المرتبطة
+      try {
+        await adminOperations.setSetting(`admin_permissions_${managerId}`, null)
+      } catch (error) {
+        console.log('No permissions to delete for manager:', managerId)
+      }
 
       // تحديث القائمة المحلية
       setManagers(prev => prev.filter(manager => manager.id !== managerId))
@@ -358,11 +334,11 @@ export default function AdminManagersPage() {
                     <Shield className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="mr-3">
-                    <h3 className="font-semibold text-gray-900">{manager.name}</h3>
+                    <h3 className="font-semibold text-gray-900">{manager.full_name || manager.username}</h3>
                     <p className="text-sm text-gray-500">{manager.role === 'admin' ? 'مدير عام' : 'مدير'}</p>
                   </div>
                 </div>
-                <div className={`w-3 h-3 rounded-full ${manager.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                <div className={`w-3 h-3 rounded-full ${manager.role !== 'inactive' ? 'bg-green-500' : 'bg-red-500'}`} />
               </div>
 
               {/* Manager Info */}
@@ -371,20 +347,14 @@ export default function AdminManagersPage() {
                   <Mail className="w-4 h-4 ml-2" />
                   {manager.email}
                 </div>
-                {manager.phone && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="w-4 h-4 ml-2" />
-                    {manager.phone}
-                  </div>
-                )}
                 <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="w-4 h-4 ml-2" />
-                  انضم في: {new Date(manager.created_at).toLocaleDateString('ar-EG')}
+                  <UserCheck className="w-4 h-4 ml-2" />
+                  {manager.username}
                 </div>
-                {manager.last_login && (
+                {manager.created_at && (
                   <div className="flex items-center text-sm text-gray-600">
-                    <UserCheck className="w-4 h-4 ml-2" />
-                    آخر دخول: {new Date(manager.last_login).toLocaleDateString('ar-EG')}
+                    <Calendar className="w-4 h-4 ml-2" />
+                    انضم في: {new Date(manager.created_at).toLocaleDateString('ar-EG')}
                   </div>
                 )}
               </div>
@@ -433,15 +403,15 @@ export default function AdminManagersPage() {
                   <Eye className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => toggleManagerStatus(manager.id, manager.is_active)}
+                  onClick={() => toggleManagerStatus(manager.id, manager.role || 'manager')}
                   className={`flex-1 py-2 px-3 rounded-lg transition-colors flex items-center justify-center ${
-                    manager.is_active
+                    manager.role !== 'inactive'
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
-                  title={manager.is_active ? 'إيقاف' : 'تفعيل'}
+                  title={manager.role !== 'inactive' ? 'إيقاف' : 'تفعيل'}
                 >
-                  {manager.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                  {manager.role !== 'inactive' ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                 </button>
                 {manager.id !== user?.id && (
                   <button
@@ -497,16 +467,32 @@ export default function AdminManagersPage() {
                   {/* Basic Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="name" className="form-label">
+                      <label htmlFor="full_name" className="form-label">
                         الاسم الكامل *
                       </label>
                       <input
                         type="text"
-                        id="name"
-                        value={newManager.name}
-                        onChange={(e) => setNewManager(prev => ({ ...prev, name: e.target.value }))}
+                        id="full_name"
+                        value={newManager.full_name}
+                        onChange={(e) => setNewManager(prev => ({ ...prev, full_name: e.target.value }))}
                         className="form-input"
                         placeholder="أدخل الاسم الكامل"
+                        required
+                        disabled={isLoadingManagers}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="username" className="form-label">
+                        اسم المستخدم *
+                      </label>
+                      <input
+                        type="text"
+                        id="username"
+                        value={newManager.username}
+                        onChange={(e) => setNewManager(prev => ({ ...prev, username: e.target.value }))}
+                        className="form-input"
+                        placeholder="username"
                         required
                         disabled={isLoadingManagers}
                       />
@@ -524,32 +510,36 @@ export default function AdminManagersPage() {
                         className="form-input"
                         placeholder="example@email.com"
                         required
+                        disabled={isLoadingManagers}
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="phone" className="form-label">
-                        رقم الهاتف
+                      <label htmlFor="password" className="form-label">
+                        كلمة المرور *
                       </label>
                       <input
-                        type="tel"
-                        id="phone"
-                        value={newManager.phone}
-                        onChange={(e) => setNewManager(prev => ({ ...prev, phone: e.target.value }))}
+                        type="password"
+                        id="password"
+                        value={newManager.password}
+                        onChange={(e) => setNewManager(prev => ({ ...prev, password: e.target.value }))}
                         className="form-input"
-                        placeholder="+201xxxxxxxxx"
+                        placeholder="أدخل كلمة المرور"
+                        required
+                        disabled={isLoadingManagers}
                       />
                     </div>
 
-                    <div>
+                    <div className="md:col-span-2">
                       <label htmlFor="role" className="form-label">
                         نوع المدير
                       </label>
                       <select
                         id="role"
                         value={newManager.role}
-                        onChange={(e) => setNewManager(prev => ({ ...prev, role: e.target.value as 'admin' | 'manager' }))}
+                        onChange={(e) => setNewManager(prev => ({ ...prev, role: e.target.value }))}
                         className="form-input"
+                        disabled={isLoadingManagers}
                       >
                         <option value="manager">مدير</option>
                         <option value="admin">مدير عام</option>
@@ -643,14 +633,14 @@ export default function AdminManagersPage() {
                   </div>
 
                   <div className="text-center mb-6">
-                    <h4 className="text-xl font-semibold text-gray-900">{selectedManager.name}</h4>
+                    <h4 className="text-xl font-semibold text-gray-900">{selectedManager.full_name || selectedManager.username}</h4>
                     <p className="text-gray-500">{selectedManager.role === 'admin' ? 'مدير عام' : 'مدير'}</p>
                     <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${
-                      selectedManager.is_active
+                      selectedManager.role !== 'inactive'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {selectedManager.is_active ? 'نشط' : 'غير نشط'}
+                      {selectedManager.role !== 'inactive' ? 'نشط' : 'غير نشط'}
                     </div>
                   </div>
 
@@ -660,22 +650,15 @@ export default function AdminManagersPage() {
                       <span>{selectedManager.email}</span>
                     </div>
 
-                    {selectedManager.phone && (
-                      <div className="flex items-center text-gray-600">
-                        <Phone className="w-5 h-5 ml-3" />
-                        <span>{selectedManager.phone}</span>
-                      </div>
-                    )}
-
                     <div className="flex items-center text-gray-600">
-                      <Calendar className="w-5 h-5 ml-3" />
-                      <span>انضم في: {new Date(selectedManager.created_at).toLocaleDateString('ar-EG')}</span>
+                      <UserCheck className="w-5 h-5 ml-3" />
+                      <span>اسم المستخدم: {selectedManager.username}</span>
                     </div>
 
-                    {selectedManager.last_login && (
+                    {selectedManager.created_at && (
                       <div className="flex items-center text-gray-600">
-                        <UserCheck className="w-5 h-5 ml-3" />
-                        <span>آخر دخول: {new Date(selectedManager.last_login).toLocaleDateString('ar-EG')}</span>
+                        <Calendar className="w-5 h-5 ml-3" />
+                        <span>انضم في: {new Date(selectedManager.created_at).toLocaleDateString('ar-EG')}</span>
                       </div>
                     )}
                   </div>
@@ -715,14 +698,14 @@ export default function AdminManagersPage() {
                     إغلاق
                   </button>
                   <button
-                    onClick={() => toggleManagerStatus(selectedManager.id, selectedManager.is_active)}
+                    onClick={() => toggleManagerStatus(selectedManager.id, selectedManager.role || 'manager')}
                     className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
-                      selectedManager.is_active
+                      selectedManager.role !== 'inactive'
                         ? 'bg-red-600 text-white hover:bg-red-700'
                         : 'bg-green-600 text-white hover:bg-green-700'
                     }`}
                   >
-                    {selectedManager.is_active ? 'إيقاف' : 'تفعيل'}
+                    {selectedManager.role !== 'inactive' ? 'إيقاف' : 'تفعيل'}
                   </button>
                 </div>
               </div>
