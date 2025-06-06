@@ -24,7 +24,7 @@ import {
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/auth-context'
-import { servicesData, ServiceItem, ServiceCategory, paymentMethods } from '@/data/services/services-data'
+import { paymentMethods } from '@/data/services/services-data'
 import { orderOperations, serviceOperations } from '@/lib/supabase/client'
 import { toast } from 'react-hot-toast'
 import PropertyFormModal from '@/components/PropertyFormModal'
@@ -32,7 +32,19 @@ import RealEstateModal from '@/components/RealEstateModal'
 import SubscriptionModal from '@/components/SubscriptionModal'
 import { storageManager } from '@/lib/storage/local-storage'
 
-interface CartItem extends ServiceItem {
+interface CartItem {
+  id: string
+  name_ar: string
+  name_en: string
+  description_ar: string | null
+  description_en: string | null
+  price: number
+  currency: string | null
+  duration_text: string | null
+  features: string[] | null
+  is_active: boolean | null
+  category: string | null
+  category_name: string | null
   quantity: number
 }
 
@@ -54,24 +66,38 @@ export default function ServicesShopPage() {
   const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null)
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
   const [isLoadingServices, setIsLoadingServices] = useState(false)
-  const [currentServices, setCurrentServices] = useState<ServiceCategory[]>(servicesData)
+  const [currentServices, setCurrentServices] = useState<any[]>([])
+  const [groupedServices, setGroupedServices] = useState<Record<string, any[]>>({})
 
-  // Load services from localStorage and listen for changes
+  // Load services from database
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    const loadServices = async () => {
+      try {
+        setIsLoadingServices(true)
+        const data = await serviceOperations.getActiveServices()
 
-    // دائماً استخدم البيانات الافتراضية المحدثة
-    setCurrentServices(servicesData)
-    storageManager.saveServices(servicesData)
+        // تجميع الخدمات حسب الفئة
+        const grouped = data.reduce((acc: Record<string, any[]>, service: any) => {
+          const category = service.category || 'other'
+          if (!acc[category]) {
+            acc[category] = []
+          }
+          acc[category].push(service)
+          return acc
+        }, {})
 
-    // Listen for storage changes
-    const unsubscribe = storageManager.onStorageChange((key, newValue) => {
-      if (key === 'topmarketing_services' && newValue) {
-        setCurrentServices(newValue)
+        setCurrentServices(data)
+        setGroupedServices(grouped)
+
+      } catch (error) {
+        console.error('Error loading services:', error)
+        toast.error('حدث خطأ أثناء تحميل الخدمات')
+      } finally {
+        setIsLoadingServices(false)
       }
-    })
+    }
 
-    return unsubscribe
+    loadServices()
   }, [])
 
   // Handle URL parameters for direct navigation
@@ -89,25 +115,16 @@ export default function ServicesShopPage() {
     }
   }, [searchParams])
 
-  // Get all services from current data (localStorage or default)
-  const getAllServices = () => {
-    return currentServices.flatMap(category =>
-      category.services.map(service => ({
-        ...service,
-        categoryName: category.name
-      }))
-    )
-  }
-
   // Filter services based on category and search
-  const filteredServices = getAllServices().filter(service => {
+  const filteredServices = currentServices.filter((service: any) => {
     const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory
-    const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.description.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesCategory && matchesSearch && service.isActive
+    const matchesSearch = (service.name_ar?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+                         (service.description_ar?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+                         (service.name_en?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
+    return matchesCategory && matchesSearch && service.is_active
   })
 
-  const addToCart = (service: ServiceItem) => {
+  const addToCart = (service: any) => {
     if (!isAuthenticated) {
       toast.error('يجب تسجيل الدخول أولاً')
       return
@@ -245,14 +262,14 @@ export default function ServicesShopPage() {
         const orderData = {
           customer_id: user?.id || '',
           service_id: item.id,
-          service_name: item.name,
+          service_name: item.name_ar || item.name_en || 'خدمة',
           quantity: item.quantity,
           price: item.price,
           total_amount: item.price * item.quantity,
           status: 'pending' as const,
           payment_status: getTotalPrice() > 0 ? 'pending' as const : 'paid' as const,
           payment_method: selectedPaymentMethod,
-          requirements: `طلب خدمة: ${item.name}`
+          requirements: `طلب خدمة: ${item.name_ar || item.name_en}`
         }
 
         await orderOperations.createOrder(orderData)
@@ -440,7 +457,7 @@ export default function ServicesShopPage() {
               <div className="p-6 flex-1">
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="text-xl font-bold text-gray-900">
-                    {service.name}
+                    {service.name_ar || service.name_en}
                   </h3>
                   <div className="text-left">
                     <div className="text-2xl font-bold text-blue-600">
@@ -450,24 +467,24 @@ export default function ServicesShopPage() {
                 </div>
 
                 <p className="text-gray-600 mb-4 leading-relaxed">
-                  {service.description}
+                  {service.description_ar || service.description_en}
                 </p>
 
                 <div className="flex items-center mb-4">
                   <Clock className="w-4 h-4 text-gray-400 ml-2" />
-                  <span className="text-sm text-gray-600">{service.duration}</span>
+                  <span className="text-sm text-gray-600">{service.duration_text}</span>
                 </div>
 
                 <div className="space-y-2 mb-6">
-                  {service.features.slice(0, 3).map((feature, idx) => (
+                  {(service.features || []).slice(0, 3).map((feature: string, idx: number) => (
                     <div key={idx} className="flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-500 ml-2 flex-shrink-0" />
                       <span className="text-sm text-gray-600">{feature}</span>
                     </div>
                   ))}
-                  {service.features.length > 3 && (
+                  {(service.features || []).length > 3 && (
                     <div className="text-sm text-gray-500">
-                      +{service.features.length - 3} مميزات أخرى
+                      +{(service.features || []).length - 3} مميزات أخرى
                     </div>
                   )}
                 </div>
@@ -554,7 +571,7 @@ export default function ServicesShopPage() {
                     {cart.map((item) => (
                       <div key={item.id} className="border rounded-lg p-4">
                         <h3 className="font-semibold text-gray-900 mb-2">
-                          {item.name}
+                          {item.name_ar || item.name_en}
                         </h3>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2 space-x-reverse">
@@ -664,7 +681,7 @@ export default function ServicesShopPage() {
                   {cart.map((item) => (
                     <div key={item.id} className="flex justify-between items-center py-2 border-b">
                       <div>
-                        <span className="font-medium">{item.name}</span>
+                        <span className="font-medium">{item.name_ar || item.name_en}</span>
                         <span className="text-gray-500 mr-2">x{item.quantity}</span>
                       </div>
                       <span className="font-semibold">{item.price * item.quantity} جنيه</span>

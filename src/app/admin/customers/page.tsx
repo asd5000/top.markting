@@ -94,10 +94,11 @@ export default function AdminCustomersPage() {
     let filtered = customers
 
     if (searchTerm) {
-      filtered = filtered.filter(customer => 
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      filtered = filtered.filter(customer =>
+        (customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
         customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.phone.includes(searchTerm)
+        (customer.phone?.includes(searchTerm) || false) ||
+        (customer.username?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
       )
     }
 
@@ -116,60 +117,115 @@ export default function AdminCustomersPage() {
     toast('سيتم فتح Google Messages')
   }
 
-  const deleteCustomer = (customerId: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
+  const deleteCustomer = async (customerId: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا العميل؟')) {
+      return
+    }
+
+    try {
+      setIsLoadingCustomers(true)
+
+      await userOperations.deleteUser(customerId)
+
+      // حذف من القائمة المحلية
       setCustomers(prev => prev.filter(c => c.id !== customerId))
+      setFilteredCustomers(prev => prev.filter(c => c.id !== customerId))
+
       toast.success('تم حذف العميل بنجاح')
+
+    } catch (error) {
+      console.error('Error deleting customer:', error)
+      toast.error('حدث خطأ أثناء حذف العميل')
+    } finally {
+      setIsLoadingCustomers(false)
     }
   }
 
-  const toggleCustomerStatus = (customerId: string) => {
-    setCustomers(prev => prev.map(customer =>
-      customer.id === customerId
-        ? { ...customer, isActive: !customer.isActive }
-        : customer
-    ))
-    toast.success('تم تحديث حالة العميل')
+  const toggleCustomerStatus = async (customerId: string) => {
+    try {
+      setIsLoadingCustomers(true)
+
+      const customer = customers.find(c => c.id === customerId)
+      if (!customer) return
+
+      await userOperations.updateUser(customerId, {
+        is_active: !customer.is_active
+      })
+
+      // تحديث القائمة المحلية
+      const updateCustomer = (customer: Customer) =>
+        customer.id === customerId
+          ? { ...customer, is_active: !customer.is_active }
+          : customer
+
+      setCustomers(prev => prev.map(updateCustomer))
+      setFilteredCustomers(prev => prev.map(updateCustomer))
+
+      toast.success('تم تحديث حالة العميل')
+
+    } catch (error) {
+      console.error('Error toggling customer status:', error)
+      toast.error('حدث خطأ أثناء تحديث حالة العميل')
+    } finally {
+      setIsLoadingCustomers(false)
+    }
   }
 
-  const addCustomer = () => {
-    if (!newCustomer.name || !newCustomer.email || !newCustomer.phone) {
+  const addCustomer = async () => {
+    if (!newCustomer.name || !newCustomer.email || !newCustomer.username) {
       toast.error('يرجى ملء جميع الحقول المطلوبة')
       return
     }
 
-    const customer: Customer = {
-      id: `customer-${Date.now()}`,
-      name: newCustomer.name,
-      email: newCustomer.email,
-      phone: newCustomer.phone,
-      role: 'customer',
-      isActive: true,
-      createdAt: new Date(),
-      orders: [],
-      totalSpent: 0,
-      whatsappNumber: newCustomer.whatsappNumber || newCustomer.phone,
-      preferredPaymentMethod: newCustomer.preferredPaymentMethod
-    }
+    try {
+      setIsLoadingCustomers(true)
 
-    setCustomers(prev => [...prev, customer])
-    setNewCustomer({
-      name: '',
-      email: '',
-      phone: '',
-      whatsappNumber: '',
-      preferredPaymentMethod: 'vodafone_cash'
-    })
-    setShowAddCustomer(false)
-    toast.success('تم إضافة العميل بنجاح')
+      // إنشاء hash مؤقت للكلمة السرية
+      const tempPassword = Math.random().toString(36).slice(-8)
+      const passwordHash = btoa(tempPassword) // مؤقت - يجب استخدام bcrypt
+
+      const data = await userOperations.createUser({
+        email: newCustomer.email,
+        username: newCustomer.username,
+        password_hash: passwordHash,
+        name: newCustomer.name,
+        phone: newCustomer.phone,
+        role: 'customer',
+        is_active: true,
+        whatsapp_number: newCustomer.whatsapp_number,
+        preferred_payment_method: newCustomer.preferred_payment_method
+      })
+
+      // إضافة للقائمة المحلية
+      setCustomers(prev => [...prev, data])
+      setFilteredCustomers(prev => [...prev, data])
+
+      // إعادة تعيين النموذج
+      setNewCustomer({
+        name: '',
+        email: '',
+        username: '',
+        phone: '',
+        whatsapp_number: '',
+        preferred_payment_method: 'vodafone_cash'
+      })
+      setShowAddCustomer(false)
+      toast.success('تم إضافة العميل بنجاح')
+
+    } catch (error) {
+      console.error('Error adding customer:', error)
+      toast.error('حدث خطأ أثناء إضافة العميل')
+    } finally {
+      setIsLoadingCustomers(false)
+    }
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingCustomers) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="spinner w-8 h-8 mx-auto mb-4" />
-          <p className="text-gray-600">جاري التحميل...</p>
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">جاري تحميل العملاء...</p>
         </div>
       </div>
     )
@@ -236,14 +292,14 @@ export default function AdminCustomersPage() {
 
             <div className="bg-green-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-green-600">
-                {customers.filter(c => c.isActive).length}
+                {customers.filter(c => c.is_active).length}
               </div>
               <div className="text-sm text-green-600">عملاء نشطين</div>
             </div>
 
             <div className="bg-purple-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0).toLocaleString()}
+                {customers.reduce((sum, c) => sum + (c.total_spent || 0), 0).toLocaleString()}
               </div>
               <div className="text-sm text-purple-600">إجمالي الإيرادات</div>
             </div>
@@ -265,35 +321,37 @@ export default function AdminCustomersPage() {
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 font-semibold text-lg">
-                      {customer.name.charAt(0)}
+                      {(customer.name || customer.username || customer.email).charAt(0)}
                     </span>
                   </div>
                   <div className="mr-3">
-                    <h3 className="font-semibold text-gray-900">{customer.name}</h3>
+                    <h3 className="font-semibold text-gray-900">{customer.name || customer.username}</h3>
                     <p className="text-sm text-gray-500">{customer.email}</p>
                   </div>
                 </div>
-                <div className={`w-3 h-3 rounded-full ${customer.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                <div className={`w-3 h-3 rounded-full ${customer.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
               </div>
 
               {/* Customer Info */}
               <div className="space-y-3 mb-6">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Phone className="w-4 h-4 ml-2" />
-                  {customer.phone}
-                </div>
+                {customer.phone && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Phone className="w-4 h-4 ml-2" />
+                    {customer.phone}
+                  </div>
+                )}
                 <div className="flex items-center text-sm text-gray-600">
                   <DollarSign className="w-4 h-4 ml-2" />
-                  إجمالي الإنفاق: {(customer.totalSpent || 0).toLocaleString()} جنيه
+                  إجمالي الإنفاق: {(customer.total_spent || 0).toLocaleString()} جنيه
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <Calendar className="w-4 h-4 ml-2" />
-                  انضم في: {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString('ar-EG') : 'غير محدد'}
+                  انضم في: {new Date(customer.created_at).toLocaleDateString('ar-EG')}
                 </div>
-                {customer.lastLogin && (
+                {customer.last_login && (
                   <div className="flex items-center text-sm text-gray-600">
                     <Users className="w-4 h-4 ml-2" />
-                    آخر دخول: {new Date(customer.lastLogin).toLocaleDateString('ar-EG')}
+                    آخر دخول: {new Date(customer.last_login).toLocaleDateString('ar-EG')}
                   </div>
                 )}
               </div>
@@ -308,14 +366,14 @@ export default function AdminCustomersPage() {
                   <Eye className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => openWhatsApp(customer.whatsappNumber || customer.phone, customer.name)}
+                  onClick={() => openWhatsApp(customer.whatsapp_number || customer.phone || '', customer.name || customer.username || '')}
                   className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
                   title="واتساب"
                 >
                   <MessageCircle className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => openGoogleMessages(customer.phone, customer.name)}
+                  onClick={() => openGoogleMessages(customer.phone || '', customer.name || customer.username || '')}
                   className="flex-1 bg-purple-600 text-white py-2 px-3 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center"
                   title="Google Messages"
                 >
@@ -376,7 +434,7 @@ export default function AdminCustomersPage() {
                         الاسم
                       </label>
                       <div className="text-lg font-semibold">
-                        {selectedCustomer.name}
+                        {selectedCustomer.name || selectedCustomer.username}
                       </div>
                     </div>
 
@@ -394,7 +452,7 @@ export default function AdminCustomersPage() {
                         رقم الهاتف
                       </label>
                       <div className="text-lg">
-                        {selectedCustomer.phone}
+                        {selectedCustomer.phone || 'غير محدد'}
                       </div>
                     </div>
 
@@ -403,7 +461,7 @@ export default function AdminCustomersPage() {
                         إجمالي الإنفاق
                       </label>
                       <div className="text-lg font-semibold text-green-600">
-                        {(selectedCustomer.totalSpent || 0).toLocaleString()} جنيه
+                        {(selectedCustomer.total_spent || 0).toLocaleString()} جنيه
                       </div>
                     </div>
 
@@ -412,7 +470,7 @@ export default function AdminCustomersPage() {
                         تاريخ التسجيل
                       </label>
                       <div className="text-lg">
-                        {selectedCustomer.createdAt ? new Date(selectedCustomer.createdAt).toLocaleDateString('ar-EG') : 'غير محدد'}
+                        {new Date(selectedCustomer.created_at).toLocaleDateString('ar-EG')}
                       </div>
                     </div>
 
@@ -421,7 +479,7 @@ export default function AdminCustomersPage() {
                         آخر دخول
                       </label>
                       <div className="text-lg">
-                        {selectedCustomer.lastLogin ? new Date(selectedCustomer.lastLogin).toLocaleDateString('ar-EG') : 'لم يسجل دخول'}
+                        {selectedCustomer.last_login ? new Date(selectedCustomer.last_login).toLocaleDateString('ar-EG') : 'لم يسجل دخول'}
                       </div>
                     </div>
                   </div>
@@ -433,25 +491,25 @@ export default function AdminCustomersPage() {
                     <button
                       onClick={() => toggleCustomerStatus(selectedCustomer.id)}
                       className={`px-4 py-2 rounded-lg font-medium ${
-                        selectedCustomer.isActive
+                        selectedCustomer.is_active
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {selectedCustomer.isActive ? 'نشط' : 'غير نشط'}
+                      {selectedCustomer.is_active ? 'نشط' : 'غير نشط'}
                     </button>
                   </div>
 
                   <div className="flex gap-4 pt-6 border-t">
                     <button
-                      onClick={() => openWhatsApp(selectedCustomer.whatsappNumber || selectedCustomer.phone, selectedCustomer.name)}
+                      onClick={() => openWhatsApp(selectedCustomer.whatsapp_number || selectedCustomer.phone || '', selectedCustomer.name || selectedCustomer.username || '')}
                       className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
                     >
                       <MessageCircle className="w-5 h-5 ml-2" />
                       واتساب
                     </button>
                     <button
-                      onClick={() => openGoogleMessages(selectedCustomer.phone, selectedCustomer.name)}
+                      onClick={() => openGoogleMessages(selectedCustomer.phone || '', selectedCustomer.name || selectedCustomer.username || '')}
                       className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center"
                     >
                       <Phone className="w-5 h-5 ml-2" />
@@ -505,6 +563,19 @@ export default function AdminCustomersPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                      اسم المستخدم *
+                    </label>
+                    <input
+                      type="text"
+                      value={newCustomer.username}
+                      onChange={(e) => setNewCustomer(prev => ({ ...prev, username: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="username"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       البريد الإلكتروني *
                     </label>
                     <input
@@ -518,7 +589,7 @@ export default function AdminCustomersPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      رقم الهاتف *
+                      رقم الهاتف
                     </label>
                     <input
                       type="tel"
@@ -535,8 +606,8 @@ export default function AdminCustomersPage() {
                     </label>
                     <input
                       type="tel"
-                      value={newCustomer.whatsappNumber}
-                      onChange={(e) => setNewCustomer(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+                      value={newCustomer.whatsapp_number}
+                      onChange={(e) => setNewCustomer(prev => ({ ...prev, whatsapp_number: e.target.value }))}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="+201234567890"
                     />
@@ -547,8 +618,8 @@ export default function AdminCustomersPage() {
                       طريقة الدفع المفضلة
                     </label>
                     <select
-                      value={newCustomer.preferredPaymentMethod}
-                      onChange={(e) => setNewCustomer(prev => ({ ...prev, preferredPaymentMethod: e.target.value }))}
+                      value={newCustomer.preferred_payment_method}
+                      onChange={(e) => setNewCustomer(prev => ({ ...prev, preferred_payment_method: e.target.value }))}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="vodafone_cash">فودافون كاش</option>
