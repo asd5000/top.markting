@@ -1,0 +1,329 @@
+import { createClient } from '@supabase/supabase-js'
+import { Database } from './database.types'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xanzptntwwmpulqutoiv.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhbnpwdG50d3dtcHVscXV0b2l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5NzI4NzQsImV4cCI6MjA1MDU0ODg3NH0.Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8'
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables')
+}
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+
+// Helper function to handle Supabase errors
+export const handleSupabaseError = (error: any) => {
+  console.error('Supabase error:', error)
+  throw new Error(error.message || 'Database operation failed')
+}
+
+// User operations
+export const userOperations = {
+  async getUser(id: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async getUserByEmail(email: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single()
+    
+    if (error && error.code !== 'PGRST116') handleSupabaseError(error)
+    return data
+  },
+
+  async createUser(userData: Database['public']['Tables']['users']['Insert']) {
+    const { data, error } = await supabase
+      .from('users')
+      .insert(userData)
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async updateUser(id: string, updates: Database['public']['Tables']['users']['Update']) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async getAllUsers() {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) handleSupabaseError(error)
+    return data || []
+  }
+}
+
+// Service operations
+export const serviceOperations = {
+  async getAllServices() {
+    const { data, error } = await supabase
+      .from('app_services')
+      .select('*')
+      .order('category', { ascending: true })
+
+    if (error) handleSupabaseError(error)
+    return data || []
+  },
+
+  async getService(id: string) {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async createService(serviceData: Database['public']['Tables']['services']['Insert']) {
+    const { data, error } = await supabase
+      .from('services')
+      .insert(serviceData)
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async updateService(id: string, updates: Database['public']['Tables']['services']['Update']) {
+    const { data, error } = await supabase
+      .from('services')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async deleteService(id: string) {
+    const { error } = await supabase
+      .from('services')
+      .delete()
+      .eq('id', id)
+    
+    if (error) handleSupabaseError(error)
+  }
+}
+
+// Order operations
+export const orderOperations = {
+  async createOrder(orderData: Database['public']['Tables']['orders']['Insert']) {
+    const { data, error } = await supabase
+      .from('orders')
+      .insert(orderData)
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async getOrder(id: string) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        customer:users(*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async getAllOrders() {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        customer:users!customer_id(name, email, phone, whatsapp_number)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) handleSupabaseError(error)
+    return data || []
+  },
+
+  async getOrdersByCustomer(customerId: string) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+    
+    if (error) handleSupabaseError(error)
+    return data || []
+  },
+
+  async updateOrder(id: string, updates: Database['public']['Tables']['orders']['Update']) {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async updateOrderStatus(id: string, status: Database['public']['Tables']['orders']['Row']['status']) {
+    return this.updateOrder(id, { status })
+  },
+
+  async updatePaymentStatus(id: string, paymentStatus: Database['public']['Tables']['orders']['Row']['payment_status'], receiptUrl?: string) {
+    const updates: Database['public']['Tables']['orders']['Update'] = { payment_status: paymentStatus }
+    if (receiptUrl) updates.payment_receipt_url = receiptUrl
+    return this.updateOrder(id, updates)
+  }
+}
+
+// Real estate operations
+export const realEstateOperations = {
+  async createProperty(propertyData: Database['public']['Tables']['real_estate_properties']['Insert']) {
+    const { data, error } = await supabase
+      .from('real_estate_properties')
+      .insert(propertyData)
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async getAllProperties() {
+    const { data, error } = await supabase
+      .from('real_estate_properties')
+      .select(`
+        *,
+        customer:users(name, email, phone, whatsapp_number)
+      `)
+      .order('created_at', { ascending: false })
+    
+    if (error) handleSupabaseError(error)
+    return data || []
+  },
+
+  async getProperty(id: string) {
+    const { data, error } = await supabase
+      .from('real_estate_properties')
+      .select(`
+        *,
+        customer:users(*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async updateProperty(id: string, updates: Database['public']['Tables']['real_estate_properties']['Update']) {
+    const { data, error } = await supabase
+      .from('real_estate_properties')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async incrementViews(id: string) {
+    const { data, error } = await supabase
+      .rpc('increment_property_views', { property_id: id })
+    
+    if (error) handleSupabaseError(error)
+    return data
+  }
+}
+
+// Admin settings operations
+export const adminOperations = {
+  async getSetting(key: string) {
+    const { data, error } = await supabase
+      .from('admin_settings')
+      .select('*')
+      .eq('key', key)
+      .single()
+    
+    if (error && error.code !== 'PGRST116') handleSupabaseError(error)
+    return data
+  },
+
+  async setSetting(key: string, value: any, description?: string) {
+    const { data, error } = await supabase
+      .from('admin_settings')
+      .upsert({
+        key,
+        value,
+        description,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+    
+    if (error) handleSupabaseError(error)
+    return data
+  },
+
+  async getAllSettings() {
+    const { data, error } = await supabase
+      .from('admin_settings')
+      .select('*')
+      .order('key', { ascending: true })
+    
+    if (error) handleSupabaseError(error)
+    return data || []
+  }
+}
+
+// Real-time subscriptions
+export const subscriptions = {
+  subscribeToOrders(callback: (payload: any) => void) {
+    return supabase
+      .channel('orders')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'orders' }, 
+        callback
+      )
+      .subscribe()
+  },
+
+  subscribeToUsers(callback: (payload: any) => void) {
+    return supabase
+      .channel('users')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'users' }, 
+        callback
+      )
+      .subscribe()
+  }
+}

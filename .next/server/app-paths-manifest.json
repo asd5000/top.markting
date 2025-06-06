@@ -1,0 +1,10 @@
+{
+  "/page": "app/page.js",
+  "/admin/orders/page": "app/admin/orders/page.js",
+  "/admin/customers/page": "app/admin/customers/page.js",
+  "/admin/subscriptions/page": "app/admin/subscriptions/page.js",
+  "/admin/dashboard/page": "app/admin/dashboard/page.js",
+  "/services-shop/page": "app/services-shop/page.js",
+  "/admin/real-estate-data/page": "app/admin/real-estate-data/page.js",
+  "/auth/login/page": "app/auth/login/page.js"
+}
