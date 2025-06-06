@@ -78,79 +78,137 @@ export default function AdminServicesPage() {
 
 
 
-  const getAllServices = () => {
-    return categories.flatMap(category => 
-      category.services.map(service => ({
-        ...service,
-        categoryName: category.name
-      }))
-    )
-  }
-
-  const filteredServices = getAllServices().filter(service => {
-    const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredServices = services.filter(service => {
+    const matchesSearch = (service.name_ar?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+                         (service.description_ar?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+                         (service.name_en?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
     const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory
     return matchesSearch && matchesCategory
   })
 
-  const updateService = (updatedService: ServiceItem) => {
-    setCategories(prev => prev.map(category => ({
-      ...category,
-      services: category.services.map(service =>
+  const updateService = async (updatedService: Service) => {
+    try {
+      setIsLoadingServices(true)
+
+      await serviceOperations.updateService(updatedService.id, {
+        name_ar: updatedService.name_ar,
+        name_en: updatedService.name_en,
+        description_ar: updatedService.description_ar,
+        description_en: updatedService.description_en,
+        price: updatedService.price,
+        duration_text: updatedService.duration_text,
+        features: updatedService.features,
+        is_active: updatedService.is_active,
+        category: updatedService.category,
+        category_name: updatedService.category_name
+      })
+
+      // تحديث القائمة المحلية
+      setServices(prev => prev.map(service =>
         service.id === updatedService.id ? updatedService : service
-      )
-    })))
-    toast.success('تم تحديث الخدمة بنجاح')
-    setShowEditModal(false)
-    setEditingService(null)
+      ))
+
+      toast.success('تم تحديث الخدمة بنجاح')
+      setShowEditModal(false)
+      setEditingService(null)
+
+    } catch (error) {
+      console.error('Error updating service:', error)
+      toast.error('حدث خطأ أثناء تحديث الخدمة')
+    } finally {
+      setIsLoadingServices(false)
+    }
   }
 
-  const addService = (newService: Omit<ServiceItem, 'id'>) => {
-    const serviceWithId = {
-      ...newService,
-      id: `service-${Date.now()}`
+  const addService = async (newService: Omit<Service, 'id'>) => {
+    try {
+      setIsLoadingServices(true)
+
+      const data = await serviceOperations.createService({
+        name_ar: newService.name_ar,
+        name_en: newService.name_en,
+        description_ar: newService.description_ar,
+        description_en: newService.description_en,
+        price: newService.price,
+        duration_text: newService.duration_text,
+        features: newService.features,
+        is_active: newService.is_active ?? true,
+        category: newService.category,
+        category_name: newService.category_name
+      })
+
+      // إضافة للقائمة المحلية
+      setServices(prev => [...prev, data])
+
+      toast.success('تم إضافة الخدمة بنجاح')
+      setShowEditModal(false)
+      setEditingService(null)
+
+    } catch (error) {
+      console.error('Error adding service:', error)
+      toast.error('حدث خطأ أثناء إضافة الخدمة')
+    } finally {
+      setIsLoadingServices(false)
+    }
+  }
+
+  const deleteService = async (serviceId: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذه الخدمة؟')) {
+      return
     }
 
-    setCategories(prev => prev.map(category =>
-      category.id === newService.category
-        ? { ...category, services: [...category.services, serviceWithId] }
-        : category
-    ))
+    try {
+      setIsLoadingServices(true)
 
-    toast.success('تم إضافة الخدمة بنجاح')
-    setShowEditModal(false)
-    setEditingService(null)
-  }
+      await serviceOperations.deleteService(serviceId)
 
-  const deleteService = (serviceId: string) => {
-    if (confirm('هل أنت متأكد من حذف هذه الخدمة؟')) {
-      setCategories(prev => prev.map(category => ({
-        ...category,
-        services: category.services.filter(service => service.id !== serviceId)
-      })))
+      // حذف من القائمة المحلية
+      setServices(prev => prev.filter(service => service.id !== serviceId))
+
       toast.success('تم حذف الخدمة بنجاح')
+
+    } catch (error) {
+      console.error('Error deleting service:', error)
+      toast.error('حدث خطأ أثناء حذف الخدمة')
+    } finally {
+      setIsLoadingServices(false)
     }
   }
 
-  const toggleServiceStatus = (serviceId: string) => {
-    setCategories(prev => prev.map(category => ({
-      ...category,
-      services: category.services.map(service => 
-        service.id === serviceId 
-          ? { ...service, isActive: !service.isActive }
-          : service
-      )
-    })))
-    toast.success('تم تحديث حالة الخدمة')
+  const toggleServiceStatus = async (serviceId: string) => {
+    try {
+      setIsLoadingServices(true)
+
+      const service = services.find(s => s.id === serviceId)
+      if (!service) return
+
+      await serviceOperations.updateService(serviceId, {
+        is_active: !service.is_active
+      })
+
+      // تحديث القائمة المحلية
+      setServices(prev => prev.map(s =>
+        s.id === serviceId
+          ? { ...s, is_active: !s.is_active }
+          : s
+      ))
+
+      toast.success('تم تحديث حالة الخدمة')
+
+    } catch (error) {
+      console.error('Error toggling service status:', error)
+      toast.error('حدث خطأ أثناء تحديث حالة الخدمة')
+    } finally {
+      setIsLoadingServices(false)
+    }
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingServices) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="spinner w-8 h-8 mx-auto mb-4" />
-          <p className="text-gray-600">جاري التحميل...</p>
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">جاري تحميل الخدمات...</p>
         </div>
       </div>
     )
@@ -173,13 +231,17 @@ export default function AdminServicesPage() {
                 onClick={() => {
                   setEditingService({
                     id: '',
-                    name: '',
-                    description: '',
+                    name_ar: '',
+                    name_en: '',
+                    description_ar: '',
+                    description_en: '',
                     price: 0,
-                    duration: '',
+                    currency: 'EGP',
+                    duration_text: '',
                     features: [],
-                    isActive: true,
-                    category: categories[0]?.id || ''
+                    is_active: true,
+                    category: 'design',
+                    category_name: 'التصميم'
                   })
                   setShowEditModal(true)
                 }}
@@ -228,11 +290,13 @@ export default function AdminServicesPage() {
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">جميع الفئات</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
+              <option value="design">التصميم</option>
+              <option value="marketing">التسويق</option>
+              <option value="video-editing">مونتاج الفيديو</option>
+              <option value="followers">زيادة المتابعين</option>
+              <option value="data-extraction">استخراج البيانات</option>
+              <option value="web-development">تطوير المواقع</option>
+              <option value="real-estate">التسويق العقاري</option>
             </select>
 
             {/* Results Count */}
@@ -257,8 +321,8 @@ export default function AdminServicesPage() {
               {/* Service Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
-                  <div className={`w-3 h-3 rounded-full ${service.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <span className="mr-2 text-sm text-gray-500">{service.categoryName}</span>
+                  <div className={`w-3 h-3 rounded-full ${service.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className="mr-2 text-sm text-gray-500">{service.category_name}</span>
                 </div>
                 <div className="flex space-x-1 space-x-reverse">
                   <button
@@ -282,8 +346,8 @@ export default function AdminServicesPage() {
               </div>
 
               {/* Service Info */}
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.name}</h3>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.name_ar}</h3>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description_ar}</p>
 
               <div className="space-y-3 mb-4">
                 <div className="flex items-center justify-between">
@@ -300,7 +364,7 @@ export default function AdminServicesPage() {
                     <Clock className="w-4 h-4 ml-1" />
                     المدة
                   </div>
-                  <span className="text-sm">{service.duration}</span>
+                  <span className="text-sm">{service.duration_text}</span>
                 </div>
               </div>
 
@@ -308,17 +372,17 @@ export default function AdminServicesPage() {
               <div className="mb-4">
                 <div className="text-sm text-gray-600 mb-2">المميزات:</div>
                 <div className="flex flex-wrap gap-1">
-                  {service.features.slice(0, 3).map((feature, idx) => (
+                  {service.features?.slice(0, 3).map((feature, idx) => (
                     <span
                       key={idx}
                       className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full"
                     >
                       {feature}
                     </span>
-                  ))}
-                  {service.features.length > 3 && (
+                  )) || []}
+                  {(service.features?.length || 0) > 3 && (
                     <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                      +{service.features.length - 3}
+                      +{(service.features?.length || 0) - 3}
                     </span>
                   )}
                 </div>
@@ -336,13 +400,13 @@ export default function AdminServicesPage() {
                 <button
                   onClick={() => toggleServiceStatus(service.id)}
                   className={`flex-1 py-2 px-3 rounded-lg transition-colors flex items-center justify-center ${
-                    service.isActive
+                    service.is_active
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
-                  title={service.isActive ? 'إيقاف' : 'تفعيل'}
+                  title={service.is_active ? 'إيقاف' : 'تفعيل'}
                 >
-                  {service.isActive ? <X className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                  {service.is_active ? <X className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                 </button>
               </div>
             </motion.div>
@@ -392,7 +456,7 @@ export default function AdminServicesPage() {
                         اسم الخدمة
                       </label>
                       <div className="text-lg font-semibold">
-                        {selectedService.name}
+                        {selectedService.name_ar}
                       </div>
                     </div>
 
@@ -401,7 +465,7 @@ export default function AdminServicesPage() {
                         الفئة
                       </label>
                       <div className="text-lg">
-                        {selectedService.category}
+                        {selectedService.category_name}
                       </div>
                     </div>
 
@@ -419,7 +483,7 @@ export default function AdminServicesPage() {
                         مدة التنفيذ
                       </label>
                       <div className="text-lg">
-                        {selectedService.duration}
+                        {selectedService.duration_text}
                       </div>
                     </div>
                   </div>
@@ -429,7 +493,7 @@ export default function AdminServicesPage() {
                       الوصف
                     </label>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      {selectedService.description}
+                      {selectedService.description_ar}
                     </div>
                   </div>
 
@@ -438,14 +502,14 @@ export default function AdminServicesPage() {
                       المميزات
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {selectedService.features.map((feature, index) => (
+                      {selectedService.features?.map((feature, index) => (
                         <span
                           key={index}
                           className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
                         >
                           {feature}
                         </span>
-                      ))}
+                      )) || []}
                     </div>
                   </div>
 
@@ -505,29 +569,56 @@ export default function AdminServicesPage() {
                     {/* Basic Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="form-label">اسم الخدمة *</label>
+                        <label className="form-label">اسم الخدمة (عربي) *</label>
                         <input
                           type="text"
-                          value={editingService.name}
-                          onChange={(e) => setEditingService(prev => ({ ...prev!, name: e.target.value }))}
+                          value={editingService.name_ar || ''}
+                          onChange={(e) => setEditingService(prev => ({ ...prev!, name_ar: e.target.value }))}
                           className="form-input"
                           required
                         />
                       </div>
 
                       <div>
+                        <label className="form-label">اسم الخدمة (إنجليزي)</label>
+                        <input
+                          type="text"
+                          value={editingService.name_en || ''}
+                          onChange={(e) => setEditingService(prev => ({ ...prev!, name_en: e.target.value }))}
+                          className="form-input"
+                        />
+                      </div>
+
+                      <div>
                         <label className="form-label">الفئة *</label>
                         <select
-                          value={editingService.category}
-                          onChange={(e) => setEditingService(prev => ({ ...prev!, category: e.target.value }))}
+                          value={editingService.category || ''}
+                          onChange={(e) => {
+                            const categoryNames: Record<string, string> = {
+                              'design': 'التصميم',
+                              'marketing': 'التسويق',
+                              'video-editing': 'مونتاج الفيديو',
+                              'followers': 'زيادة المتابعين',
+                              'data-extraction': 'استخراج البيانات',
+                              'web-development': 'تطوير المواقع',
+                              'real-estate': 'التسويق العقاري'
+                            }
+                            setEditingService(prev => ({
+                              ...prev!,
+                              category: e.target.value,
+                              category_name: categoryNames[e.target.value] || e.target.value
+                            }))
+                          }}
                           className="form-input"
                           required
                         >
-                          {categories.map(category => (
-                            <option key={category.id} value={category.id}>
-                              {category.name}
-                            </option>
-                          ))}
+                          <option value="design">التصميم</option>
+                          <option value="marketing">التسويق</option>
+                          <option value="video-editing">مونتاج الفيديو</option>
+                          <option value="followers">زيادة المتابعين</option>
+                          <option value="data-extraction">استخراج البيانات</option>
+                          <option value="web-development">تطوير المواقع</option>
+                          <option value="real-estate">التسويق العقاري</option>
                         </select>
                       </div>
 
@@ -547,8 +638,8 @@ export default function AdminServicesPage() {
                         <label className="form-label">مدة التنفيذ *</label>
                         <input
                           type="text"
-                          value={editingService.duration}
-                          onChange={(e) => setEditingService(prev => ({ ...prev!, duration: e.target.value }))}
+                          value={editingService.duration_text || ''}
+                          onChange={(e) => setEditingService(prev => ({ ...prev!, duration_text: e.target.value }))}
                           className="form-input"
                           placeholder="مثال: 2-3 أيام"
                           required
@@ -557,28 +648,39 @@ export default function AdminServicesPage() {
                     </div>
 
                     {/* Description */}
-                    <div>
-                      <label className="form-label">الوصف *</label>
-                      <textarea
-                        value={editingService.description}
-                        onChange={(e) => setEditingService(prev => ({ ...prev!, description: e.target.value }))}
-                        className="form-input"
-                        rows={4}
-                        required
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="form-label">الوصف (عربي) *</label>
+                        <textarea
+                          value={editingService.description_ar || ''}
+                          onChange={(e) => setEditingService(prev => ({ ...prev!, description_ar: e.target.value }))}
+                          className="form-input"
+                          rows={4}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="form-label">الوصف (إنجليزي)</label>
+                        <textarea
+                          value={editingService.description_en || ''}
+                          onChange={(e) => setEditingService(prev => ({ ...prev!, description_en: e.target.value }))}
+                          className="form-input"
+                          rows={4}
+                        />
+                      </div>
                     </div>
 
                     {/* Features */}
                     <div>
                       <label className="form-label">المميزات</label>
                       <div className="space-y-2">
-                        {editingService.features.map((feature, index) => (
+                        {(editingService.features || []).map((feature, index) => (
                           <div key={index} className="flex gap-2">
                             <input
                               type="text"
                               value={feature}
                               onChange={(e) => {
-                                const newFeatures = [...editingService.features]
+                                const newFeatures = [...(editingService.features || [])]
                                 newFeatures[index] = e.target.value
                                 setEditingService(prev => ({ ...prev!, features: newFeatures }))
                               }}
@@ -588,7 +690,7 @@ export default function AdminServicesPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                const newFeatures = editingService.features.filter((_, i) => i !== index)
+                                const newFeatures = (editingService.features || []).filter((_, i) => i !== index)
                                 setEditingService(prev => ({ ...prev!, features: newFeatures }))
                               }}
                               className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600"
@@ -602,7 +704,7 @@ export default function AdminServicesPage() {
                           onClick={() => {
                             setEditingService(prev => ({
                               ...prev!,
-                              features: [...prev!.features, '']
+                              features: [...(prev!.features || []), '']
                             }))
                           }}
                           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center"
@@ -618,8 +720,8 @@ export default function AdminServicesPage() {
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={editingService.isActive}
-                          onChange={(e) => setEditingService(prev => ({ ...prev!, isActive: e.target.checked }))}
+                          checked={editingService.is_active || false}
+                          onChange={(e) => setEditingService(prev => ({ ...prev!, is_active: e.target.checked }))}
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 ml-2"
                         />
                         <span className="text-gray-700">خدمة نشطة</span>

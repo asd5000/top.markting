@@ -21,56 +21,24 @@ import {
 import { useAuth, usePermissions } from '@/lib/auth/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Customer } from '@/lib/auth/auth-types'
 import { toast } from 'react-hot-toast'
-import { storageManager } from '@/lib/storage/local-storage'
+import { userOperations } from '@/lib/supabase/client'
 
-// Mock customers data
-const mockCustomers: Customer[] = [
-  {
-    id: '2',
-    email: 'ahmed@example.com',
-    name: 'أحمد محمد',
-    phone: '+201234567890',
-    role: 'customer',
-    isActive: true,
-    createdAt: new Date('2024-01-10'),
-    lastLogin: new Date('2024-01-25'),
-    orders: [],
-    totalSpent: 2500,
-    lastOrderDate: new Date('2024-01-20'),
-    preferredPaymentMethod: 'vodafone_cash',
-    whatsappNumber: '+201234567890'
-  },
-  {
-    id: '3',
-    email: 'fatma@example.com',
-    name: 'فاطمة علي',
-    phone: '+201987654321',
-    role: 'customer',
-    isActive: true,
-    createdAt: new Date('2024-01-15'),
-    lastLogin: new Date('2024-01-24'),
-    orders: [],
-    totalSpent: 1200,
-    lastOrderDate: new Date('2024-01-22'),
-    preferredPaymentMethod: 'instapay',
-    whatsappNumber: '+201987654321'
-  },
-  {
-    id: '4',
-    email: 'mohamed@example.com',
-    name: 'محمد حسن',
-    phone: '+201555666777',
-    role: 'customer',
-    isActive: true,
-    createdAt: new Date('2024-01-20'),
-    lastLogin: new Date('2024-01-25'),
-    orders: [],
-    totalSpent: 800,
-    whatsappNumber: '+201555666777'
-  }
-]
+interface Customer {
+  id: string
+  email: string
+  username: string
+  name: string | null
+  phone: string | null
+  role: string | null
+  is_active: boolean | null
+  created_at: string
+  updated_at: string
+  last_login: string | null
+  total_spent: number | null
+  whatsapp_number: string | null
+  preferred_payment_method: string | null
+}
 
 export default function AdminCustomersPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
@@ -81,12 +49,14 @@ export default function AdminCustomersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [showAddCustomer, setShowAddCustomer] = useState(false)
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false)
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     email: '',
+    username: '',
     phone: '',
-    whatsappNumber: '',
-    preferredPaymentMethod: 'vodafone_cash'
+    whatsapp_number: '',
+    preferred_payment_method: 'vodafone_cash'
   })
 
   useEffect(() => {
@@ -96,21 +66,29 @@ export default function AdminCustomersPage() {
     }
   }, [user, isAuthenticated, isLoading, isAdmin, router])
 
-  // Load customers from localStorage on component mount
+  // Load customers from database
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    const loadCustomers = async () => {
+      if (!isAuthenticated || !isAdmin()) return
 
-    const savedCustomers = storageManager.getCustomers()
-    setCustomers(savedCustomers)
-    setFilteredCustomers(savedCustomers)
-  }, [])
+      try {
+        setIsLoadingCustomers(true)
+        const data = await userOperations.getUsers()
 
-  // Save customers to localStorage whenever customers change
-  useEffect(() => {
-    if (typeof window === 'undefined') return
+        // Filter only customers (not admins)
+        const customerData = data.filter(user => user.role === 'customer' || !user.role)
+        setCustomers(customerData)
+        setFilteredCustomers(customerData)
+      } catch (error) {
+        console.error('Error loading customers:', error)
+        toast.error('حدث خطأ أثناء تحميل العملاء')
+      } finally {
+        setIsLoadingCustomers(false)
+      }
+    }
 
-    storageManager.saveCustomers(customers)
-  }, [customers])
+    loadCustomers()
+  }, [isAuthenticated, isAdmin])
 
   useEffect(() => {
     let filtered = customers
