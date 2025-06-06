@@ -68,9 +68,23 @@ export const userOperations = {
       .from('users')
       .select('*')
       .order('created_at', { ascending: false })
-    
+
     if (error) handleSupabaseError(error)
     return data || []
+  },
+
+  async getUsers() {
+    return this.getAllUsers()
+  },
+
+  async deleteUser(id: string) {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id)
+
+    if (error) handleSupabaseError(error)
+    return { success: true }
   }
 }
 

@@ -20,7 +20,7 @@ import {
 import { useAuth, usePermissions } from '@/lib/auth/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { userOperations } from '@/lib/supabase/client'
+import { userOperations, adminOperations } from '@/lib/supabase/client'
 import { toast } from 'react-hot-toast'
 
 interface Manager {
@@ -105,6 +105,58 @@ export default function AdminManagersPage() {
     }
   }, [user, isAuthenticated, isLoading, isAdmin, router])
 
+  // تحميل المديرين من قاعدة البيانات
+  useEffect(() => {
+    const loadManagers = async () => {
+      if (!isAuthenticated || !isAdmin()) return
+
+      try {
+        setIsLoadingManagers(true)
+        const data = await userOperations.getUsers()
+
+        if (data && data.length > 0) {
+          // تحويل البيانات إلى تنسيق Manager مع تحميل الصلاحيات
+          const managersData: Manager[] = await Promise.all(
+            data.map(async (user) => {
+              let permissions: string[] = []
+
+              // تحميل الصلاحيات من الإعدادات
+              try {
+                const permissionsSetting = await adminOperations.getSetting(`user_permissions_${user.id}`)
+                if (permissionsSetting?.value) {
+                  permissions = permissionsSetting.value
+                }
+              } catch (error) {
+                console.log('No permissions found for user:', user.id)
+              }
+
+              return {
+                id: user.id,
+                name: user.name || user.email,
+                email: user.email,
+                phone: user.phone || '',
+                role: user.role as 'admin' | 'manager',
+                permissions: user.role === 'admin' ? ['all'] : permissions,
+                is_active: user.is_active ?? true,
+                created_at: user.created_at || new Date().toISOString(),
+                last_login: user.last_login
+              }
+            })
+          )
+
+          setManagers(managersData)
+        }
+      } catch (error) {
+        console.error('Error loading managers:', error)
+        toast.error('حدث خطأ أثناء تحميل المديرين')
+      } finally {
+        setIsLoadingManagers(false)
+      }
+    }
+
+    loadManagers()
+  }, [isAuthenticated, isAdmin])
+
 
 
   const filteredManagers = managers.filter(manager =>
@@ -112,53 +164,117 @@ export default function AdminManagersPage() {
     manager.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleAddManager = () => {
+  const handleAddManager = async () => {
     if (!newManager.email || !newManager.name) {
       toast.error('يرجى ملء جميع الحقول المطلوبة')
       return
     }
 
-    const manager: Manager = {
-      id: `manager-${Date.now()}`,
-      name: newManager.name,
-      email: newManager.email,
-      phone: newManager.phone,
-      role: newManager.role,
-      permissions: newManager.role === 'admin' ? ['all'] : newManager.permissions,
-      is_active: true,
-      created_at: new Date().toISOString()
+    try {
+      setIsLoadingManagers(true)
+
+      const manager: Manager = {
+        id: `manager-${Date.now()}`,
+        name: newManager.name,
+        email: newManager.email,
+        phone: newManager.phone,
+        role: newManager.role,
+        permissions: newManager.role === 'admin' ? ['all'] : newManager.permissions,
+        is_active: true,
+        created_at: new Date().toISOString()
+      }
+
+      // إضافة المدير إلى قاعدة البيانات
+      const data = await userOperations.createUser({
+        email: manager.email,
+        name: manager.name,
+        phone: manager.phone,
+        role: manager.role,
+        is_active: manager.is_active
+      })
+
+      // حفظ الصلاحيات في إعدادات منفصلة
+      if (manager.permissions.length > 0) {
+        await adminOperations.setSetting(
+          `user_permissions_${manager.id}`,
+          manager.permissions,
+          `صلاحيات المدير ${manager.name}`
+        )
+      }
+
+      // تحديث القائمة المحلية بالبيانات الجديدة
+      const newManagerData = data || manager
+      setManagers(prev => [...prev, newManagerData])
+
+      // إعادة تعيين النموذج
+      setNewManager({
+        email: '',
+        name: '',
+        phone: '',
+        role: 'manager',
+        permissions: []
+      })
+      setShowAddModal(false)
+      toast.success(`تم إضافة المدير "${manager.name}" بنجاح!`)
+
+    } catch (error) {
+      console.error('Error adding manager:', error)
+      toast.error('حدث خطأ أثناء إضافة المدير')
+    } finally {
+      setIsLoadingManagers(false)
     }
-
-    setManagers(prev => [...prev, manager])
-    setNewManager({
-      email: '',
-      name: '',
-      phone: '',
-      role: 'manager',
-      permissions: []
-    })
-    setShowAddModal(false)
-    toast.success('تم إضافة المدير بنجاح')
   }
 
-  const toggleManagerStatus = (managerId: string, currentStatus: boolean) => {
-    setManagers(prev => prev.map(manager =>
-      manager.id === managerId
-        ? { ...manager, is_active: !currentStatus }
-        : manager
-    ))
-    toast.success('تم تحديث حالة المدير')
+  const toggleManagerStatus = async (managerId: string, currentStatus: boolean) => {
+    try {
+      setIsLoadingManagers(true)
+
+      // تحديث في قاعدة البيانات
+      await userOperations.updateUser(managerId, {
+        is_active: !currentStatus
+      })
+
+      // تحديث القائمة المحلية
+      setManagers(prev => prev.map(manager =>
+        manager.id === managerId
+          ? { ...manager, is_active: !currentStatus }
+          : manager
+      ))
+      toast.success('تم تحديث حالة المدير')
+
+    } catch (error) {
+      console.error('Error toggling manager status:', error)
+      toast.error('حدث خطأ أثناء تحديث حالة المدير')
+    } finally {
+      setIsLoadingManagers(false)
+    }
   }
 
-  const deleteManager = (managerId: string) => {
+  const deleteManager = async (managerId: string) => {
     if (managerId === user?.id) {
       toast.error('لا يمكنك حذف حسابك الخاص')
       return
     }
 
-    if (confirm('هل أنت متأكد من حذف هذا المدير؟')) {
+    if (!confirm('هل أنت متأكد من حذف هذا المدير؟')) {
+      return
+    }
+
+    try {
+      setIsLoadingManagers(true)
+
+      // حذف من قاعدة البيانات
+      await userOperations.deleteUser(managerId)
+
+      // تحديث القائمة المحلية
       setManagers(prev => prev.filter(manager => manager.id !== managerId))
       toast.success('تم حذف المدير بنجاح')
+
+    } catch (error) {
+      console.error('Error deleting manager:', error)
+      toast.error('حدث خطأ أثناء حذف المدير')
+    } finally {
+      setIsLoadingManagers(false)
     }
   }
 
@@ -392,6 +508,7 @@ export default function AdminManagersPage() {
                         className="form-input"
                         placeholder="أدخل الاسم الكامل"
                         required
+                        disabled={isLoadingManagers}
                       />
                     </div>
 
@@ -480,11 +597,133 @@ export default function AdminManagersPage() {
                     </button>
                     <button
                       onClick={handleAddManager}
-                      className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                      disabled={isLoadingManagers}
+                      className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                     >
-                      إضافة المدير
+                      {isLoadingManagers ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
+                          جاري الإضافة...
+                        </>
+                      ) : (
+                        'إضافة المدير'
+                      )}
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manager Details Modal */}
+        {selectedManager && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setSelectedManager(null)} />
+
+              <div className="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-right align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    تفاصيل المدير
+                  </h3>
+                  <button
+                    onClick={() => setSelectedManager(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center mb-6">
+                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Shield className="w-10 h-10 text-blue-600" />
+                    </div>
+                  </div>
+
+                  <div className="text-center mb-6">
+                    <h4 className="text-xl font-semibold text-gray-900">{selectedManager.name}</h4>
+                    <p className="text-gray-500">{selectedManager.role === 'admin' ? 'مدير عام' : 'مدير'}</p>
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${
+                      selectedManager.is_active
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedManager.is_active ? 'نشط' : 'غير نشط'}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center text-gray-600">
+                      <Mail className="w-5 h-5 ml-3" />
+                      <span>{selectedManager.email}</span>
+                    </div>
+
+                    {selectedManager.phone && (
+                      <div className="flex items-center text-gray-600">
+                        <Phone className="w-5 h-5 ml-3" />
+                        <span>{selectedManager.phone}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center text-gray-600">
+                      <Calendar className="w-5 h-5 ml-3" />
+                      <span>انضم في: {new Date(selectedManager.created_at).toLocaleDateString('ar-EG')}</span>
+                    </div>
+
+                    {selectedManager.last_login && (
+                      <div className="flex items-center text-gray-600">
+                        <UserCheck className="w-5 h-5 ml-3" />
+                        <span>آخر دخول: {new Date(selectedManager.last_login).toLocaleDateString('ar-EG')}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-6">
+                    <h5 className="font-medium text-gray-900 mb-3">الصلاحيات:</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedManager.role === 'admin' ? (
+                        <span className="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full">
+                          جميع الصلاحيات
+                        </span>
+                      ) : (
+                        selectedManager.permissions.length > 0 ? (
+                          selectedManager.permissions.map((permission) => (
+                            <span
+                              key={permission}
+                              className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                            >
+                              {availablePermissions.find(p => p.id === permission)?.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                            لا توجد صلاحيات
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-8 pt-6 border-t">
+                  <button
+                    onClick={() => setSelectedManager(null)}
+                    className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    إغلاق
+                  </button>
+                  <button
+                    onClick={() => toggleManagerStatus(selectedManager.id, selectedManager.is_active)}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                      selectedManager.is_active
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {selectedManager.is_active ? 'إيقاف' : 'تفعيل'}
+                  </button>
                 </div>
               </div>
             </div>
