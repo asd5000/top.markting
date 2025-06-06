@@ -121,13 +121,13 @@ export default function ServicesShopPage() {
     }
 
     // إذا كانت خدمة التسويق العقاري المباشرة
-    if (service.isDirectForm) {
+    if ((service as any).isDirectForm) {
       setShowRealEstateModal(true)
       return
     }
 
     // إذا كانت باقة اشتراك
-    if (service.isSubscription) {
+    if ((service as any).isSubscription) {
       setSelectedPackage(service)
       setShowSubscriptionModal(true)
       return
@@ -492,12 +492,12 @@ export default function ServicesShopPage() {
                         <FileText className="w-4 h-4 ml-2" />
                         {service.formType === 'sell-property' ? 'بيع عقار' : 'شراء عقار'}
                       </>
-                    ) : service.isDirectForm ? (
+                    ) : (service as any).isDirectForm ? (
                       <>
                         <Plus className="w-4 h-4 ml-2" />
                         إضافة عقار
                       </>
-                    ) : service.isSubscription ? (
+                    ) : (service as any).isSubscription ? (
                       <>
                         <Plus className="w-4 h-4 ml-2" />
                         تفعيل اشتراك

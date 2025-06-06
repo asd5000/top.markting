@@ -142,7 +142,7 @@ export default function AdminDashboard() {
       icon: Settings,
       href: '/admin/services',
       color: 'bg-purple-500',
-      count: stats.totalServices
+      count: stats.topServices?.length || 0
     },
     {
       title: 'التقارير المالية',

@@ -135,7 +135,7 @@ export default function AdminCustomersPage() {
   const openGoogleMessages = (phone: string, customerName: string) => {
     const message = `مرحباً ${customerName}، نتواصل معك من توب ماركتنج`
     // This would typically integrate with Google Messages API
-    toast.info('سيتم فتح Google Messages')
+    toast('سيتم فتح Google Messages')
   }
 
   const deleteCustomer = (customerId: string) => {

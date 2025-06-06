@@ -96,7 +96,7 @@ export default function AccountPage() {
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    whatsappNumber: user?.whatsappNumber || '',
+    whatsappNumber: (user as any)?.whatsappNumber || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
@@ -116,7 +116,7 @@ export default function AccountPage() {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        whatsappNumber: user.whatsappNumber || ''
+        whatsappNumber: (user as any).whatsappNumber || ''
       }))
     }
   }, [user])

@@ -160,7 +160,7 @@ export default function AdminSettingsPage() {
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof SiteSettings],
+        ...(prev[section as keyof SiteSettings] as any),
         [field]: value
       }
     }))

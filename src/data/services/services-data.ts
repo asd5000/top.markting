@@ -459,8 +459,7 @@ export const servicesData: ServiceCategory[] = [
         duration: 'حسب الطلب',
         features: ['نموذج بيع العقار', 'نموذج شراء العقار', 'متابعة مع العملاء', 'خدمة مجانية'],
         isActive: true,
-        category: 'real-estate',
-        isDirectForm: true
+        category: 'real-estate'
       }
     ]
   },
@@ -486,16 +485,8 @@ export const servicesData: ServiceCategory[] = [
           'جودة بسيطة مناسبة للمبتدئين'
         ],
         isActive: true,
-        category: 'page-management-packages',
-        isSubscription: true,
-        packageType: 'basic',
-        limits: {
-          design: { max: 15, price: 70 },
-          video: { max: 7, price: 120 },
-          followers: { max: 5000, price: 100, unit: 1000 },
-          dataExtraction: { max: 5000, price: 100, unit: 1000 },
-          marketing: { price: 120 }
-        }
+        category: 'page-management-packages'
+
       },
       {
         id: 'medium-package',
@@ -512,16 +503,7 @@ export const servicesData: ServiceCategory[] = [
           'جودة متوسطة للأعمال الصغيرة والمتوسطة'
         ],
         isActive: true,
-        category: 'page-management-packages',
-        isSubscription: true,
-        packageType: 'medium',
-        limits: {
-          design: { max: 15, price: 180 },
-          video: { max: 7, price: 90 },
-          followers: { max: 20000, price: 200, unit: 1000 },
-          dataExtraction: { max: 20000, price: 200, unit: 1000 },
-          marketing: { price: 90 }
-        }
+        category: 'page-management-packages'
       },
       {
         id: 'professional-package',
@@ -540,16 +522,7 @@ export const servicesData: ServiceCategory[] = [
           'تقارير شهرية مفصلة'
         ],
         isActive: true,
-        category: 'page-management-packages',
-        isSubscription: true,
-        packageType: 'professional',
-        limits: {
-          design: { max: 15, price: 250 },
-          video: { max: 7, price: 70 },
-          followers: { max: 5000, price: 100, unit: 1000 },
-          dataExtraction: { max: 5000, price: 100, unit: 1000 },
-          marketing: { price: 120 }
-        }
+        category: 'page-management-packages'
       }
     ]
   }

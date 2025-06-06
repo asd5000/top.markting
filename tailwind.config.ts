@@ -53,11 +53,8 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
   // دعم RTL
-  corePlugins: {
-    direction: true,
-  },
+  plugins: [],
 }
 
 export default config

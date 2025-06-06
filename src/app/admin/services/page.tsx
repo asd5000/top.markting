@@ -379,7 +379,7 @@ export default function AdminServicesPage() {
                         الفئة
                       </label>
                       <div className="text-lg">
-                        {selectedService.categoryName}
+                        {selectedService.category}
                       </div>
                     </div>
 

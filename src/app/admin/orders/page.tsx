@@ -108,7 +108,7 @@ export default function AdminOrdersPage() {
 
     // Filter by payment status
     if (paymentFilter !== 'all') {
-      filtered = filtered.filter(order => order.paymentStatus === paymentFilter)
+      filtered = filtered.filter(order => order.payment_status === paymentFilter)
     }
 
     setFilteredOrders(filtered)
@@ -119,7 +119,7 @@ export default function AdminOrdersPage() {
   }
 
   const getCustomerPhone = (order: Order) => {
-    return order.customer?.whatsapp_number || order.customer?.phone || ''
+    return (order.customer as any)?.whatsapp_number || order.customer?.phone || ''
   }
 
   const getStatusColor = (status: string) => {
@@ -188,6 +188,25 @@ export default function AdminOrdersPage() {
     setSelectedOrder(null)
   }
 
+  const updatePaymentStatus = (orderId: string, newStatus: string) => {
+    setOrders(prev => prev.map(order =>
+      order.id === orderId
+        ? { ...order, payment_status: newStatus as any, updated_at: new Date().toISOString() }
+        : order
+    ))
+    toast.success('تم تحديث حالة الدفع')
+    setSelectedOrder(prev => prev ? { ...prev, payment_status: newStatus as any } : null)
+  }
+
+  const addAdminNote = (orderId: string, note: string) => {
+    setOrders(prev => prev.map(order =>
+      order.id === orderId
+        ? { ...order, admin_notes: note, updated_at: new Date().toISOString() }
+        : order
+    ))
+    toast.success('تم حفظ الملاحظات')
+  }
+
   const openWhatsApp = (phone: string, orderInfo: string) => {
     const message = `مرحباً، بخصوص طلبك: ${orderInfo}`
     const whatsappUrl = `https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(message)}`
@@ -197,7 +216,7 @@ export default function AdminOrdersPage() {
   const openGoogleMessages = (phone: string, orderInfo: string) => {
     const message = `مرحباً، بخصوص طلبك: ${orderInfo}`
     // This would typically integrate with Google Messages API
-    toast.info('سيتم فتح Google Messages')
+    toast('سيتم فتح Google Messages')
   }
 
   if (isLoading) {
@@ -553,11 +572,11 @@ export default function AdminOrdersPage() {
                   <div className="space-y-6">
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-gray-900 mb-3">إيصال الدفع</h4>
-                      {selectedOrder.payment_receipt_url ? (
+                      {(selectedOrder as any).payment_receipt_url ? (
                         <div className="space-y-3">
                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                             <img
-                              src={selectedOrder.payment_receipt_url}
+                              src={(selectedOrder as any).payment_receipt_url}
                               alt="إيصال الدفع"
                               className="w-full h-64 object-contain rounded-lg"
                               onError={(e) => {
@@ -567,7 +586,7 @@ export default function AdminOrdersPage() {
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => window.open(selectedOrder.payment_receipt_url, '_blank')}
+                              onClick={() => window.open((selectedOrder as any).payment_receipt_url, '_blank')}
                               className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
                             >
                               عرض بالحجم الكامل
@@ -575,7 +594,7 @@ export default function AdminOrdersPage() {
                             <button
                               onClick={() => {
                                 const link = document.createElement('a')
-                                link.href = selectedOrder.payment_receipt_url!
+                                link.href = (selectedOrder as any).payment_receipt_url!
                                 link.download = `receipt-${selectedOrder.id}.jpg`
                                 link.click()
                               }}
