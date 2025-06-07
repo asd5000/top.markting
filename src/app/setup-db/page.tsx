@@ -109,29 +109,86 @@ export default function SetupDatabasePage() {
   }
 
   const testConnection = async () => {
-    addLog('🔍 اختبار الاتصال...')
-    
+    addLog('🔍 بدء اختبار شامل للنظام...')
+
     try {
-      const { data, error } = await supabase
+      // Test 1: Services
+      addLog('📊 اختبار جدول الخدمات...')
+      const { data: services, error: servicesError } = await supabase
         .from('services')
         .select('*')
         .limit(5)
 
-      if (error) {
-        addLog(`❌ خطأ في الاتصال: ${error.message}`)
+      if (servicesError) {
+        addLog(`❌ خطأ في جدول الخدمات: ${servicesError.message}`)
         return
       }
+      addLog(`✅ جدول الخدمات: ${services?.length || 0} خدمة`)
 
-      addLog(`✅ تم العثور على ${data?.length || 0} خدمة`)
-      
-      if (data && data.length > 0) {
-        data.forEach((service, index) => {
+      // Test 2: Customers
+      addLog('👥 اختبار جدول العملاء...')
+      const { data: customers, error: customersError } = await supabase
+        .from('customers')
+        .select('*')
+        .limit(5)
+
+      if (customersError) {
+        addLog(`❌ خطأ في جدول العملاء: ${customersError.message}`)
+        return
+      }
+      addLog(`✅ جدول العملاء: ${customers?.length || 0} عميل`)
+
+      // Test 3: Settings
+      addLog('⚙️ اختبار جدول الإعدادات...')
+      const { data: settings, error: settingsError } = await supabase
+        .from('settings')
+        .select('*')
+        .limit(10)
+
+      if (settingsError) {
+        addLog(`❌ خطأ في جدول الإعدادات: ${settingsError.message}`)
+        return
+      }
+      addLog(`✅ جدول الإعدادات: ${settings?.length || 0} إعداد`)
+
+      // Test 4: Real Estate
+      addLog('🏠 اختبار جدول العقارات...')
+      const { data: realEstate, error: realEstateError } = await supabase
+        .from('real_estate_listings')
+        .select('*')
+        .limit(5)
+
+      if (realEstateError) {
+        addLog(`❌ خطأ في جدول العقارات: ${realEstateError.message}`)
+        return
+      }
+      addLog(`✅ جدول العقارات: ${realEstate?.length || 0} عقار`)
+
+      // Test 5: Orders
+      addLog('📋 اختبار جدول الطلبات...')
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('*')
+        .limit(5)
+
+      if (ordersError) {
+        addLog(`❌ خطأ في جدول الطلبات: ${ordersError.message}`)
+        return
+      }
+      addLog(`✅ جدول الطلبات: ${orders?.length || 0} طلب`)
+
+      addLog('🎉 جميع الجداول تعمل بنجاح!')
+
+      // Show sample data
+      if (services && services.length > 0) {
+        addLog('📝 عينة من الخدمات:')
+        services.slice(0, 3).forEach((service, index) => {
           addLog(`${index + 1}. ${service.name_ar} - ${service.price} ${service.currency}`)
         })
       }
 
     } catch (error: any) {
-      addLog(`❌ خطأ في الاختبار: ${error.message}`)
+      addLog(`❌ خطأ عام في الاختبار: ${error.message}`)
     }
   }
 
