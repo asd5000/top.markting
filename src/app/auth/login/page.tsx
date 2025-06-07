@@ -50,18 +50,7 @@ export default function LoginPage() {
     }
   }
 
-  const demoCredentials = {
-    admin: { email: 'admin@topmarketing.com', password: '123456' },
-    customer: { email: 'customer@example.com', password: '123456' }
-  }
-
-  const fillDemoCredentials = () => {
-    setFormData({
-      ...formData,
-      email: demoCredentials[loginType].email,
-      password: demoCredentials[loginType].password
-    })
-  }
+  // تم إزالة البيانات التجريبية للإطلاق الرسمي
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
@@ -120,23 +109,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Demo Credentials */}
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
-            <h3 className="text-sm font-medium text-blue-900 mb-2">
-              بيانات تجريبية للاختبار:
-            </h3>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p>البريد: {demoCredentials[loginType].email}</p>
-              <p>كلمة المرور: {demoCredentials[loginType].password}</p>
-            </div>
-            <button
-              type="button"
-              onClick={fillDemoCredentials}
-              className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
-            >
-              ملء البيانات تلقائياً
-            </button>
-          </div>
+          {/* تم إزالة البيانات التجريبية للإطلاق الرسمي */}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">

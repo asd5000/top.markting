@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import { User, AuthState, LoginCredentials, RegisterData } from './auth-types'
 import { toast } from 'react-hot-toast'
+import { supabase } from '@/lib/supabase/client'
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<boolean>
@@ -59,41 +60,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // محاكاة API call
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Mock users for testing
-      const mockUsers: User[] = [
-        {
-          id: '1',
-          email: 'admin@topmarketing.com',
-          name: 'مدير النظام',
-          phone: '+201068275557',
-          role: 'super_admin',
-          isActive: true,
-          createdAt: new Date(),
-          lastLogin: new Date()
-        },
-        {
-          id: '2',
-          email: 'customer@example.com',
-          name: 'عميل تجريبي',
-          phone: '+201234567890',
-          role: 'customer',
-          isActive: true,
-          createdAt: new Date(),
-          lastLogin: new Date()
-        }
-      ]
+      // تم إزالة المستخدمين التجريبيين للإطلاق الرسمي
+      // سيتم استخدام قاعدة البيانات الحقيقية فقط
 
-      const user = mockUsers.find(u => u.email === credentials.email)
-      
-      if (user && credentials.password === '123456') {
-        // حفظ بيانات المستخدم في localStorage
-        localStorage.setItem('auth_user', JSON.stringify(user))
-        localStorage.setItem('auth_token', 'mock_token_' + user.id)
-        
-        dispatch({ type: 'SET_USER', payload: user })
-        toast.success('تم تسجيل الدخول بنجاح')
-        return true
-      } else {
+      // استخدام Supabase للمصادقة الحقيقية
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password
+        })
+
+        if (error) {
+          throw error
+        }
+
+        // التحقق من وجود المستخدم في قاعدة البيانات
+        const { data: adminData } = await supabase
+          .from('admins')
+          .select('*')
+          .eq('email', credentials.email)
+          .single()
+
+        const { data: customerData } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('email', credentials.email)
+          .single()
+
+        const userData = adminData || customerData
+
+        if (userData) {
+          const user: User = {
+            id: userData.id,
+            email: userData.email,
+            name: userData.full_name || userData.name,
+            phone: userData.phone || '',
+            role: userData.role,
+            isActive: userData.is_active,
+            createdAt: new Date(userData.created_at),
+            lastLogin: new Date()
+          }
+
+          // حفظ بيانات المستخدم في localStorage
+          localStorage.setItem('auth_user', JSON.stringify(user))
+          localStorage.setItem('auth_token', data.session?.access_token || '')
+
+          dispatch({ type: 'SET_USER', payload: user })
+          toast.success('تم تسجيل الدخول بنجاح')
+          return true
+        } else {
+          dispatch({ type: 'SET_ERROR', payload: 'المستخدم غير موجود في النظام' })
+          toast.error('المستخدم غير موجود في النظام')
+          return false
+        }
+      } catch (error: any) {
         dispatch({ type: 'SET_ERROR', payload: 'بيانات الدخول غير صحيحة' })
         toast.error('بيانات الدخول غير صحيحة')
         return false
