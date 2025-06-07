@@ -21,6 +21,7 @@ import { useAuth, usePermissions } from '@/lib/auth/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { managerOperations, adminOperations } from '@/lib/supabase/client'
+import { useRealtimeAdmins } from '@/hooks/useRealtime'
 import { toast } from 'react-hot-toast'
 
 interface Manager {
@@ -47,11 +48,11 @@ export default function AdminManagersPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const { isAdmin } = usePermissions()
   const router = useRouter()
-  const [managers, setManagers] = useState<Manager[]>([])
+  const { admins: managers, isLoading: isLoadingManagers, setAdmins: setManagers } = useRealtimeAdmins()
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedManager, setSelectedManager] = useState<Manager | null>(null)
-  const [isLoadingManagers, setIsLoadingManagers] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
   const [newManager, setNewManager] = useState({
     email: '',
     username: '',
@@ -68,60 +69,21 @@ export default function AdminManagersPage() {
     }
   }, [user, isAuthenticated, isLoading, isAdmin, router])
 
-  // تحميل المديرين من قاعدة البيانات
-  useEffect(() => {
-    const loadManagers = async () => {
-      if (!isAuthenticated || !isAdmin()) return
-
-      try {
-        setIsLoadingManagers(true)
-        const data = await managerOperations.getAllManagers()
-
-        if (data && data.length > 0) {
-          // تحويل البيانات إلى تنسيق Manager مع تحميل الصلاحيات
-          const managersData: Manager[] = await Promise.all(
-            data.map(async (admin) => {
-              let permissions: string[] = []
-
-              // تحميل الصلاحيات من الإعدادات
-              try {
-                const permissionsSetting = await adminOperations.getSetting(`admin_permissions_${admin.id}`)
-                if (permissionsSetting?.value) {
-                  permissions = permissionsSetting.value
-                }
-              } catch (error) {
-                console.log('No permissions found for admin:', admin.id)
-              }
-
-              return {
-                id: admin.id,
-                username: admin.username,
-                full_name: admin.full_name,
-                email: admin.email,
-                role: admin.role || 'manager',
-                permissions: admin.role === 'admin' ? ['all'] : permissions,
-                created_at: admin.created_at,
-                updated_at: admin.updated_at
-              }
-            })
-          )
-
-          setManagers(managersData)
-        }
-      } catch (error) {
-        console.error('Error loading managers:', error)
-        toast.error('حدث خطأ أثناء تحميل المديرين')
-      } finally {
-        setIsLoadingManagers(false)
-      }
-    }
-
-    loadManagers()
-  }, [isAuthenticated, isAdmin])
+  // تحويل البيانات إلى تنسيق Manager مع الصلاحيات
+  const managersWithPermissions = managers.map(admin => ({
+    id: admin.id,
+    username: admin.username,
+    full_name: admin.full_name,
+    email: admin.email,
+    role: admin.role || 'manager',
+    permissions: admin.role === 'admin' ? ['all'] : [],
+    created_at: admin.created_at,
+    updated_at: admin.updated_at
+  }))
 
 
 
-  const filteredManagers = managers.filter(manager =>
+  const filteredManagers = managersWithPermissions.filter(manager =>
     (manager.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
     manager.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (manager.username?.toLowerCase().includes(searchTerm.toLowerCase()) || false)

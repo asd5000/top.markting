@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import { serviceOperations } from '@/lib/supabase/client'
+import { useRealtimeServices } from '@/hooks/useRealtime'
 
 interface Service {
   id: string
@@ -41,13 +42,13 @@ export default function AdminServicesPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const { isAdmin } = usePermissions()
   const router = useRouter()
-  const [services, setServices] = useState<Service[]>([])
+  const { services, isLoading: isLoadingServices, setServices } = useRealtimeServices()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingService, setEditingService] = useState<Service | null>(null)
-  const [isLoadingServices, setIsLoadingServices] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin())) {
@@ -56,25 +57,13 @@ export default function AdminServicesPage() {
     }
   }, [user, isAuthenticated, isLoading, isAdmin, router])
 
-  // Load services from database
+  // Authentication check
   useEffect(() => {
-    const loadServices = async () => {
-      if (!isAuthenticated || !isAdmin()) return
-
-      try {
-        setIsLoadingServices(true)
-        const data = await serviceOperations.getAllServices()
-        setServices(data || [])
-      } catch (error) {
-        console.error('Error loading services:', error)
-        toast.error('حدث خطأ أثناء تحميل الخدمات')
-      } finally {
-        setIsLoadingServices(false)
-      }
+    if (!isLoading && (!isAuthenticated || !isAdmin())) {
+      router.push('/auth/login')
+      return
     }
-
-    loadServices()
-  }, [isAuthenticated, isAdmin])
+  }, [user, isAuthenticated, isLoading, isAdmin, router])
 
 
 
@@ -87,10 +76,13 @@ export default function AdminServicesPage() {
   })
 
   const updateService = async (updatedService: Service) => {
-    try {
-      setIsLoadingServices(true)
+    if (isProcessing) return
 
-      await serviceOperations.updateService(updatedService.id, {
+    try {
+      setIsProcessing(true)
+      console.log('🔄 Updating service:', updatedService.id)
+
+      const result = await serviceOperations.updateService(updatedService.id, {
         name_ar: updatedService.name_ar,
         name_en: updatedService.name_en,
         description_ar: updatedService.description_ar,
@@ -103,26 +95,25 @@ export default function AdminServicesPage() {
         category_name: updatedService.category_name
       })
 
-      // تحديث القائمة المحلية
-      setServices(prev => prev.map(service =>
-        service.id === updatedService.id ? updatedService : service
-      ))
-
-      toast.success('تم تحديث الخدمة بنجاح')
+      // Real-time will handle the update automatically
+      toast.success('✅ تم تحديث الخدمة بنجاح')
       setShowEditModal(false)
       setEditingService(null)
 
     } catch (error) {
-      console.error('Error updating service:', error)
+      console.error('❌ Error updating service:', error)
       toast.error('حدث خطأ أثناء تحديث الخدمة')
     } finally {
-      setIsLoadingServices(false)
+      setIsProcessing(false)
     }
   }
 
   const addService = async (newService: Omit<Service, 'id'>) => {
+    if (isProcessing) return
+
     try {
-      setIsLoadingServices(true)
+      setIsProcessing(true)
+      console.log('🔄 Adding new service:', newService)
 
       const data = await serviceOperations.createService({
         name_ar: newService.name_ar,
@@ -137,18 +128,16 @@ export default function AdminServicesPage() {
         category_name: newService.category_name
       })
 
-      // إضافة للقائمة المحلية
-      setServices(prev => [...prev, data])
-
-      toast.success('تم إضافة الخدمة بنجاح')
+      // Real-time will handle the addition automatically
+      toast.success('✅ تم إضافة الخدمة بنجاح')
       setShowEditModal(false)
       setEditingService(null)
 
     } catch (error) {
-      console.error('Error adding service:', error)
+      console.error('❌ Error adding service:', error)
       toast.error('حدث خطأ أثناء إضافة الخدمة')
     } finally {
-      setIsLoadingServices(false)
+      setIsProcessing(false)
     }
   }
 
@@ -157,49 +146,48 @@ export default function AdminServicesPage() {
       return
     }
 
+    if (isProcessing) return
+
     try {
-      setIsLoadingServices(true)
+      setIsProcessing(true)
+      console.log('🔄 Deleting service:', serviceId)
 
       await serviceOperations.deleteService(serviceId)
 
-      // حذف من القائمة المحلية
-      setServices(prev => prev.filter(service => service.id !== serviceId))
-
-      toast.success('تم حذف الخدمة بنجاح')
+      // Real-time will handle the deletion automatically
+      toast.success('✅ تم حذف الخدمة بنجاح')
 
     } catch (error) {
-      console.error('Error deleting service:', error)
+      console.error('❌ Error deleting service:', error)
       toast.error('حدث خطأ أثناء حذف الخدمة')
     } finally {
-      setIsLoadingServices(false)
+      setIsProcessing(false)
     }
   }
 
   const toggleServiceStatus = async (serviceId: string) => {
+    if (isProcessing) return
+
     try {
-      setIsLoadingServices(true)
+      setIsProcessing(true)
 
       const service = services.find(s => s.id === serviceId)
       if (!service) return
+
+      console.log('🔄 Toggling service status:', serviceId, 'to', !service.is_active)
 
       await serviceOperations.updateService(serviceId, {
         is_active: !service.is_active
       })
 
-      // تحديث القائمة المحلية
-      setServices(prev => prev.map(s =>
-        s.id === serviceId
-          ? { ...s, is_active: !s.is_active }
-          : s
-      ))
-
-      toast.success('تم تحديث حالة الخدمة')
+      // Real-time will handle the update automatically
+      toast.success('✅ تم تحديث حالة الخدمة')
 
     } catch (error) {
-      console.error('Error toggling service status:', error)
+      console.error('❌ Error toggling service status:', error)
       toast.error('حدث خطأ أثناء تحديث حالة الخدمة')
     } finally {
-      setIsLoadingServices(false)
+      setIsProcessing(false)
     }
   }
 

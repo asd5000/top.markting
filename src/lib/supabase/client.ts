@@ -8,13 +8,49 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables')
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
+})
 
-// Helper function to handle Supabase errors
+// Helper function to handle Supabase errors with detailed logging
 export const handleSupabaseError = (error: any) => {
-  console.error('Supabase error:', error)
+  console.error('Supabase error details:', {
+    message: error.message,
+    details: error.details,
+    hint: error.hint,
+    code: error.code,
+    stack: error.stack
+  })
   throw new Error(error.message || 'Database operation failed')
 }
+
+// Test connection function
+export async function testConnection() {
+  try {
+    console.log('Testing Supabase connection...')
+    const { data, error } = await supabase.from('services').select('count').limit(1)
+    if (error) {
+      console.error('Connection test failed:', error)
+      return false
+    }
+    console.log('✅ Supabase connection successful')
+    return true
+  } catch (error) {
+    console.error('❌ Connection test error:', error)
+    return false
+  }
+}
+
+// Initialize connection test
+testConnection()
 
 // User operations
 export const userOperations = {
@@ -184,6 +220,8 @@ export const serviceOperations = {
   },
 
   async createService(serviceData: Database['public']['Tables']['services']['Insert']) {
+    console.log('Creating service with data:', serviceData)
+
     const { data, error } = await supabase
       .from('services')
       .insert({
@@ -194,11 +232,18 @@ export const serviceOperations = {
       .select()
       .single()
 
-    if (error) handleSupabaseError(error)
+    if (error) {
+      console.error('Failed to create service:', error)
+      handleSupabaseError(error)
+    }
+
+    console.log('✅ Service created successfully:', data)
     return data
   },
 
   async updateService(id: string, updates: Database['public']['Tables']['services']['Update']) {
+    console.log('Updating service:', id, 'with data:', updates)
+
     const { data, error } = await supabase
       .from('services')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -206,17 +251,29 @@ export const serviceOperations = {
       .select()
       .single()
 
-    if (error) handleSupabaseError(error)
+    if (error) {
+      console.error('Failed to update service:', error)
+      handleSupabaseError(error)
+    }
+
+    console.log('✅ Service updated successfully:', data)
     return data
   },
 
   async deleteService(id: string) {
+    console.log('Deleting service:', id)
+
     const { error } = await supabase
       .from('services')
       .delete()
       .eq('id', id)
 
-    if (error) handleSupabaseError(error)
+    if (error) {
+      console.error('Failed to delete service:', error)
+      handleSupabaseError(error)
+    }
+
+    console.log('✅ Service deleted successfully')
     return { success: true }
   },
 
