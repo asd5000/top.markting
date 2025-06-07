@@ -366,26 +366,44 @@ export const orderOperations = {
 
 // Real estate operations
 export const realEstateOperations = {
-  async createProperty(propertyData: Database['public']['Tables']['real_estate_properties']['Insert']) {
+  async createProperty(propertyData: any) {
+    console.log('Creating property with data:', propertyData)
     const { data, error } = await supabase
-      .from('real_estate_properties')
+      .from('real_estate_listings')
       .insert(propertyData)
       .select()
       .single()
-    
-    if (error) handleSupabaseError(error)
+
+    if (error) {
+      console.error('Failed to create property:', error)
+      handleSupabaseError(error)
+    }
+    console.log('✅ Property created successfully:', data)
     return data
   },
 
   async getAllProperties() {
+    console.log('🔄 Loading all properties...')
     const { data, error } = await supabase
-      .from('real_estate_properties')
-      .select(`
-        *,
-        customer:users(name, email, phone, whatsapp_number)
-      `)
+      .from('real_estate_listings')
+      .select('*')
       .order('created_at', { ascending: false })
-    
+
+    if (error) {
+      console.error('❌ Error loading properties:', error)
+      handleSupabaseError(error)
+    }
+    console.log(`✅ Loaded ${data?.length || 0} properties`)
+    return data || []
+  },
+
+  async getPublishedProperties() {
+    const { data, error } = await supabase
+      .from('real_estate_listings')
+      .select('*')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+
     if (error) handleSupabaseError(error)
     return data || []
   },
@@ -425,44 +443,71 @@ export const realEstateOperations = {
   }
 }
 
-// Admin settings operations
-export const adminOperations = {
+// Settings operations
+export const settingsOperations = {
   async getSetting(key: string) {
     const { data, error } = await supabase
-      .from('admin_settings')
+      .from('settings')
       .select('*')
       .eq('key', key)
       .single()
-    
+
     if (error && error.code !== 'PGRST116') handleSupabaseError(error)
     return data
   },
 
-  async setSetting(key: string, value: any, description?: string) {
+  async getPublicSettings() {
     const { data, error } = await supabase
-      .from('admin_settings')
+      .from('settings')
+      .select('*')
+      .eq('is_public', true)
+
+    if (error) handleSupabaseError(error)
+    return data || []
+  },
+
+  async setSetting(key: string, value: any, description?: string, category?: string, isPublic?: boolean) {
+    const { data, error } = await supabase
+      .from('settings')
       .upsert({
         key,
         value,
         description,
+        category,
+        is_public: isPublic,
         updated_at: new Date().toISOString()
       })
       .select()
       .single()
-    
+
     if (error) handleSupabaseError(error)
     return data
   },
 
   async getAllSettings() {
     const { data, error } = await supabase
-      .from('admin_settings')
+      .from('settings')
       .select('*')
+      .order('category', { ascending: true })
+
+    if (error) handleSupabaseError(error)
+    return data || []
+  },
+
+  async getSettingsByCategory(category: string) {
+    const { data, error } = await supabase
+      .from('settings')
+      .select('*')
+      .eq('category', category)
       .order('key', { ascending: true })
-    
+
     if (error) handleSupabaseError(error)
     return data || []
   }
+}
+
+// Keep adminOperations for backward compatibility
+export const adminOperations = settingsOperations
 }
 
 // Real-time subscriptions

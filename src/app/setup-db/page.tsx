@@ -17,25 +17,25 @@ export default function SetupDatabasePage() {
     addLog('🚀 بدء إنشاء الجداول...')
 
     try {
-      // إنشاء جدول الخدمات
-      addLog('📊 إنشاء جدول الخدمات...')
-      
-      const { error: createError } = await supabase.rpc('create_services_table', {})
-      
-      if (createError) {
-        // إذا فشل RPC، نجرب الطريقة المباشرة
-        addLog('⚠️ جاري المحاولة بطريقة مختلفة...')
-        
-        // محاولة إنشاء الجدول مباشرة
-        const { error: directError } = await supabase
-          .from('services')
+      // اختبار الجداول المطلوبة
+      const tables = ['services', 'customers', 'admins', 'orders', 'subscriptions', 'real_estate_listings', 'settings']
+
+      for (const table of tables) {
+        addLog(`📊 فحص جدول ${table}...`)
+
+        const { error } = await supabase
+          .from(table)
           .select('*')
           .limit(1)
-        
-        if (directError && directError.message.includes('relation "services" does not exist')) {
-          addLog('❌ جدول الخدمات غير موجود - يحتاج إنشاء يدوي')
+
+        if (error && error.message.includes('relation') && error.message.includes('does not exist')) {
+          addLog(`❌ جدول ${table} غير موجود`)
           setStatus('error')
           return
+        } else if (error) {
+          addLog(`⚠️ خطأ في جدول ${table}: ${error.message}`)
+        } else {
+          addLog(`✅ جدول ${table} موجود`)
         }
       }
 
