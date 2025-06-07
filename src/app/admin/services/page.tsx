@@ -20,7 +20,7 @@ import { useAuth, usePermissions } from '@/lib/auth/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
-import { serviceOperations } from '@/lib/supabase/client'
+import { serviceOperations } from '@/lib/supabase/operations'
 import { useRealtimeServices } from '@/hooks/useRealtime'
 
 interface Service {

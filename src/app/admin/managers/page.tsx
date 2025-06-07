@@ -20,7 +20,8 @@ import {
 import { useAuth, usePermissions } from '@/lib/auth/auth-context'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { managerOperations, adminOperations } from '@/lib/supabase/client'
+import { adminOperations } from '@/lib/supabase/operations'
+import { settingsOperations } from '@/lib/supabase/operations'
 import { useRealtimeAdmins } from '@/hooks/useRealtime'
 import { toast } from 'react-hot-toast'
 
@@ -102,22 +103,16 @@ export default function AdminManagersPage() {
       const passwordHash = btoa(newManager.password) // مؤقت - يجب استخدام bcrypt
 
       // إضافة المدير إلى قاعدة البيانات
-      const data = await managerOperations.createManager({
+      const data = await adminOperations.createAdmin({
         email: newManager.email,
         username: newManager.username,
         password_hash: passwordHash,
         full_name: newManager.full_name,
-        role: newManager.role
+        role: newManager.role,
+        permissions: newManager.role === 'admin' ? ['all'] : newManager.permissions
       })
 
-      // حفظ الصلاحيات في إعدادات منفصلة
-      if (newManager.permissions.length > 0) {
-        await adminOperations.setSetting(
-          `admin_permissions_${data.id}`,
-          newManager.permissions,
-          `صلاحيات المدير ${newManager.full_name}`
-        )
-      }
+      // تم حفظ الصلاحيات مع بيانات المدير مباشرة
 
       // تحديث القائمة المحلية
       const newManagerData: Manager = {
@@ -161,8 +156,9 @@ export default function AdminManagersPage() {
       const newRole = currentRole === 'inactive' ? 'manager' : 'inactive'
 
       // تحديث في قاعدة البيانات
-      await managerOperations.updateManager(managerId, {
-        role: newRole
+      await adminOperations.updateAdmin(managerId, {
+        role: newRole,
+        is_active: newRole !== 'inactive'
       })
 
       // تحديث القائمة المحلية
@@ -195,14 +191,7 @@ export default function AdminManagersPage() {
       setIsLoadingManagers(true)
 
       // حذف من قاعدة البيانات
-      await managerOperations.deleteManager(managerId)
-
-      // حذف الصلاحيات المرتبطة
-      try {
-        await adminOperations.setSetting(`admin_permissions_${managerId}`, null)
-      } catch (error) {
-        console.log('No permissions to delete for manager:', managerId)
-      }
+      await adminOperations.deleteAdmin(managerId)
 
       // تحديث القائمة المحلية
       setManagers(prev => prev.filter(manager => manager.id !== managerId))
