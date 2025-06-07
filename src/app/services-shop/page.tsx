@@ -27,6 +27,9 @@ import { useAuth } from '@/lib/auth/auth-context'
 import { paymentMethods } from '@/data/services/services-data'
 import { orderOperations, serviceOperations } from '@/lib/supabase/client'
 import { toast } from 'react-hot-toast'
+import { notifications } from '@/lib/notifications/toast-config'
+import { useProductionServices } from '@/hooks/useProductionData'
+import LoadingSpinner, { LoadingCard } from '@/components/LoadingSpinner'
 import PropertyFormModal from '@/components/PropertyFormModal'
 import RealEstateModal from '@/components/RealEstateModal'
 import SubscriptionModal from '@/components/SubscriptionModal'
@@ -65,40 +68,31 @@ export default function ServicesShopPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
   const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null)
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
-  const [isLoadingServices, setIsLoadingServices] = useState(false)
-  const [currentServices, setCurrentServices] = useState<any[]>([])
+  // Use production data hook
+  const { services: currentServices, isLoading: isLoadingServices, error: servicesError } = useProductionServices()
   const [groupedServices, setGroupedServices] = useState<Record<string, any[]>>({})
 
-  // Load services from database
+  // Group services by category when services change
   useEffect(() => {
-    const loadServices = async () => {
-      try {
-        setIsLoadingServices(true)
-        const data = await serviceOperations.getActiveServices()
-
-        // تجميع الخدمات حسب الفئة
-        const grouped = data.reduce((acc: Record<string, any[]>, service: any) => {
-          const category = service.category || 'other'
-          if (!acc[category]) {
-            acc[category] = []
-          }
-          acc[category].push(service)
-          return acc
-        }, {})
-
-        setCurrentServices(data)
-        setGroupedServices(grouped)
-
-      } catch (error) {
-        console.error('Error loading services:', error)
-        toast.error('حدث خطأ أثناء تحميل الخدمات')
-      } finally {
-        setIsLoadingServices(false)
-      }
+    if (currentServices.length > 0) {
+      const grouped = currentServices.reduce((acc: Record<string, any[]>, service: any) => {
+        const category = service.category || 'other'
+        if (!acc[category]) {
+          acc[category] = []
+        }
+        acc[category].push(service)
+        return acc
+      }, {})
+      setGroupedServices(grouped)
     }
+  }, [currentServices])
 
-    loadServices()
-  }, [])
+  // Show error notification if services fail to load
+  useEffect(() => {
+    if (servicesError) {
+      notifications.error('فشل في تحميل الخدمات. يرجى المحاولة مرة أخرى.')
+    }
+  }, [servicesError])
 
   // Handle URL parameters for direct navigation
   useEffect(() => {
@@ -126,7 +120,7 @@ export default function ServicesShopPage() {
 
   const addToCart = (service: any) => {
     if (!isAuthenticated) {
-      toast.error('يجب تسجيل الدخول أولاً')
+      notifications.auth.unauthorized()
       return
     }
 
