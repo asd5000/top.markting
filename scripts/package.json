@@ -1,0 +1,15 @@
+{
+  "name": "top-marketing-production-scripts",
+  "version": "1.0.0",
+  "description": "Production launch scripts for Top Marketing website",
+  "main": "production-launch.js",
+  "scripts": {
+    "launch": "node production-launch.js",
+    "test": "node production-launch.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0"
+  },
+  "author": "Top Marketing Team",
+  "license": "MIT"
+}
