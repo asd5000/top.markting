@@ -19,18 +19,20 @@ interface Service {
   is_featured: boolean
   status: string
   is_active: boolean
+  sub_services?: SubService[]
 }
 
-interface Service {
+interface SubService {
   id: string
+  service_id: string
   name: string
   description: string
-  short_description: string
+  price: number
   image_url: string
   icon_url: string
-  custom_color: string
   sort_order: number
-  is_featured: boolean
+  features: string[]
+  delivery_time: string
   status: string
   is_active: boolean
 }
@@ -51,6 +53,7 @@ export default function HomePage() {
       setServicesLoading(true)
       console.log('🔍 Loading services from database...')
 
+      // تحميل الخدمات الأساسية
       const { data: servicesData, error } = await supabase
         .from('services')
         .select('*')
@@ -59,15 +62,102 @@ export default function HomePage() {
 
       if (error) {
         console.error('Error loading services:', error)
-      } else {
+        // استخدام خدمات افتراضية في حالة الخطأ
+        setServices(getDefaultServices())
+      } else if (servicesData && servicesData.length > 0) {
         console.log('✅ Services loaded:', servicesData)
-        setServices(servicesData || [])
+
+        // تحميل الخدمات الفرعية لكل خدمة
+        const servicesWithSubs = await Promise.all(
+          servicesData.map(async (service) => {
+            const { data: subServices, error: subError } = await supabase
+              .from('sub_services')
+              .select('*')
+              .eq('service_id', service.id)
+              .eq('is_active', true)
+              .order('sort_order', { ascending: true })
+
+            if (subError) {
+              console.error('Error loading sub-services for', service.name, ':', subError)
+            }
+
+            return {
+              ...service,
+              sub_services: subServices || []
+            }
+          })
+        )
+
+        setServices(servicesWithSubs)
+      } else {
+        // استخدام خدمات افتراضية إذا لم توجد بيانات
+        console.log('No services found, using default services')
+        setServices(getDefaultServices())
       }
     } catch (error) {
       console.error('Error loading services:', error)
+      setServices(getDefaultServices())
     } finally {
       setServicesLoading(false)
     }
+  }
+
+  // دالة للحصول على خدمات افتراضية
+  const getDefaultServices = () => {
+    return [
+      {
+        id: '1',
+        name: 'التصميم',
+        description: 'خدمات التصميم الجرافيكي والهوية البصرية',
+        short_description: 'تصميم جرافيكي احترافي',
+        image_url: '',
+        icon_url: '',
+        custom_color: '#FF6B35',
+        sort_order: 1,
+        is_featured: true,
+        status: 'active',
+        is_active: true,
+        sub_services: [
+          { id: '1', service_id: '1', name: 'هوية بصرية', description: 'تصميم هوية بصرية كاملة', price: 500, image_url: '', icon_url: '', sort_order: 1, features: ['لوجو', 'كارت شخصي', 'ورق رسمي'], delivery_time: '3-5 أيام', status: 'active', is_active: true },
+          { id: '2', service_id: '1', name: 'لوجو', description: 'تصميم لوجو احترافي', price: 200, image_url: '', icon_url: '', sort_order: 2, features: ['3 مفاهيم', 'تعديلات مفتوحة', 'ملفات عالية الجودة'], delivery_time: '2-3 أيام', status: 'active', is_active: true },
+          { id: '3', service_id: '1', name: 'بنر إعلاني', description: 'تصميم بنرات إعلانية', price: 100, image_url: '', icon_url: '', sort_order: 3, features: ['جميع المقاسات', 'تصميم جذاب', 'جاهز للطباعة'], delivery_time: '1-2 يوم', status: 'active', is_active: true }
+        ]
+      },
+      {
+        id: '2',
+        name: 'المونتاج',
+        description: 'خدمات المونتاج والفيديو',
+        short_description: 'مونتاج فيديو احترافي',
+        image_url: '',
+        icon_url: '',
+        custom_color: '#8B5CF6',
+        sort_order: 2,
+        is_featured: false,
+        status: 'active',
+        is_active: true,
+        sub_services: [
+          { id: '4', service_id: '2', name: 'فيديو إعلاني', description: 'مونتاج فيديو إعلاني', price: 300, image_url: '', icon_url: '', sort_order: 1, features: ['موسيقى', 'مؤثرات بصرية', 'نصوص متحركة'], delivery_time: '3-5 أيام', status: 'active', is_active: true },
+          { id: '5', service_id: '2', name: 'موشن جرافيك', description: 'رسوم متحركة احترافية', price: 500, image_url: '', icon_url: '', sort_order: 2, features: ['رسوم متحركة', 'تأثيرات خاصة', 'صوت احترافي'], delivery_time: '5-7 أيام', status: 'active', is_active: true }
+        ]
+      },
+      {
+        id: '3',
+        name: 'التسويق',
+        description: 'خدمات التسويق الرقمي',
+        short_description: 'تسويق رقمي فعال',
+        image_url: '',
+        icon_url: '',
+        custom_color: '#10B981',
+        sort_order: 3,
+        is_featured: false,
+        status: 'active',
+        is_active: true,
+        sub_services: [
+          { id: '6', service_id: '3', name: 'إدارة صفحات', description: 'إدارة صفحات السوشيال ميديا', price: 400, image_url: '', icon_url: '', sort_order: 1, features: ['منشورات يومية', 'تفاعل مع العملاء', 'تقارير شهرية'], delivery_time: 'شهري', status: 'active', is_active: true },
+          { id: '7', service_id: '3', name: 'حملة إعلانية', description: 'حملات إعلانية مدفوعة', price: 600, image_url: '', icon_url: '', sort_order: 2, features: ['استهداف دقيق', 'تحليل النتائج', 'تحسين مستمر'], delivery_time: '1-2 أسبوع', status: 'active', is_active: true }
+        ]
+      }
+    ]
   }
 
   const createSlug = (name: string) => {
@@ -307,70 +397,117 @@ export default function HomePage() {
             <p className="text-xl text-gray-600">نقدم مجموعة شاملة من الخدمات المتخصصة لتلبية احتياجاتك</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Dynamic Services from Database */}
-            {servicesLoading ? (
-              // Loading skeleton
-              Array.from({ length: 4 }).map((_, index) => (
+          {/* Services Grid with Sub-services */}
+          {servicesLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="bg-gray-200 rounded-xl p-6 animate-pulse">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-3"></div>
-                    <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-300 rounded"></div>
+                  <div className="h-6 bg-gray-300 rounded mb-4"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-300 rounded"></div>
+                    <div className="h-4 bg-gray-300 rounded"></div>
+                    <div className="h-4 bg-gray-300 rounded"></div>
                   </div>
                 </div>
-              ))
-            ) : (
-              services.map((service) => (
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {services.map((service) => (
                 <div
                   key={service.id}
-                  className="group bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm border border-blue-200 p-6 hover:shadow-lg hover:border-blue-400 hover:from-blue-100 hover:to-blue-200 transition-all duration-300"
+                  className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300"
                   style={{
-                    background: service.custom_color ?
-                      `linear-gradient(135deg, ${service.custom_color}15, ${service.custom_color}25)` :
-                      undefined,
-                    borderColor: service.custom_color ? `${service.custom_color}40` : undefined
+                    borderTopColor: service.custom_color || '#3B82F6',
+                    borderTopWidth: '4px'
                   }}
                 >
-                  <div className="text-center">
-                    {service.image_url ? (
-                      <img
-                        src={service.image_url}
-                        alt={service.name}
-                        className="w-12 h-12 mx-auto mb-3 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="w-12 h-12 mx-auto mb-3 rounded-lg flex items-center justify-center text-white font-bold"
-                        style={{ backgroundColor: service.custom_color || '#3B82F6' }}
-                      >
-                        {service.name.charAt(0)}
+                  {/* Service Header */}
+                  <div
+                    className="p-6 text-white"
+                    style={{
+                      background: `linear-gradient(135deg, ${service.custom_color || '#3B82F6'}, ${service.custom_color || '#3B82F6'}dd)`
+                    }}
+                  >
+                    <div className="flex items-center mb-3">
+                      {service.image_url ? (
+                        <img
+                          src={service.image_url}
+                          alt={service.name}
+                          className="w-10 h-10 rounded-lg object-cover ml-3"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center text-white font-bold ml-3">
+                          {service.name.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="text-xl font-bold">{service.name}</h3>
+                        {service.is_featured && (
+                          <div className="inline-flex items-center bg-white bg-opacity-20 px-2 py-1 rounded-full text-xs mt-1">
+                            <Star className="w-3 h-3 ml-1" />
+                            مميزة
+                          </div>
+                        )}
                       </div>
-                    )}
-                    <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-gray-900 transition-colors">
-                      {service.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    </div>
+                    <p className="text-white text-opacity-90 text-sm">
                       {service.short_description || service.description}
                     </p>
-                    {service.is_featured && (
-                      <div className="inline-flex items-center bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs mb-3">
-                        <Star className="w-3 h-3 ml-1" />
-                        مميزة
+                  </div>
+
+                  {/* Sub-services */}
+                  <div className="p-6">
+                    {service.sub_services && service.sub_services.length > 0 ? (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900 mb-3">الخدمات المتاحة:</h4>
+                        {service.sub_services.slice(0, 3).map((subService) => (
+                          <div key={subService.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-gray-900 text-sm">{subService.name}</h5>
+                              <p className="text-gray-600 text-xs">{subService.description}</p>
+                            </div>
+                            <div className="text-left">
+                              <div className="text-lg font-bold text-green-600">{subService.price} ج.م</div>
+                              <div className="text-xs text-gray-500">{subService.delivery_time}</div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {service.sub_services.length > 3 && (
+                          <div className="text-center text-sm text-gray-500">
+                            +{service.sub_services.length - 3} خدمات أخرى
+                          </div>
+                        )}
+
+                        <div className="pt-4 border-t border-gray-200">
+                          <Link
+                            href={`/services/${service.id}`}
+                            className="block w-full bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                          >
+                            عرض جميع الخدمات
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="text-gray-400 mb-2">لا توجد خدمات فرعية</div>
+                        <Link
+                          href={`/services/${service.id}`}
+                          className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                        >
+                          عرض التفاصيل
+                        </Link>
                       </div>
                     )}
-                    <div className="mt-auto">
-                      <Link
-                        href={`/services/${service.id}`}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors inline-block"
-                      >
-                        اطلب الآن
-                      </Link>
-                    </div>
                   </div>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
+          )}
+
+          {/* Additional Services Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
 
             {/* Packages */}
             <div className="group bg-gradient-to-br from-purple-500 to-blue-600 text-white rounded-xl shadow-sm p-6 hover:shadow-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-300">
