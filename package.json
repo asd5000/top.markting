@@ -10,7 +10,8 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "deploy": "git add . && git commit -m \"🚀 Deploy: Update website\" && git push origin main",
-    "setup": "npm install && npm run build"
+    "setup": "npm install && npm run build",
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.0",
@@ -29,7 +30,7 @@
     "date-fns": "^3.0.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.400.0",
-    "next": "^15.0.0",
+    "next": "14.2.15",
     "postcss": "^8.4.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
@@ -48,7 +49,7 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
-    "eslint-config-next": "^15.0.0",
+    "eslint-config-next": "14.2.15",
     "prettier": "^3.0.0",
     "prettier-plugin-tailwindcss": "^0.5.0",
     "typescript": "5.8.3"
