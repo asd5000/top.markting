@@ -36,19 +36,12 @@ export default function AdminLoginPage() {
         password: formData.password ? '***' : 'empty'
       })
 
-      // اختبار الاتصال بقاعدة البيانات أولاً
-      console.log('🌐 اختبار الاتصال بقاعدة البيانات...')
-      const { data: testConnection, error: connectionError } = await supabase
-        .from('users')
-        .select('count')
-        .limit(1)
-
-      if (connectionError) {
-        console.error('❌ فشل الاتصال بقاعدة البيانات:', connectionError)
-        setError('فشل الاتصال بقاعدة البيانات. تحقق من الإنترنت.')
-        return
-      }
-      console.log('✅ الاتصال بقاعدة البيانات يعمل')
+      // تسجيل معلومات البيئة للتشخيص
+      console.log('🌐 معلومات البيئة:', {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        nodeEnv: process.env.NODE_ENV
+      })
 
       // تحديد البريد الإلكتروني بناءً على اسم المستخدم
       let emailToSearch = formData.username
@@ -70,49 +63,33 @@ export default function AdminLoginPage() {
         emailToSearch = userMappings[formData.username.toLowerCase()]
       }
 
-      console.log('🔍 Searching for email:', emailToSearch)
+      console.log('🔍 البحث عن المدير:', emailToSearch)
 
-      // البحث عن المشرف في جدول users (مع شرط is_active)
-      let { data: userData, error: userError } = await supabase
+      // البحث المبسط عن المدير
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('email', emailToSearch)
-        .eq('is_active', true)
         .single()
 
-      // إذا لم نجد المستخدم، نبحث بدون شرط is_active
-      if (!userData || userError) {
-        console.log('🔍 البحث بدون شرط is_active...')
-        const { data: userData2, error: userError2 } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', emailToSearch)
-          .single()
-
-        userData = userData2
-        userError = userError2
-      }
-
-      console.log('👤 User search result:', {
-        data: userData,
-        error: userError,
-        searchEmail: emailToSearch,
-        foundUser: userData ? `${userData.name} (${userData.email})` : 'لا يوجد',
-        userRole: userData?.role,
+      console.log('👤 نتيجة البحث:', {
+        found: !!userData,
+        error: userError?.message,
+        user: userData ? `${userData.name} (${userData.role})` : 'غير موجود',
         isActive: userData?.is_active
       })
 
-      // التحقق من وجود المستخدم وأنه مشرف
-      if (!userData) {
-        console.error('❌ لم يتم العثور على المستخدم:', emailToSearch)
-        setError(`المستخدم غير موجود في قاعدة البيانات: ${emailToSearch}`)
+      // التحقق من وجود المستخدم
+      if (!userData || userError) {
+        console.error('❌ المستخدم غير موجود:', emailToSearch, userError?.message)
+        setError(`المستخدم غير موجود: ${emailToSearch}`)
         return
       }
 
       // التحقق من أن المستخدم نشط
       if (!userData.is_active) {
-        console.error('❌ المستخدم غير نشط:', userData.email)
-        setError(`المستخدم ${userData.name} غير نشط. تواصل مع المدير.`)
+        console.error('❌ المستخدم غير نشط')
+        setError(`المستخدم ${userData.name} غير نشط`)
         return
       }
 
