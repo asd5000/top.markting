@@ -46,8 +46,11 @@ export default function AdminLoginPage() {
       const knownCredentials = [
         { username: 'asdasheref@gmail.com', password: '0453328124', name: 'أشرف الشريف', role: 'super_admin' },
         { username: 'admin@topmarketing.com', password: 'admin123', name: 'أحمد محمد', role: 'super_admin' },
+        { username: 'admin@topmarketing.com', password: 'admin', name: 'أحمد محمد', role: 'super_admin' },
         { username: 'admin', password: 'admin123', name: 'أحمد محمد', role: 'super_admin' },
-        { username: 'test', password: '123456', name: 'مدير تجريبي', role: 'super_admin' }
+        { username: 'admin', password: 'admin', name: 'أحمد محمد', role: 'super_admin' },
+        { username: 'test', password: '123456', name: 'مدير تجريبي', role: 'super_admin' },
+        { username: 'test', password: '123', name: 'مدير تجريبي', role: 'super_admin' }
       ]
 
       const matchedCredential = knownCredentials.find(cred =>
@@ -79,8 +82,8 @@ export default function AdminLoginPage() {
         return
       }
 
-      // محاولة البحث في قاعدة البيانات كنسخة احتياطية
-      console.log('🔍 محاولة البحث في قاعدة البيانات...')
+      // إذا لم تتطابق البيانات
+      console.log('❌ بيانات تسجيل الدخول غير صحيحة')
       setError('بيانات تسجيل الدخول غير صحيحة. استخدم البيانات المعروضة أدناه.')
       
     } catch (err) {
