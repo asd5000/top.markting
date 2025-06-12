@@ -32,6 +32,11 @@ export default function AdminLayout({
   const [admin, setAdmin] = useState<any>(null)
 
   useEffect(() => {
+    // تجاهل التحقق إذا كانت صفحة تسجيل الدخول
+    if (pathname === '/admin/login') {
+      return
+    }
+
     // التحقق من تسجيل الدخول
     const adminData = localStorage.getItem('admin')
     if (!adminData) {
@@ -46,7 +51,7 @@ export default function AdminLayout({
       console.error('Error parsing admin data:', error)
       router.push('/admin/login')
     }
-  }, [router])
+  }, [router, pathname])
 
   const handleLogout = () => {
     localStorage.removeItem('admin')
@@ -122,6 +127,12 @@ export default function AdminLayout({
     }
   ]
 
+  // إذا كانت صفحة تسجيل الدخول، عرض المحتوى مباشرة
+  if (pathname === '/admin/login') {
+    return <>{children}</>
+  }
+
+  // إذا لم يكن هناك مدير مسجل دخول، عرض شاشة التحميل
   if (!admin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
