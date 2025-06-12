@@ -67,17 +67,17 @@ export default function AdminLoginPage() {
 
       // التحقق من وجود المستخدم وأنه مشرف
       if (!userData || !['super_admin', 'marketing_manager', 'packages_manager', 'real_estate_manager', 'support'].includes(userData.role)) {
-        setError(`المستخدم غير موجود أو ليس لديه صلاحيات إدارية. جرب: admin, marketing, packages, realestate, support`)
+        setError(`المستخدم غير موجود أو ليس لديه صلاحيات إدارية. جرب: asdasheref@gmail.com`)
         return
       }
 
       console.log('✅ Admin found:', userData.name, '- Role:', userData.role)
 
-      // التحقق من كلمة المرور (كلمات مرور بسيطة للاختبار)
-      const validPasswords = ['admin123', 'admin', '123456', '123', 'password', 'test']
+      // التحقق من كلمة المرور - كلمة المرور الصحيحة للمدير الرئيسي
+      const validPasswords = ['0453328124', 'admin123', 'admin', '123456', '123', 'password', 'test']
 
       if (!validPasswords.includes(formData.password)) {
-        setError(`كلمة المرور غير صحيحة. جرب: ${validPasswords.join(', ')}`)
+        setError(`كلمة المرور غير صحيحة. جرب: 0453328124`)
         return
       }
 
