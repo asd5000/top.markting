@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "deploy": "git add . && git commit -m \"🚀 Deploy: Update website\" && git push origin main",
+    "setup": "npm install && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.0",
