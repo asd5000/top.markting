@@ -46,7 +46,10 @@ export default function AdminLoginPage() {
         'marketing': 'marketing@topmarketing.com',
         'packages': 'packages@topmarketing.com',
         'realestate': 'realestate@topmarketing.com',
-        'support': 'support@topmarketing.com'
+        'support': 'support@topmarketing.com',
+        'asdasheref': 'asdasheref@gmail.com',
+        'ashraf': 'asdasheref@gmail.com',
+        'main': 'asdasheref@gmail.com'
       }
 
       if (userMappings[formData.username.toLowerCase()]) {
@@ -211,10 +214,15 @@ export default function AdminLoginPage() {
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <h4 className="text-sm font-medium text-blue-900 mb-3">🔑 بيانات تسجيل الدخول المتاحة:</h4>
             <div className="text-sm text-blue-700 space-y-2">
+              <div className="bg-green-50 p-3 rounded border border-green-200">
+                <p><strong>👤 اسم المستخدم:</strong> asdasheref@gmail.com</p>
+                <p><strong>🔒 كلمة المرور:</strong> 0453328124</p>
+                <p className="text-xs text-green-600">المدير الرئيسي - أشرف الشريف</p>
+              </div>
               <div className="bg-white p-3 rounded border">
                 <p><strong>👤 اسم المستخدم:</strong> admin</p>
                 <p><strong>🔒 كلمة المرور:</strong> admin123</p>
-                <p className="text-xs text-blue-600">مدير النظام الرئيسي</p>
+                <p className="text-xs text-blue-600">مدير النظام</p>
               </div>
               <div className="bg-white p-3 rounded border">
                 <p><strong>👤 اسم المستخدم:</strong> test</p>
@@ -227,19 +235,19 @@ export default function AdminLoginPage() {
               <div className="mt-3 flex space-x-2">
                 <button
                   onClick={() => {
+                    setFormData({ username: 'asdasheref@gmail.com', password: '0453328124' })
+                  }}
+                  className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700"
+                >
+                  ملء تلقائي - المدير الرئيسي
+                </button>
+                <button
+                  onClick={() => {
                     setFormData({ username: 'admin', password: 'admin123' })
                   }}
                   className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
                 >
                   ملء تلقائي - admin
-                </button>
-                <button
-                  onClick={() => {
-                    setFormData({ username: 'test', password: '123456' })
-                  }}
-                  className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700"
-                >
-                  ملء تلقائي - test
                 </button>
               </div>
             </div>
