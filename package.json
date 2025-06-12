@@ -1,7 +1,7 @@
 {
   "name": "top-marketing-system",
-  "version": "1.0.0",
-  "description": "نظام إداري متكامل لإدارة خدمات التسويق والتصميم والمونتاج وصفحات السوشيال ميديا",
+  "version": "1.0.1",
+  "description": "نظام إداري متكامل لإدارة خدمات التسويق والتصميم والمونتاج وصفحات السوشيال ميديا - Ready for Vercel",
   "private": true,
   "scripts": {
     "dev": "next dev",
