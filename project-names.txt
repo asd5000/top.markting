@@ -1,0 +1,33 @@
+# 🏷️ أسماء بديلة للمشروع على Vercel
+
+## الاسم الأساسي المحسن:
+top-marketing-system
+
+## أسماء بديلة (في حالة التعارض):
+top-marketing-platform
+top-marketing-cms
+top-marketing-dashboard
+top-marketing-hub
+top-marketing-app
+top-marketing-portal
+top-marketing-suite
+top-marketing-pro
+top-marketing-v2
+top-marketing-2024
+
+## أسماء مع أرقام عشوائية:
+top-marketing-sys-001
+top-marketing-sys-002
+top-marketing-sys-003
+
+## أسماء مختصرة:
+tm-system
+tm-platform
+tm-dashboard
+tm-cms
+
+## تعليمات الاستخدام:
+1. ابدأ بـ: top-marketing-system
+2. إذا كان محجوز، جرب: top-marketing-platform
+3. إذا استمر التعارض، استخدم الأرقام
+4. كحل أخير، استخدم الأسماء المختصرة

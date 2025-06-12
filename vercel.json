@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "name": "top-marketing-system",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "regions": ["iad1"]
+}
