@@ -1,0 +1,5 @@
+This is a test receipt file for testing the upload functionality.
+Receipt ID: TEST-001
+Amount: 500 EGP
+Payment Method: Vodafone Cash
+Date: 2024-01-15

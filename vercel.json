@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "name": "top-marketing",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "src/app/**/*.{js,ts,tsx}": {
+      "maxDuration": 30
+    }
+  },
+  "regions": ["fra1"],
+  "github": {
+    "autoAlias": false
+  }
+}
