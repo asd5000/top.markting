@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { 
-  CreditCard, 
-  Upload, 
-  Check, 
+import {
+  CreditCard,
+  Upload,
+  Check,
   ArrowRight,
   MessageCircle,
   DollarSign,
@@ -14,7 +14,7 @@ import {
   Package
 } from 'lucide-react'
 
-export default function SubscribeCheckoutPage() {
+function SubscribeCheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const subscriptionId = searchParams.get('subscription_id')
@@ -216,7 +216,7 @@ export default function SubscribeCheckoutPage() {
       console.log('✅ Subscription status updated successfully')
 
       // توجيه المستخدم إلى صفحة النجاح مع تمرير معلومات الاشتراك
-      const successUrl = `/receipt-success?subscription_id=${subscriptionId}&payment_method=${selectedPaymentMethod}`
+      const successUrl = `/receipt-success?subscription_id=${subscriptionId}&payment_method=${paymentMethod}`
       router.push(successUrl)
       
     } catch (error) {
@@ -445,5 +445,20 @@ export default function SubscribeCheckoutPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SubscribeCheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir="rtl">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">جاري تحميل بيانات الاشتراك...</p>
+        </div>
+      </div>
+    }>
+      <SubscribeCheckoutContent />
+    </Suspense>
   )
 }

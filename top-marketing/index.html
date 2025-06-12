@@ -1,158 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Marketing - نظام إدارة الخدمات التسويقية</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; }
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                        <span class="text-white font-bold">TM</span>
-                    </div>
-                    <span class="mr-3 text-xl font-bold text-gray-900">Top Marketing</span>
-                </div>
-                <nav class="hidden md:flex space-x-8">
-                    <a href="index.html" class="text-blue-600 font-medium">الرئيسية</a>
-                    <a href="services-demo.html" class="text-gray-700 hover:text-blue-600">الخدمات</a>
-                    <a href="#" class="text-gray-700 hover:text-blue-600">إدارة الصفحات</a>
-                    <a href="#" class="text-gray-700 hover:text-blue-600">العقارات</a>
-                </nav>
-            </div>
-        </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="gradient-bg text-white py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-5xl font-bold mb-6">مرحباً بك في Top Marketing</h1>
-            <p class="text-xl mb-8 max-w-3xl mx-auto">
-                نظام إداري متكامل لإدارة خدمات التسويق والتصميم والمونتاج وصفحات السوشيال ميديا
-            </p>
-            <div class="space-x-4">
-                <a href="services-demo.html" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors">
-                    استكشف الخدمات
-                </a>
-                <a href="#features" class="border-2 border-white text-white px-8 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition-colors">
-                    تعرف أكثر
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">خدماتنا الأساسية</h2>
-                <p class="text-xl text-gray-600">نقدم مجموعة شاملة من الخدمات التسويقية والتقنية</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Design Service -->
-                <div class="card-hover bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg flex items-center justify-center mb-4">
-                        <span class="text-white text-2xl">🎨</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">خدمات التصميم</h3>
-                    <p class="text-gray-600 mb-4">تصميم لوجو، بنرات، أغلفة، منشورات سوشيال ميديا، وهوية بصرية كاملة</p>
-                    <span class="text-sm text-blue-600 font-medium">14 خدمة متاحة</span>
-                </div>
-
-                <!-- Marketing Service -->
-                <div class="card-hover bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mb-4">
-                        <span class="text-white text-2xl">📢</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">خدمات التسويق</h3>
-                    <p class="text-gray-600 mb-4">إعلانات فيسبوك وجوجل، إدارة صفحات، SEO، والتسويق عبر المؤثرين</p>
-                    <span class="text-sm text-blue-600 font-medium">15 خدمة متاحة</span>
-                </div>
-
-                <!-- Video Service -->
-                <div class="card-hover bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center mb-4">
-                        <span class="text-white text-2xl">🎬</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">خدمات المونتاج</h3>
-                    <p class="text-gray-600 mb-4">فيديوهات تعريفية، ريلز، موشن جرافيك، ورسوم متحركة احترافية</p>
-                    <span class="text-sm text-blue-600 font-medium">14 خدمة متاحة</span>
-                </div>
-
-                <!-- Data Service -->
-                <div class="card-hover bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mb-4">
-                        <span class="text-white text-2xl">📊</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">سحب البيانات</h3>
-                    <p class="text-gray-600 mb-4">استخراج بيانات الشركات، المنافسين، وقوائم العملاء المحتملين</p>
-                    <span class="text-sm text-blue-600 font-medium">10 خدمات متاحة</span>
-                </div>
-
-                <!-- Web Service -->
-                <div class="card-hover bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center mb-4">
-                        <span class="text-white text-2xl">🌐</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">تطوير المواقع</h3>
-                    <p class="text-gray-600 mb-4">مواقع تعريفية، متاجر إلكترونية، مدونات، ومنصات تعليمية</p>
-                    <span class="text-sm text-blue-600 font-medium">12 خدمة متاحة</span>
-                </div>
-
-                <!-- Real Estate Service -->
-                <div class="card-hover bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center mb-4">
-                        <span class="text-white text-2xl">🏠</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">إدارة العقارات</h3>
-                    <p class="text-gray-600 mb-4">نظام شامل لإدارة العقارات مع فلاتر متقدمة ونظام موافقات</p>
-                    <span class="text-sm text-blue-600 font-medium">نظام متكامل</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="bg-gray-900 text-white py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl font-bold mb-4">جاهز لبدء مشروعك؟</h2>
-            <p class="text-xl mb-8">اختر من أكثر من 65 خدمة متخصصة واحصل على أفضل النتائج</p>
-            <a href="services-demo.html" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                ابدأ الآن
-            </a>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="flex items-center justify-center mb-4">
-                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                    <span class="text-white font-bold text-sm">TM</span>
-                </div>
-                <span class="mr-2 text-lg font-bold text-gray-900">Top Marketing</span>
-            </div>
-            <p class="text-gray-600">© 2024 Top Marketing. جميع الحقوق محفوظة.</p>
-        </div>
-    </footer>
-</body>
-</html>

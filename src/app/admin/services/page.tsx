@@ -512,7 +512,7 @@ export default function ServicesManagement() {
                             custom_color: service.custom_color || '#3B82F6',
                             sort_order: service.sort_order || 0,
                             is_featured: service.is_featured || false,
-                            status: service.status || 'active',
+                            status: 'active' as const,
                             is_active: service.is_active
                           })
                           setShowServiceForm(true)
@@ -592,7 +592,7 @@ export default function ServicesManagement() {
                                       sort_order: subService.sort_order || 0,
                                       features: subService.features || [],
                                       delivery_time: subService.delivery_time || '',
-                                      status: subService.status || 'active',
+                                      status: 'active' as const,
                                       is_active: subService.is_active
                                     })
                                     setShowSubServiceForm(true)

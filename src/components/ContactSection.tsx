@@ -115,15 +115,13 @@ export default function ContactSection({
 
           <div className="flex items-center text-gray-600">
             <MapPin className="w-4 h-4 ml-2 flex-shrink-0" />
-            <span>{settings?.city}, {settings?.country}</span>
+            <span>القاهرة، مصر</span>
           </div>
 
-          {settings?.working_hours && (
-            <div className="flex items-center text-gray-600">
-              <Clock className="w-4 h-4 ml-2 flex-shrink-0" />
-              <span className="text-sm">{settings.working_hours}</span>
-            </div>
-          )}
+          <div className="flex items-center text-gray-600">
+            <Clock className="w-4 h-4 ml-2 flex-shrink-0" />
+            <span className="text-sm">24/7 - خدمة على مدار الساعة</span>
+          </div>
         </div>
       </div>
     )
@@ -166,7 +164,7 @@ export default function ContactSection({
 
           <div className="flex items-center">
             <MapPin className="w-4 h-4 ml-2 flex-shrink-0" />
-            <span>{settings?.city}, {settings?.country}</span>
+            <span>القاهرة، مصر</span>
           </div>
         </div>
       </div>
@@ -230,34 +228,26 @@ export default function ContactSection({
             <div>
               <p className="font-medium text-gray-900">الموقع</p>
               <p className="text-sm text-gray-600">
-                {settings?.address && `${settings.address}, `}
-                {settings?.city}, {settings?.country}
+                القاهرة، مصر
               </p>
-              {settings?.postal_code && (
-                <p className="text-xs text-gray-500">الرمز البريدي: {settings.postal_code}</p>
-              )}
             </div>
           </div>
 
-          {settings?.working_hours && (
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <Clock className="w-5 h-5 text-gray-600 ml-3" />
-              <div>
-                <p className="font-medium text-gray-900">ساعات العمل</p>
-                <p className="text-sm text-gray-600">{settings.working_hours}</p>
-              </div>
+          <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+            <Clock className="w-5 h-5 text-gray-600 ml-3" />
+            <div>
+              <p className="font-medium text-gray-900">ساعات العمل</p>
+              <p className="text-sm text-gray-600">24/7 - خدمة على مدار الساعة</p>
             </div>
-          )}
+          </div>
 
-          {settings?.support_hours && (
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <Building className="w-5 h-5 text-gray-600 ml-3" />
-              <div>
-                <p className="font-medium text-gray-900">الدعم الفني</p>
-                <p className="text-sm text-gray-600">{settings.support_hours}</p>
-              </div>
+          <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+            <Building className="w-5 h-5 text-gray-600 ml-3" />
+            <div>
+              <p className="font-medium text-gray-900">الدعم الفني</p>
+              <p className="text-sm text-gray-600">متاح على مدار الساعة</p>
             </div>
-          )}
+          </div>
         </div>
       </div>
 

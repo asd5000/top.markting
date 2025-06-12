@@ -578,16 +578,16 @@ export default function PackagesManagement() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {subscriptions.map((subscription) => {
-                    const pkg = packages.find(p => p.id === subscription.package_id)
+                    const pkg = packages.find(p => p.id === subscription.packageId)
                     return (
                       <tr key={subscription.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">
-                              {subscription.customer_name || 'غير محدد'}
+                              {subscription.customerName || 'غير محدد'}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {subscription.customer_email || 'غير محدد'}
+                              {subscription.customerEmail || 'غير محدد'}
                             </div>
                           </div>
                         </td>
@@ -598,8 +598,8 @@ export default function PackagesManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-xs space-y-1">
                             <div>مدة الاشتراك: {pkg?.duration_months} شهر</div>
-                            <div>تاريخ البداية: {new Date(subscription.start_date).toLocaleDateString('ar-EG')}</div>
-                            <div>تاريخ الانتهاء: {new Date(subscription.end_date).toLocaleDateString('ar-EG')}</div>
+                            <div>تاريخ البداية: {new Date(subscription.startDate).toLocaleDateString('ar-EG')}</div>
+                            <div>تاريخ الانتهاء: {new Date(subscription.endDate).toLocaleDateString('ar-EG')}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -615,11 +615,11 @@ export default function PackagesManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            subscription.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
-                            subscription.payment_status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                            subscription.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                            subscription.paymentStatus === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {subscription.payment_status === 'paid' ? 'مدفوع' :
-                             subscription.payment_status === 'rejected' ? 'مرفوض' : 'معلق'}
+                            {subscription.paymentStatus === 'paid' ? 'مدفوع' :
+                             subscription.paymentStatus === 'rejected' ? 'مرفوض' : 'معلق'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

@@ -153,7 +153,7 @@ export default function ReceiptsPage() {
               notes: `اشتراك في باقة: ${subscription.packages?.name || 'غير محدد'}`,
               created_at: subscription.created_at,
               updated_at: subscription.updated_at,
-              order_id: null,
+              order_id: undefined,
               subscription_id: subscription.id,
               source: 'subscriptions'
             })

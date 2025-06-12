@@ -104,7 +104,7 @@ export default function PortfolioPage() {
     try {
       await supabase
         .from('portfolio')
-        .update({ views_count: portfolioItems.find(item => item.id === id)?.views_count + 1 || 1 })
+        .update({ views_count: (portfolioItems.find(item => item.id === id)?.views_count || 0) + 1 })
         .eq('id', id)
     } catch (error) {
       console.error('Error updating views:', error)

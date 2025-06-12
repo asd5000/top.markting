@@ -312,10 +312,10 @@ export default function RealEstateManagement() {
       customer_whatsapp: property.customer_whatsapp || '',
       property_type: property.property_type,
       listing_type: property.listing_type,
-      title: property.title || '',
-      description: property.description || '',
-      governorate: property.governorate || '',
-      city: property.city || '',
+      title: (property as any).title || '',
+      description: (property as any).description || '',
+      governorate: (property as any).governorate || '',
+      city: (property as any).city || '',
       district: property.district || '',
       address: property.address || '',
       area: property.area?.toString() || '',
@@ -845,7 +845,7 @@ export default function RealEstateManagement() {
                             href={getWhatsAppLink(
                               property.customer_whatsapp || property.customer_phone,
                               property.customer_name,
-                              property.title
+                              (property as any).title
                             )}
                             target="_blank"
                             rel="noopener noreferrer"

@@ -1,291 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Marketing - الخدمات</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; }
-        .service-option {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .service-option:hover {
-            background-color: #dbeafe;
-            border-color: #3b82f6;
-        }
-        .service-option.selected {
-            background-color: #dbeafe;
-            border-color: #3b82f6;
-        }
-        .radio-circle {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #d1d5db;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-        .radio-circle.selected {
-            border-color: #3b82f6;
-            background-color: #3b82f6;
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <div class="min-h-screen">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                            <span class="text-white font-bold">TM</span>
-                        </div>
-                        <span class="mr-3 text-xl font-bold text-gray-900">Top Marketing</span>
-                    </div>
-                    <nav class="hidden md:flex space-x-8">
-                        <a href="#" class="text-gray-700 hover:text-blue-600">الرئيسية</a>
-                        <a href="#" class="text-blue-600 font-medium">الخدمات</a>
-                        <a href="#" class="text-gray-700 hover:text-blue-600">إدارة الصفحات</a>
-                        <a href="#" class="text-gray-700 hover:text-blue-600">العقارات</a>
-                    </nav>
-                </div>
-            </div>
-        </header>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center mb-12">
-                <h1 class="text-4xl font-bold text-gray-900 mb-4">خدماتنا</h1>
-                <p class="text-xl text-gray-600">اختر من مجموعة واسعة من الخدمات المتخصصة</p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <!-- Services Sidebar -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4">الخدمات</h3>
-                        <div class="space-y-2">
-                            <button onclick="showService('design')" class="service-btn w-full text-right p-3 rounded-lg transition-colors bg-blue-50 text-blue-600 border border-blue-200">
-                                <div class="flex items-center">
-                                    <span class="w-5 h-5 ml-3">🎨</span>
-                                    <span class="font-medium">تصميم</span>
-                                </div>
-                            </button>
-                            <button onclick="showService('marketing')" class="service-btn w-full text-right p-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50">
-                                <div class="flex items-center">
-                                    <span class="w-5 h-5 ml-3">📢</span>
-                                    <span class="font-medium">تسويق</span>
-                                </div>
-                            </button>
-                            <button onclick="showService('video')" class="service-btn w-full text-right p-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50">
-                                <div class="flex items-center">
-                                    <span class="w-5 h-5 ml-3">🎬</span>
-                                    <span class="font-medium">مونتاج</span>
-                                </div>
-                            </button>
-                            <button onclick="showService('data')" class="service-btn w-full text-right p-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50">
-                                <div class="flex items-center">
-                                    <span class="w-5 h-5 ml-3">📊</span>
-                                    <span class="font-medium">سحب داتا</span>
-                                </div>
-                            </button>
-                            <button onclick="showService('web')" class="service-btn w-full text-right p-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50">
-                                <div class="flex items-center">
-                                    <span class="w-5 h-5 ml-3">🌐</span>
-                                    <span class="font-medium">موقع ويب</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Services Content -->
-                <div class="lg:col-span-3">
-                    <div id="service-content">
-                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <div class="mb-6">
-                                <h3 class="text-xl font-bold text-gray-900 mb-2">
-                                    أهلاً وسهلاً بيك! 😊😊
-                                </h3>
-                                <p class="text-gray-600">
-                                    اختار واحد من الخيارات اللي تحت عشان أقدر أوجهك بشكل أفضل:
-                                </p>
-                            </div>
-
-                            <div id="services-list" class="space-y-3">
-                                <!-- Services will be loaded here -->
-                            </div>
-
-                            <div id="selected-summary" class="mt-6 pt-6 border-t border-gray-200 hidden">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                            <span class="text-white text-sm">✓</span>
-                                        </div>
-                                        <span class="mr-2 text-green-700 font-medium">
-                                            تواصل مع الدعم التقني ✅
-                                        </span>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-sm text-gray-600">إجمالي المختار</p>
-                                        <p id="total-price" class="text-xl font-bold text-green-600">0 ج.م</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let selectedServices = [];
-        let totalPrice = 0;
-
-        const services = {
-            design: [
-                { name: 'تصميم لوجو', desc: 'تصميم شعار احترافي للعلامة التجارية', price: 500 },
-                { name: 'تصميم بنر إعلاني', desc: 'تصميم بنرات إعلانية جذابة ومؤثرة', price: 200 },
-                { name: 'تصميم غلاف فيسبوك', desc: 'تصميم أغلفة احترافية للصفحات', price: 150 },
-                { name: 'تصميم بوست سوشيال ميديا', desc: 'تصميم منشورات وسائل التواصل الاجتماعي', price: 100 },
-                { name: 'تصميم ستوري', desc: 'تصميم قصص انستجرام وفيسبوك', price: 80 },
-                { name: 'تصميم مطبوعات', desc: 'تصميم الكتيبات والمطبوعات', price: 400 },
-                { name: 'تصميم كرت شخصي', desc: 'تصميم كروت العمل والدعوات', price: 250 },
-                { name: 'تصميم صورة مصغّرة يوتيوب', desc: 'تصميم thumbnails احترافية', price: 120 },
-                { name: 'تصميم فلاير', desc: 'تصميم منشورات ترويجية', price: 180 },
-                { name: 'تصميم منيو', desc: 'تصميم قوائم المطاعم والكافيهات', price: 300 },
-                { name: 'تصميم كتالوج', desc: 'تصميم كتالوجات المنتجات', price: 600 },
-                { name: 'هوية بصرية كاملة', desc: 'تصميم هوية بصرية متكاملة', price: 2000 },
-                { name: 'تصميم تغليف منتج', desc: 'تصميم عبوات وتغليف المنتجات', price: 450 },
-                { name: 'تصميم عرض تقديمي', desc: 'تصميم عروض بوربوينت احترافية', price: 350 }
-            ],
-            marketing: [
-                { name: 'تسويق منتج', desc: 'حملات تسويقية شاملة للمنتجات', price: 800 },
-                { name: 'تسويق خدمة', desc: 'حملات تسويقية متخصصة للخدمات', price: 700 },
-                { name: 'إدارة صفحات سوشيال ميديا', desc: 'إدارة وتسويق صفحات السوشيال ميديا', price: 600 },
-                { name: 'إدارة جروبات', desc: 'إدارة وتسويق المجموعات والكوميونيتي', price: 500 },
-                { name: 'إعلانات فيسبوك', desc: 'إنشاء وإدارة حملات إعلانية على فيسبوك', price: 900 },
-                { name: 'إعلانات جوجل', desc: 'إنشاء وإدارة حملات إعلانية على جوجل', price: 1000 },
-                { name: 'إعلانات انستجرام', desc: 'إنشاء وإدارة حملات إعلانية على انستجرام', price: 850 },
-                { name: 'إعلانات يوتيوب', desc: 'إنشاء وإدارة حملات إعلانية على يوتيوب', price: 1100 },
-                { name: 'إنشاء متجر Google', desc: 'إنشاء وإعداد متجر على Google My Business', price: 400 },
-                { name: 'إضافة على خرائط Google', desc: 'إضافة النشاط التجاري على خرائط Google', price: 300 },
-                { name: 'تحسين محركات البحث SEO', desc: 'تحسين ظهور الموقع في نتائج البحث', price: 1200 },
-                { name: 'كتابة محتوى تسويقي', desc: 'كتابة محتوى تسويقي احترافي', price: 450 },
-                { name: 'التسويق عبر البريد الإلكتروني', desc: 'حملات تسويقية عبر البريد الإلكتروني', price: 550 },
-                { name: 'التسويق عبر المؤثرين', desc: 'حملات تسويقية مع المؤثرين', price: 1500 },
-                { name: 'صفحات هبوط تسويقية', desc: 'إنشاء صفحات هبوط عالية التحويل', price: 1800 }
-            ],
-            video: [
-                { name: 'فيديو تعريفي للشركة', desc: 'إنتاج فيديوهات تعريفية احترافية للشركات', price: 1000 },
-                { name: 'فيديو تعريفي للمنتج', desc: 'إنتاج فيديوهات تعريفية للمنتجات', price: 800 },
-                { name: 'مونتاج ريلز', desc: 'إنتاج مقاطع ريلز قصيرة وجذابة', price: 300 },
-                { name: 'مونتاج شورتس يوتيوب', desc: 'إنتاج مقاطع شورتس لليوتيوب', price: 350 },
-                { name: 'موشن جرافيك', desc: 'إنتاج رسوم متحركة احترافية', price: 1500 },
-                { name: 'رسوم متحركة 2D', desc: 'إنتاج رسوم متحركة ثنائية الأبعاد', price: 1200 },
-                { name: 'فيديو سبورة بيضاء', desc: 'إنتاج فيديوهات تعليمية بالسبورة البيضاء', price: 800 },
-                { name: 'فيديو من عرض تقديمي', desc: 'تحويل العروض التقديمية لفيديوهات', price: 500 },
-                { name: 'إنترو احترافي', desc: 'إنتاج مقدمات احترافية للفيديوهات', price: 400 },
-                { name: 'أوترو احترافي', desc: 'إنتاج خاتمات احترافية للفيديوهات', price: 350 },
-                { name: 'مونتاج فيديو شهادات', desc: 'مونتاج فيديوهات شهادات العملاء', price: 600 },
-                { name: 'فيديو تعليمي', desc: 'إنتاج فيديوهات تعليمية احترافية', price: 700 },
-                { name: 'إعلان تجاري', desc: 'إنتاج إعلانات تجارية احترافية', price: 2000 },
-                { name: 'فيديو سوشيال ميديا', desc: 'مونتاج فيديوهات مخصصة للسوشيال ميديا', price: 450 }
-            ],
-            data: [
-                { name: 'سحب بيانات عامة', desc: 'استخراج بيانات عامة من مصادر مختلفة', price: 600 },
-                { name: 'سحب بيانات مخصصة', desc: 'استخراج بيانات مخصصة حسب المتطلبات', price: 1000 },
-                { name: 'بيانات الشركات', desc: 'قواعد بيانات الشركات والمؤسسات', price: 800 },
-                { name: 'بيانات المصانع', desc: 'قواعد بيانات المصانع والوحدات الإنتاجية', price: 900 },
-                { name: 'بيانات جهات اتصال', desc: 'قواعد بيانات جهات الاتصال والعملاء المحتملين', price: 700 },
-                { name: 'بيانات المنافسين', desc: 'تحليل وجمع بيانات المنافسين', price: 1200 },
-                { name: 'بيانات سوشيال ميديا', desc: 'استخراج بيانات من منصات التواصل الاجتماعي', price: 850 },
-                { name: 'بحث السوق', desc: 'جمع وتحليل بيانات السوق والعملاء', price: 1500 },
-                { name: 'بيانات عملاء محتملين', desc: 'قواعد بيانات العملاء المحتملين المؤهلين', price: 950 },
-                { name: 'قوائم بريدية', desc: 'قواعد بيانات البريد الإلكتروني المستهدفة', price: 650 }
-            ],
-            web: [
-                { name: 'صفحة هبوط', desc: 'تطوير صفحة هبوط احترافية عالية التحويل', price: 1200 },
-                { name: 'موقع تعريفي للشركة', desc: 'تطوير موقع تعريفي شامل للشركة', price: 2500 },
-                { name: 'متجر إلكتروني', desc: 'تطوير متجر إلكتروني متكامل مع نظام دفع', price: 5000 },
-                { name: 'موقع مدونة', desc: 'تطوير مدونة احترافية مع نظام إدارة المحتوى', price: 1800 },
-                { name: 'موقع معرض أعمال', desc: 'تطوير موقع لعرض الأعمال والمشاريع', price: 2000 },
-                { name: 'موقع حجوزات', desc: 'تطوير موقع نظام حجوزات ومواعيد', price: 3500 },
-                { name: 'موقع دليل', desc: 'تطوير موقع دليل الشركات والخدمات', price: 4000 },
-                { name: 'موقع إخباري', desc: 'تطوير موقع إخباري مع نظام إدارة المحتوى', price: 3000 },
-                { name: 'موقع تعليمي', desc: 'تطوير منصة تعليمية مع نظام الكورسات', price: 6000 },
-                { name: 'موقع مطعم', desc: 'تطوير موقع مطعم مع قائمة الطعام ونظام الطلبات', price: 2800 },
-                { name: 'موقع عقاري', desc: 'تطوير موقع عقاري مع نظام البحث والفلترة', price: 4500 },
-                { name: 'موقع طبي', desc: 'تطوير موقع طبي مع نظام المواعيد', price: 3800 }
-            ]
-        };
-
-        function selectService(element, serviceName, price) {
-            const radioCircle = element.querySelector('.radio-circle');
-            const isSelected = element.classList.contains('selected');
-            
-            if (isSelected) {
-                element.classList.remove('selected');
-                radioCircle.classList.remove('selected');
-                selectedServices = selectedServices.filter(s => s.name !== serviceName);
-                totalPrice -= price;
-            } else {
-                element.classList.add('selected');
-                radioCircle.classList.add('selected');
-                selectedServices.push({ name: serviceName, price: price });
-                totalPrice += price;
-            }
-            
-            updateSummary();
-        }
-
-        function updateSummary() {
-            const summaryDiv = document.getElementById('selected-summary');
-            const totalPriceElement = document.getElementById('total-price');
-            
-            if (selectedServices.length > 0) {
-                summaryDiv.classList.remove('hidden');
-                totalPriceElement.textContent = totalPrice + ' ج.م';
-            } else {
-                summaryDiv.classList.add('hidden');
-            }
-        }
-
-        function showService(serviceType) {
-            // Update active button
-            document.querySelectorAll('.service-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-50', 'text-blue-600', 'border-blue-200');
-                btn.classList.add('text-gray-700');
-            });
-            
-            event.target.closest('.service-btn').classList.add('bg-blue-50', 'text-blue-600', 'border-blue-200');
-            event.target.closest('.service-btn').classList.remove('text-gray-700');
-            
-            // Load services
-            const servicesList = document.getElementById('services-list');
-            const serviceData = services[serviceType] || services.design;
-            
-            servicesList.innerHTML = serviceData.map(service => `
-                <div class="service-option flex items-center justify-between p-4 border border-gray-200 rounded-lg" onclick="selectService(this, '${service.name}', ${service.price})">
-                    <div class="flex items-center flex-1">
-                        <div class="radio-circle ml-3"></div>
-                        <div class="flex-1">
-                            <h4 class="font-medium text-gray-900">${service.name}</h4>
-                            <p class="text-sm text-gray-600 mt-1">${service.desc}</p>
-                            <div class="flex items-center justify-between mt-2">
-                                <span class="text-lg font-bold text-blue-600">${service.price} <span class="text-sm text-gray-600">ج.م</span></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Initialize with design services
-        showService('design');
-    </script>
-</body>
-</html>

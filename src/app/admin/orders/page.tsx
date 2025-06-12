@@ -529,6 +529,10 @@ export default function OrdersManagement() {
       canvas.height = 600
       const ctx = canvas.getContext('2d')
 
+      if (!ctx) {
+        throw new Error('Failed to get canvas context')
+      }
+
       // رسم خلفية بيضاء
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, 400, 600)
@@ -574,7 +578,7 @@ export default function OrdersManagement() {
 
         const { data, error } = await supabase.storage
           .from('receipts')
-          .upload(filePath, receiptBlob)
+          .upload(filePath, receiptBlob as Blob)
 
         if (!error && data) {
           // الحصول على رابط علني
@@ -707,7 +711,7 @@ export default function OrdersManagement() {
 
           const { data, error } = await supabase.storage
             .from('receipts')
-            .upload(filePath, receiptBlob)
+            .upload(filePath, receiptBlob as Blob)
 
           if (!error && data) {
             // الحصول على رابط علني

@@ -133,7 +133,7 @@ export default function DynamicFooter() {
               {/* الموقع */}
               <div className="flex items-center">
                 <MapPin className="w-4 h-4 ml-2 flex-shrink-0" />
-                <span>{settings?.city || 'القاهرة'}, {settings?.country || 'مصر'}</span>
+                <span>القاهرة، مصر</span>
               </div>
             </div>
 
