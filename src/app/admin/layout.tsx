@@ -37,18 +37,30 @@ export default function AdminLayout({
       return
     }
 
+    console.log('🔍 فحص جلسة المدير في Layout...')
+
     // التحقق من تسجيل الدخول
-    const adminData = localStorage.getItem('admin')
+    const adminData = localStorage.getItem('admin') || localStorage.getItem('adminSession')
     if (!adminData) {
+      console.log('❌ لا توجد جلسة مدير في Layout')
       router.push('/admin/login')
       return
     }
 
     try {
       const parsedAdmin = JSON.parse(adminData)
+      console.log('👤 بيانات المدير في Layout:', parsedAdmin)
+
+      if (!parsedAdmin || !parsedAdmin.name || !parsedAdmin.role) {
+        console.log('❌ بيانات المدير غير صحيحة في Layout')
+        router.push('/admin/login')
+        return
+      }
+
+      console.log('✅ جلسة المدير صحيحة في Layout')
       setAdmin(parsedAdmin)
     } catch (error) {
-      console.error('Error parsing admin data:', error)
+      console.error('❌ خطأ في تحليل بيانات المدير:', error)
       router.push('/admin/login')
     }
   }, [router, pathname])

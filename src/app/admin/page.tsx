@@ -26,23 +26,30 @@ export default function AdminDashboard() {
 
   const checkAdminAuth = () => {
     try {
+      console.log('🔍 فحص جلسة المدير...')
+
       // التحقق من جلسة المدير
-      const adminSession = localStorage.getItem('adminSession')
+      const adminSession = localStorage.getItem('admin') || localStorage.getItem('adminSession')
       if (!adminSession) {
+        console.log('❌ لا توجد جلسة مدير')
         router.push('/admin/login')
         return
       }
 
       const admin = JSON.parse(adminSession)
-      if (!admin || !admin.isLoggedIn) {
+      console.log('👤 بيانات المدير:', admin)
+
+      if (!admin || !admin.name || !admin.role) {
+        console.log('❌ بيانات المدير غير صحيحة')
         router.push('/admin/login')
         return
       }
 
+      console.log('✅ جلسة المدير صحيحة')
       setAdminData(admin)
       setLoading(false)
     } catch (error) {
-      console.error('Error checking admin auth:', error)
+      console.error('❌ خطأ في فحص جلسة المدير:', error)
       router.push('/admin/login')
     }
   }
