@@ -366,6 +366,18 @@ export default function VisitorLoginPage() {
               </button>
             </div>
 
+            {/* Forgot Password Link (for login only) */}
+            {isLogin && (
+              <div className="text-center">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                >
+                  نسيت كلمة المرور؟
+                </Link>
+              </div>
+            )}
+
             {/* Additional Info */}
             <div className="text-center text-sm text-gray-600">
               {isLogin ? (

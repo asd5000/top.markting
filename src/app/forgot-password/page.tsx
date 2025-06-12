@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
         {/* Header */}
         <div className="text-center">
           <Link
-            href="/customer-login"
+            href="/visitor-login"
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6"
           >
             <ArrowLeft className="w-5 h-5 ml-2" />
@@ -123,14 +123,14 @@ export default function ForgotPasswordPage() {
           <div className="text-center space-y-2">
             <p className="text-sm text-gray-600">
               تذكرت كلمة المرور؟{' '}
-              <Link href="/customer-login" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/visitor-login" className="text-blue-600 hover:text-blue-700 font-medium">
                 تسجيل الدخول
               </Link>
             </p>
-            
+
             <p className="text-sm text-gray-600">
               ليس لديك حساب؟{' '}
-              <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/visitor-login" className="text-blue-600 hover:text-blue-700 font-medium">
                 إنشاء حساب جديد
               </Link>
             </p>
