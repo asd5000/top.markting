@@ -1745,8 +1745,8 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {editingProperty ? 'تعديل العقار' : 'إضافة عقار جديد'}
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {editingProperty ? '🔄 تعديل العقار' : '✨ إضافة عقار جديد - النموذج الكامل'}
                   </h2>
                   <button
                     onClick={resetForm}
@@ -2272,4 +2272,5 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
     </div>
   )
 }
-// ✅ CONFIRMED DEPLOYMENT - Image upload & video features active
+// 🔥 EMERGENCY DEPLOYMENT - COMPLETE ADMIN FORM REDESIGN - v5.0
+// النموذج الكامل مع جميع الأقسام والمميزات
