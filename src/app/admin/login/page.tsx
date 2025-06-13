@@ -27,6 +27,7 @@ export default function AdminLoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     setLoading(true)
     setError('')
 
@@ -81,16 +82,20 @@ export default function AdminLoginPage() {
 
         console.log('✅ جلسة المدير محفوظة')
 
-        // إعادة التوجيه لصفحة تعمل
-        alert('تم تسجيل الدخول بنجاح! مرحباً ' + matchedCredential.name)
+        // إعادة التوجيه للصفحة الرئيسية مباشرة (لأن لوحة التحكم لا تعمل حالياً)
+        alert('تم تسجيل الدخول بنجاح! مرحباً ' + matchedCredential.name + '\n\nسيتم توجيهك للصفحة الرئيسية')
 
-        // محاولة الذهاب للوحة التحكم، وإذا فشلت اذهب للصفحة الرئيسية
-        try {
-          window.location.href = '/admin/dashboard'
-        } catch (error) {
-          console.log('فشل في الوصول للوحة التحكم، إعادة توجيه للصفحة الرئيسية')
-          window.location.href = '/'
-        }
+        // استخدام setTimeout لضمان تنفيذ الانتقال
+        setTimeout(() => {
+          try {
+            // محاولة استخدام Next.js router أولاً
+            router.push('/')
+          } catch (routerError) {
+            console.log('فشل router، استخدام window.location')
+            window.location.replace('/')
+          }
+        }, 1500)
+
         return
       }
 
