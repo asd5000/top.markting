@@ -49,7 +49,7 @@ export default function RealEstateSystemPage() {
 
   // Real Estate System States
   const [properties, setProperties] = useState<Property[]>([])
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState('properties')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
@@ -535,14 +535,7 @@ export default function RealEstateSystemPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
-      {/* شريط تأكيد أن النظام المطور يعمل */}
-      <div className="bg-green-600 text-white p-3 text-center">
-        <h1 className="text-lg font-bold">🎉 النظام العقاري المطور يعمل الآن! 🎉</h1>
-        <p className="text-sm">تم إضافة القائمة الجانبية والمميزات الجديدة بنجاح</p>
-      </div>
-
-      <div className="flex min-h-screen">
+    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
       {/* القائمة الجانبية الجديدة */}
       <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-white shadow-lg border-l border-gray-200 flex flex-col transition-all duration-300`}>
         {/* رأس القائمة الجانبية */}
@@ -568,110 +561,122 @@ export default function RealEstateSystemPage() {
           </div>
         </div>
 
-        {/* قائمة التنقل */}
+        {/* قائمة التنقل الرئيسية */}
         <div className="flex-1 p-4">
-          <nav className="space-y-2">
+          <nav className="space-y-3">
             {/* لوحة التحكم */}
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+              className={`w-full flex items-center px-4 py-4 rounded-xl text-right transition-all duration-200 ${
                 activeTab === 'dashboard'
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200 shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transform scale-105'
+                  : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-700 shadow-sm border border-gray-200'
               }`}
             >
-              <Home className="w-5 h-5 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span>🏠 لوحة التحكم</span>}
+              <Home className="w-6 h-6 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">🏠 لوحة التحكم</span>}
             </button>
 
             {/* إضافة عقار */}
             <button
               onClick={() => setShowAddForm(true)}
-              className="w-full flex items-center px-4 py-3 rounded-lg text-right text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200"
+              className="w-full flex items-center px-4 py-4 rounded-xl text-right bg-white text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200 shadow-sm border border-gray-200 hover:border-green-300"
             >
-              <Plus className="w-5 h-5 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span>➕ إضافة عقار</span>}
+              <Plus className="w-6 h-6 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">➕ إضافة عقار</span>}
             </button>
 
             {/* الإحصائيات */}
             <button
               onClick={() => setActiveTab('statistics')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+              className={`w-full flex items-center px-4 py-4 rounded-xl text-right transition-all duration-200 ${
                 activeTab === 'statistics'
-                  ? 'bg-purple-100 text-purple-700 border border-purple-200 shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg transform scale-105'
+                  : 'bg-white text-gray-700 hover:bg-purple-50 hover:text-purple-700 shadow-sm border border-gray-200'
               }`}
             >
-              <BarChart3 className="w-5 h-5 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span>📊 الإحصائيات</span>}
-            </button>
-
-            {/* المطابقة الذكية */}
-            <button
-              onClick={() => setActiveTab('matching')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
-                activeTab === 'matching'
-                  ? 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              <Target className="w-5 h-5 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span>🔍 المطابقة</span>}
-            </button>
-
-            {/* جاري البيع */}
-            <button
-              onClick={() => setActiveTab('selling')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
-                activeTab === 'selling'
-                  ? 'bg-orange-100 text-orange-700 border border-orange-200 shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              <TrendingUp className="w-5 h-5 ml-3 flex-shrink-0" />
-              {sidebarOpen && (
-                <div className="flex items-center justify-between w-full">
-                  <span>🔁 جاري البيع</span>
-                  <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-xs">
-                    {stats.selling}
-                  </span>
-                </div>
-              )}
-            </button>
-
-            {/* تم البيع */}
-            <button
-              onClick={() => setActiveTab('sold')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
-                activeTab === 'sold'
-                  ? 'bg-green-100 text-green-700 border border-green-200 shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              <CheckCircle className="w-5 h-5 ml-3 flex-shrink-0" />
-              {sidebarOpen && (
-                <div className="flex items-center justify-between w-full">
-                  <span>✅ تم البيع</span>
-                  <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full text-xs">
-                    {stats.sold}
-                  </span>
-                </div>
-              )}
-            </button>
-
-            {/* عرض جميع العقارات */}
-            <button
-              onClick={() => setActiveTab('properties')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
-                activeTab === 'properties'
-                  ? 'bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              <Building className="w-5 h-5 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span>🏢 جميع العقارات</span>}
+              <BarChart3 className="w-6 h-6 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">📊 الإحصائيات</span>}
             </button>
           </nav>
+
+          {/* قسم إضافي للمميزات المتقدمة */}
+          <div className="mt-8">
+            <div className="px-4 mb-3">
+              {sidebarOpen && (
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  المميزات المتقدمة
+                </h3>
+              )}
+            </div>
+            <nav className="space-y-2">
+              {/* المطابقة الذكية */}
+              <button
+                onClick={() => setActiveTab('matching')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'matching'
+                    ? 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <Target className="w-5 h-5 ml-3 flex-shrink-0" />
+                {sidebarOpen && <span>🔍 المطابقة الذكية</span>}
+              </button>
+
+              {/* جاري البيع */}
+              <button
+                onClick={() => setActiveTab('selling')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'selling'
+                    ? 'bg-orange-100 text-orange-700 border border-orange-200 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <TrendingUp className="w-5 h-5 ml-3 flex-shrink-0" />
+                {sidebarOpen && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>🔁 جاري البيع</span>
+                    <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-xs">
+                      {stats.selling}
+                    </span>
+                  </div>
+                )}
+              </button>
+
+              {/* تم البيع */}
+              <button
+                onClick={() => setActiveTab('sold')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'sold'
+                    ? 'bg-green-100 text-green-700 border border-green-200 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <CheckCircle className="w-5 h-5 ml-3 flex-shrink-0" />
+                {sidebarOpen && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>✅ تم البيع</span>
+                    <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full text-xs">
+                      {stats.sold}
+                    </span>
+                  </div>
+                )}
+              </button>
+
+              {/* عرض جميع العقارات */}
+              <button
+                onClick={() => setActiveTab('properties')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'properties'
+                    ? 'bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <Building className="w-5 h-5 ml-3 flex-shrink-0" />
+                {sidebarOpen && <span>🏢 جميع العقارات</span>}
+              </button>
+            </nav>
+          </div>
         </div>
 
         {/* معلومات المستخدم */}
@@ -746,6 +751,8 @@ export default function RealEstateSystemPage() {
             </div>
           </div>
         </div>
+
+
 
         {/* المحتوى الرئيسي */}
         <main className="flex-1 p-6 overflow-y-auto">
