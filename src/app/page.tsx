@@ -77,34 +77,9 @@ export default function HomePage() {
       if (error) {
         console.error('❌ Error loading services:', error)
         setServices([])
-        setServicesLoading(false)
-        return
-      }
-
-      // فحص الخدمات الفرعية لكل خدمة وعرض الخدمات التي تحتوي على خدمات فرعية فقط
-      const servicesWithSubServices = []
-      for (const service of servicesData || []) {
-        const { data: subServices, error: subError } = await supabase
-          .from('sub_services')
-          .select('id')
-          .eq('service_id', service.id)
-          .eq('is_active', true)
-
-        if (!subError && subServices && subServices.length > 0) {
-          servicesWithSubServices.push(service)
-          console.log(`✅ Service "${service.name}" has ${subServices.length} sub-services`)
-        } else {
-          console.log(`⚠️ Service "${service.name}" has no sub-services`)
-        }
-      }
-
-      console.log('✅ Services with sub-services loaded:', servicesWithSubServices)
-      setServices(servicesWithSubServices)
-
-      // إذا لم تكن هناك خدمات مع خدمات فرعية، اعرض جميع الخدمات
-      if (servicesWithSubServices.length === 0 && servicesData && servicesData.length > 0) {
-        console.log('⚠️ No services with sub-services found, showing all services')
-        setServices(servicesData)
+      } else {
+        console.log('✅ Services loaded successfully:', servicesData)
+        setServices(servicesData || [])
       }
     } catch (error) {
       console.error('❌ Error loading services:', error)
