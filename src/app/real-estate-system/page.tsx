@@ -668,84 +668,74 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
               <BarChart3 className="w-6 h-6 ml-3 flex-shrink-0" />
               {sidebarOpen && <span className="font-medium">📊 الإحصائيات</span>}
             </button>
+
+            {/* المطابقة الذكية */}
+            <button
+              onClick={() => setActiveTab('matching')}
+              className={`w-full flex items-center px-4 py-4 rounded-xl text-right transition-all duration-200 ${
+                activeTab === 'matching'
+                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg transform scale-105'
+                  : 'bg-white text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 shadow-sm border border-gray-200'
+              }`}
+            >
+              <Target className="w-6 h-6 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">🔍 المطابقة</span>}
+            </button>
+
+            {/* جاري البيع */}
+            <button
+              onClick={() => setActiveTab('selling')}
+              className={`w-full flex items-center px-4 py-4 rounded-xl text-right transition-all duration-200 ${
+                activeTab === 'selling'
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg transform scale-105'
+                  : 'bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-700 shadow-sm border border-gray-200'
+              }`}
+            >
+              <TrendingUp className="w-6 h-6 ml-3 flex-shrink-0" />
+              {sidebarOpen && (
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-medium">🔁 جاري البيع</span>
+                  <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-xs">
+                    {stats.selling}
+                  </span>
+                </div>
+              )}
+            </button>
+
+            {/* تم البيع */}
+            <button
+              onClick={() => setActiveTab('sold')}
+              className={`w-full flex items-center px-4 py-4 rounded-xl text-right transition-all duration-200 ${
+                activeTab === 'sold'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg transform scale-105'
+                  : 'bg-white text-gray-700 hover:bg-green-50 hover:text-green-700 shadow-sm border border-gray-200'
+              }`}
+            >
+              <CheckCircle className="w-6 h-6 ml-3 flex-shrink-0" />
+              {sidebarOpen && (
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-medium">✅ تم البيع</span>
+                  <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full text-xs">
+                    {stats.sold}
+                  </span>
+                </div>
+              )}
+            </button>
           </nav>
 
-          {/* قسم إضافي للمميزات المتقدمة */}
-          <div className="mt-8">
-            <div className="px-4 mb-3">
-              {sidebarOpen && (
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  المميزات المتقدمة
-                </h3>
-              )}
-            </div>
-            <nav className="space-y-2">
-              {/* المطابقة الذكية */}
-              <button
-                onClick={() => setActiveTab('matching')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
-                  activeTab === 'matching'
-                    ? 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <Target className="w-5 h-5 ml-3 flex-shrink-0" />
-                {sidebarOpen && <span>🔍 المطابقة الذكية</span>}
-              </button>
-
-              {/* جاري البيع */}
-              <button
-                onClick={() => setActiveTab('selling')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
-                  activeTab === 'selling'
-                    ? 'bg-orange-100 text-orange-700 border border-orange-200 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <TrendingUp className="w-5 h-5 ml-3 flex-shrink-0" />
-                {sidebarOpen && (
-                  <div className="flex items-center justify-between w-full">
-                    <span>🔁 جاري البيع</span>
-                    <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-xs">
-                      {stats.selling}
-                    </span>
-                  </div>
-                )}
-              </button>
-
-              {/* تم البيع */}
-              <button
-                onClick={() => setActiveTab('sold')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
-                  activeTab === 'sold'
-                    ? 'bg-green-100 text-green-700 border border-green-200 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <CheckCircle className="w-5 h-5 ml-3 flex-shrink-0" />
-                {sidebarOpen && (
-                  <div className="flex items-center justify-between w-full">
-                    <span>✅ تم البيع</span>
-                    <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full text-xs">
-                      {stats.sold}
-                    </span>
-                  </div>
-                )}
-              </button>
-
-              {/* عرض جميع العقارات */}
-              <button
-                onClick={() => setActiveTab('properties')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
-                  activeTab === 'properties'
-                    ? 'bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <Building className="w-5 h-5 ml-3 flex-shrink-0" />
-                {sidebarOpen && <span>🏢 جميع العقارات</span>}
-              </button>
-            </nav>
+          {/* عرض جميع العقارات */}
+          <div className="mt-4">
+            <button
+              onClick={() => setActiveTab('properties')}
+              className={`w-full flex items-center px-4 py-4 rounded-xl text-right transition-all duration-200 ${
+                activeTab === 'properties'
+                  ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg transform scale-105'
+                  : 'bg-white text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 shadow-sm border border-gray-200'
+              }`}
+            >
+              <Building className="w-6 h-6 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span className="font-medium">🏢 جميع العقارات</span>}
+            </button>
           </div>
         </div>
 
@@ -793,10 +783,10 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
                 {activeTab === 'dashboard' && '🏠 لوحة التحكم'}
-                {activeTab === 'statistics' && '📊 الإحصائيات المتقدمة'}
-                {activeTab === 'matching' && '🔍 المطابقة الذكية'}
-                {activeTab === 'selling' && '🔁 العقارات جاري البيع'}
-                {activeTab === 'sold' && '✅ العقارات المباعة'}
+                {activeTab === 'statistics' && '📊 الإحصائيات'}
+                {activeTab === 'matching' && '🔍 المطابقة'}
+                {activeTab === 'selling' && '🔁 جاري البيع'}
+                {activeTab === 'sold' && '✅ تم البيع'}
                 {activeTab === 'properties' && '🏢 جميع العقارات'}
               </h2>
               <p className="text-gray-600 mt-1">
