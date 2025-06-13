@@ -866,4 +866,4 @@ export default function AddPropertyPage() {
     </div>
   )
 }
-// ✅ FINAL VERSION - Image upload features fully implemented
+// ✅ CONFIRMED DEPLOYMENT - Image upload & video features active
