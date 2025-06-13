@@ -99,12 +99,39 @@ export default function RegisterPage() {
       }
 
       console.log('✅ User created successfully:', authData.user)
-      setSuccess('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب')
 
-      // التوجيه لصفحة تسجيل الدخول بعد 3 ثوان
-      setTimeout(() => {
-        router.push('/customer-login')
-      }, 3000)
+      // التحقق من حالة المستخدم
+      if (authData.user && authData.session) {
+        // المستخدم مسجل دخول تلقائياً
+        setSuccess('تم إنشاء الحساب بنجاح! جاري تسجيل الدخول...')
+
+        // التوجيه للصفحة الرئيسية مباشرة
+        setTimeout(() => {
+          router.push('/')
+        }, 2000)
+      } else {
+        // في حالة عدم تسجيل الدخول التلقائي
+        setSuccess('تم إنشاء الحساب بنجاح! جاري تسجيل الدخول...')
+
+        // محاولة تسجيل الدخول تلقائياً
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        })
+
+        if (loginError) {
+          console.error('Login error:', loginError)
+          setSuccess('تم إنشاء الحساب بنجاح! يرجى تسجيل الدخول')
+          setTimeout(() => {
+            router.push('/customer-login')
+          }, 2000)
+        } else {
+          setSuccess('تم إنشاء الحساب وتسجيل الدخول بنجاح!')
+          setTimeout(() => {
+            router.push('/')
+          }, 2000)
+        }
+      }
 
     } catch (error: any) {
       console.error('Register error:', error)
