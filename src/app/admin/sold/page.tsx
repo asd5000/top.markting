@@ -21,13 +21,15 @@ import {
 
 interface Property {
   id: string
-  name: string
-  phone: string
+  customer_name: string
+  customer_phone: string
   operation_type: string
   property_type: string
-  area: string
-  price: string
-  location: string
+  area: number
+  price: number
+  city: string
+  governorate: string
+  title: string
   description: string
   sale_status: string
   internal_notes: string
@@ -50,7 +52,7 @@ export default function SoldPage() {
   const loadSoldProperties = async () => {
     try {
       const { data, error } = await supabase
-        .from('properties')
+        .from('real_estate')
         .select('*')
         .eq('sale_status', 'sold')
         .order('created_at', { ascending: false })
@@ -91,23 +93,22 @@ export default function SoldPage() {
     return types[type] || type
   }
 
-  const calculateCommission = (price: string, rate: number) => {
-    const numPrice = parseFloat(price.replace(/[^\d.]/g, ''))
-    if (isNaN(numPrice)) return '0'
-    return (numPrice * rate / 100).toLocaleString('ar-EG')
+  const calculateCommission = (price: number, rate: number) => {
+    if (!price || isNaN(price)) return '0'
+    return (price * rate / 100).toLocaleString('ar-EG')
   }
 
   const exportToExcel = () => {
     // تحويل البيانات إلى CSV
     const headers = ['الاسم', 'الهاتف', 'نوع العملية', 'نوع العقار', 'المساحة', 'السعر', 'الموقع', 'تاريخ البيع']
     const csvData = properties.map(property => [
-      property.name,
-      property.phone,
+      property.customer_name,
+      property.customer_phone,
       property.operation_type === 'seller' ? 'بائع' : 'مشتري',
       getPropertyTypeName(property.property_type),
-      property.area,
-      property.price,
-      property.location,
+      property.area || '',
+      property.price?.toLocaleString() || '',
+      `${property.city}, ${property.governorate}`,
       new Date(property.created_at).toLocaleDateString('ar-EG')
     ])
 
@@ -142,9 +143,9 @@ export default function SoldPage() {
 
   // حساب إجمالي العمولات
   const totalCommissions = {
-    rate25: properties.reduce((sum, p) => sum + parseFloat(calculateCommission(p.price, 2.5).replace(/,/g, '')), 0),
-    rate20: properties.reduce((sum, p) => sum + parseFloat(calculateCommission(p.price, 2).replace(/,/g, '')), 0),
-    rate15: properties.reduce((sum, p) => sum + parseFloat(calculateCommission(p.price, 1.5).replace(/,/g, '')), 0)
+    rate25: properties.reduce((sum, p) => sum + (p.price ? p.price * 2.5 / 100 : 0), 0),
+    rate20: properties.reduce((sum, p) => sum + (p.price ? p.price * 2 / 100 : 0), 0),
+    rate15: properties.reduce((sum, p) => sum + (p.price ? p.price * 1.5 / 100 : 0), 0)
   }
 
   if (loading) {
@@ -256,10 +257,10 @@ export default function SoldPage() {
                 {/* Client Info */}
                 <div className="flex items-center">
                   <User className="w-4 h-4 text-gray-500 ml-2" />
-                  <span className="font-medium">{property.name}</span>
+                  <span className="font-medium">{property.customer_name}</span>
                   <span className={`mr-auto px-2 py-1 rounded-full text-xs ${
-                    property.operation_type === 'seller' 
-                      ? 'bg-red-100 text-red-700' 
+                    property.operation_type === 'seller'
+                      ? 'bg-red-100 text-red-700'
                       : 'bg-blue-100 text-blue-700'
                   }`}>
                     {property.operation_type === 'seller' ? 'بائع' : 'مشتري'}
@@ -268,17 +269,17 @@ export default function SoldPage() {
 
                 <div className="flex items-center">
                   <Phone className="w-4 h-4 text-gray-500 ml-2" />
-                  <span className="text-gray-700">{property.phone}</span>
+                  <span className="text-gray-700">{property.customer_phone}</span>
                 </div>
 
                 <div className="flex items-center">
                   <MapPin className="w-4 h-4 text-gray-500 ml-2" />
-                  <span className="text-gray-700">{property.location}</span>
+                  <span className="text-gray-700">{property.city}, {property.governorate}</span>
                 </div>
 
                 <div className="flex items-center">
                   <DollarSign className="w-4 h-4 text-gray-500 ml-2" />
-                  <span className="font-bold text-green-600">{property.price}</span>
+                  <span className="font-bold text-green-600">{property.price?.toLocaleString()} جنيه</span>
                 </div>
 
                 {/* Commission Earned */}

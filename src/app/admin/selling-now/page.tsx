@@ -20,13 +20,15 @@ import {
 
 interface Property {
   id: string
-  name: string
-  phone: string
+  customer_name: string
+  customer_phone: string
   operation_type: string
   property_type: string
-  area: string
-  price: string
-  location: string
+  area: number
+  price: number
+  city: string
+  governorate: string
+  title: string
   description: string
   sale_status: string
   internal_notes: string
@@ -49,7 +51,7 @@ export default function SellingNowPage() {
   const loadSellingProperties = async () => {
     try {
       const { data, error } = await supabase
-        .from('properties')
+        .from('real_estate')
         .select('*')
         .eq('sale_status', 'selling')
         .order('created_at', { ascending: false })
@@ -90,10 +92,9 @@ export default function SellingNowPage() {
     return types[type] || type
   }
 
-  const calculateCommission = (price: string, rate: number) => {
-    const numPrice = parseFloat(price.replace(/[^\d.]/g, ''))
-    if (isNaN(numPrice)) return '0'
-    return (numPrice * rate / 100).toLocaleString('ar-EG')
+  const calculateCommission = (price: number, rate: number) => {
+    if (!price || isNaN(price)) return '0'
+    return (price * rate / 100).toLocaleString('ar-EG')
   }
 
   const filteredProperties = selectedType === 'all' 
@@ -182,10 +183,10 @@ export default function SellingNowPage() {
                 {/* Client Info */}
                 <div className="flex items-center">
                   <User className="w-4 h-4 text-gray-500 ml-2" />
-                  <span className="font-medium">{property.name}</span>
+                  <span className="font-medium">{property.customer_name}</span>
                   <span className={`mr-auto px-2 py-1 rounded-full text-xs ${
-                    property.operation_type === 'seller' 
-                      ? 'bg-red-100 text-red-700' 
+                    property.operation_type === 'seller'
+                      ? 'bg-red-100 text-red-700'
                       : 'bg-blue-100 text-blue-700'
                   }`}>
                     {property.operation_type === 'seller' ? 'بائع' : 'مشتري'}
@@ -194,17 +195,17 @@ export default function SellingNowPage() {
 
                 <div className="flex items-center">
                   <Phone className="w-4 h-4 text-gray-500 ml-2" />
-                  <span className="text-gray-700">{property.phone}</span>
+                  <span className="text-gray-700">{property.customer_phone}</span>
                 </div>
 
                 <div className="flex items-center">
                   <MapPin className="w-4 h-4 text-gray-500 ml-2" />
-                  <span className="text-gray-700">{property.location}</span>
+                  <span className="text-gray-700">{property.city}, {property.governorate}</span>
                 </div>
 
                 <div className="flex items-center">
                   <DollarSign className="w-4 h-4 text-gray-500 ml-2" />
-                  <span className="font-bold text-green-600">{property.price}</span>
+                  <span className="font-bold text-green-600">{property.price?.toLocaleString()} جنيه</span>
                 </div>
 
                 {/* Commission Calculations */}
