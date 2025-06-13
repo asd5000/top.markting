@@ -65,6 +65,8 @@ export default function HomePage() {
   const loadServices = async () => {
     try {
       setServicesLoading(true)
+      console.log('🔄 Loading services from database...')
+
       const { data: servicesData, error } = await supabase
         .from('services')
         .select('*')
@@ -73,13 +75,33 @@ export default function HomePage() {
         .order('sort_order', { ascending: true })
 
       if (error) {
-        console.error('Error loading services:', error)
-      } else {
-        console.log('✅ Services loaded:', servicesData)
-        setServices(servicesData || [])
+        console.error('❌ Error loading services:', error)
+        setServices([])
+        return
       }
+
+      // فحص الخدمات الفرعية لكل خدمة وعرض الخدمات التي تحتوي على خدمات فرعية فقط
+      const servicesWithSubServices = []
+      for (const service of servicesData || []) {
+        const { data: subServices, error: subError } = await supabase
+          .from('sub_services')
+          .select('id')
+          .eq('service_id', service.id)
+          .eq('is_active', true)
+
+        if (!subError && subServices && subServices.length > 0) {
+          servicesWithSubServices.push(service)
+          console.log(`✅ Service "${service.name}" has ${subServices.length} sub-services`)
+        } else {
+          console.log(`⚠️ Service "${service.name}" has no sub-services`)
+        }
+      }
+
+      console.log('✅ Services with sub-services loaded:', servicesWithSubServices)
+      setServices(servicesWithSubServices)
     } catch (error) {
-      console.error('Error loading services:', error)
+      console.error('❌ Error loading services:', error)
+      setServices([])
     } finally {
       setServicesLoading(false)
     }
