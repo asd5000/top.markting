@@ -1,2 +1,0 @@
-Test deployment - Image upload features should be live now
-Time: $(date)

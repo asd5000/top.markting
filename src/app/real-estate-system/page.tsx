@@ -13,7 +13,7 @@ import {
   TrendingUp, TrendingDown, Activity, Target,
   UserCheck, UserX, FileText, Download, Share2,
   ArrowRight, ArrowUp, StickyNote, Bell, RefreshCw,
-  ArrowLeft, LogOut
+  ArrowLeft, LogOut, Camera
 } from 'lucide-react'
 
 interface Property {
