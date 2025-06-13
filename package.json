@@ -6,7 +6,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "fix-issues": "node fix-all-issues.js",
+    "fix-storage": "node fix-storage-issues.js",
+    "check-status": "node check-system-status.js",
+    "deploy": "npm run build && git add . && git commit -m 'Deploy update' && git push"
   },
   "dependencies": {
     "next": "^13.5.4",

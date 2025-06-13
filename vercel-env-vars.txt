@@ -1,0 +1,31 @@
+# Environment Variables for Vercel Deployment
+# Copy these to Vercel Dashboard → Settings → Environment Variables
+
+# Supabase Configuration (Required)
+NEXT_PUBLIC_SUPABASE_URL=https://xmufnqzvxuowmvugmcpr.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdWZucXp2eHVvd212dWdtY3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1MzcxNTAsImV4cCI6MjA2NTExMzE1MH0.WZPhXpGdbBWzBJfPm9z2ZdZhQpmgMbJwPR2fpryHUqw
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdWZucXp2eHVvd212dWdtY3ByIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTUzNzE1MCwiZXhwIjoyMDY1MTEzMTUwfQ.EIXL6onxZVB-eYcjgXPr8kjf3cTl3CeHnafUaVeS8Ig
+
+# Site Configuration
+NEXT_PUBLIC_SITE_NAME=Top Marketing
+NEXT_PUBLIC_SITE_URL=https://top-markting.vercel.app
+NEXT_PUBLIC_CONTACT_EMAIL=info@topmarketing.com
+NEXT_PUBLIC_CONTACT_PHONE=+201068275557
+
+# Production Environment
+NODE_ENV=production
+
+# Instructions:
+# 1. Go to Vercel Dashboard
+# 2. Select your project (top-markting)
+# 3. Go to Settings → Environment Variables
+# 4. Add each variable above (one by one)
+# 5. Set Environment to: Production, Preview, Development (all three)
+# 6. Click "Save"
+# 7. Redeploy the project
+
+# Important Notes:
+# - Make sure all variables are exactly as shown above
+# - Don't include the comments when adding to Vercel
+# - The SUPABASE_SERVICE_ROLE_KEY is needed for admin operations
+# - After adding variables, you MUST redeploy for changes to take effect
