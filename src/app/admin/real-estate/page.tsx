@@ -19,7 +19,7 @@ interface Property {
   customer_email?: string
   customer_whatsapp?: string
   property_type: 'apartment' | 'villa' | 'land' | 'shop' | 'house' | 'office'
-  operation_type: 'sale' | 'rent'
+  operation_type: 'seller' | 'buyer'
   title: string
   description?: string
   governorate: string
@@ -53,7 +53,7 @@ export default function RealEstateManagement() {
     customer_email: '',
     customer_whatsapp: '',
     property_type: 'apartment',
-    operation_type: 'sale',
+    operation_type: 'seller',
     title: '',
     description: '',
     governorate: '',
@@ -187,7 +187,7 @@ export default function RealEstateManagement() {
       customer_email: '',
       customer_whatsapp: '',
       property_type: 'apartment',
-      operation_type: 'sale',
+      operation_type: 'seller',
       title: '',
       description: '',
       governorate: '',
@@ -447,26 +447,27 @@ export default function RealEstateManagement() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">جميع الإعلان</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">نوع العملية</label>
               <select
                 value={filterOperation}
                 onChange={(e) => setFilterOperation(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">الكل</option>
-                <option value="sale">بيع</option>
-                <option value="rent">إيجار</option>
+                <option value="seller">بائع</option>
+                <option value="buyer">مشتري</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">جميع الأنواع</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">المحافظة</label>
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="all">الكل</option>
-                <option value="sale">بيع</option>
-                <option value="rent">إيجار</option>
+                <option value="all">جميع المحافظات</option>
+                <option value="cairo">القاهرة</option>
+                <option value="giza">الجيزة</option>
+                <option value="alexandria">الإسكندرية</option>
               </select>
             </div>
 
@@ -513,11 +514,11 @@ export default function RealEstateManagement() {
                 <div className="p-4 pb-2">
                   <div className="flex items-center justify-between mb-3">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      property.operation_type === 'sale'
+                      property.operation_type === 'seller'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {property.operation_type === 'sale' ? 'شقة للشراء' : 'شقة للإيجار'}
+                      {property.operation_type === 'seller' ? 'بائع' : 'مشتري'}
                     </span>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                       property.property_type === 'apartment' ? 'bg-orange-100 text-orange-800' :
@@ -527,7 +528,7 @@ export default function RealEstateManagement() {
                       property.property_type === 'shop' ? 'bg-pink-100 text-pink-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {property.operation_type === 'sale' ? 'مشتري' : 'مستأجر'}
+                      {getPropertyTypeLabel(property.property_type)}
                     </span>
                   </div>
 
@@ -708,8 +709,8 @@ export default function RealEstateManagement() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required
                       >
-                        <option value="sale">بيع</option>
-                        <option value="rent">إيجار</option>
+                        <option value="seller">بائع</option>
+                        <option value="buyer">مشتري</option>
                       </select>
                     </div>
                   </div>

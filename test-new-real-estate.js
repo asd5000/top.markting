@@ -54,7 +54,7 @@ async function testNewRealEstateSystem() {
       customer_phone: '01234567890',
       customer_email: 'test@example.com',
       property_type: 'apartment',
-      operation_type: 'sale',
+      operation_type: 'seller',
       title: 'شقة للبيع - اختبار النظام الجديد',
       description: 'شقة تجريبية لاختبار النظام الجديد',
       governorate: 'القاهرة',
@@ -96,14 +96,14 @@ async function testNewRealEstateSystem() {
     }
 
     // البحث بنوع العملية
-    const { data: saleData, error: saleError } = await supabase
+    const { data: sellerData, error: sellerError } = await supabase
       .from('real_estate')
       .select('*')
-      .eq('operation_type', 'sale')
+      .eq('operation_type', 'seller')
       .limit(3)
 
-    if (!saleError) {
-      console.log(`✅ البحث بنوع العملية (بيع): ${saleData.length} نتيجة`)
+    if (!sellerError) {
+      console.log(`✅ البحث بنوع العملية (بائع): ${sellerData.length} نتيجة`)
     }
     console.log('')
 
@@ -112,7 +112,7 @@ async function testNewRealEstateSystem() {
     const { data: updatedProperty, error: updateError } = await supabase
       .from('real_estate')
       .update({ 
-        title: 'شقة للبيع - تم التحديث',
+        title: 'شقة من بائع - تم التحديث',
         price: 1600000 
       })
       .eq('id', insertedProperty.id)
