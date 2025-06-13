@@ -36,6 +36,9 @@ export const ADMIN_ROLES: { [key: string]: AdminRole } = {
       '/admin/services',
       '/admin/packages',
       '/admin/real-estate',
+      '/admin/selling-now',
+      '/admin/sold',
+      '/admin/matching',
       '/admin/orders',
       '/admin/receipts',
       '/admin/manage-admins',
@@ -80,7 +83,10 @@ export const ADMIN_ROLES: { [key: string]: AdminRole } = {
     permissions: ['real_estate'],
     allowedRoutes: [
       '/admin',
-      '/admin/real-estate'
+      '/admin/real-estate',
+      '/admin/selling-now',
+      '/admin/sold',
+      '/admin/matching'
     ],
     redirectRoute: '/admin/real-estate',
     menuItems: ['real-estate']

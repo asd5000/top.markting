@@ -9,7 +9,8 @@ import {
   Save, X, MessageCircle, CheckCircle, AlertCircle,
   BarChart3, Filter, Calendar, Clock, Star,
   TrendingUp, TrendingDown, Activity, Target,
-  UserCheck, UserX, FileText, Download
+  UserCheck, UserX, FileText, Download, Share2,
+  ArrowRight, ArrowUp, StickyNote, Bell, RefreshCw
 } from 'lucide-react'
 
 interface Property {
@@ -30,6 +31,12 @@ interface Property {
   bathrooms?: number
   price: number
   price_negotiable: boolean
+  sale_status?: 'new' | 'selling' | 'sold'
+  internal_notes?: string
+  follow_up_status?: 'pending' | 'contacted' | 'needs_follow_up'
+  last_contact_date?: string
+  contact_count?: number
+  trust_rating?: number
   created_at: string
 }
 
@@ -63,7 +70,10 @@ export default function RealEstateManagement() {
     rooms: '',
     bathrooms: '',
     price: '',
-    price_negotiable: false
+    price_negotiable: false,
+    sale_status: 'new',
+    internal_notes: '',
+    follow_up_status: 'pending'
   })
 
   useEffect(() => {
@@ -131,7 +141,12 @@ export default function RealEstateManagement() {
         rooms: formData.rooms ? parseInt(formData.rooms) : null,
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
         price: parseFloat(formData.price),
-        price_negotiable: formData.price_negotiable
+        price_negotiable: formData.price_negotiable,
+        sale_status: formData.sale_status,
+        internal_notes: formData.internal_notes?.trim() || null,
+        follow_up_status: formData.follow_up_status,
+        contact_count: 0,
+        trust_rating: 0
       }
 
       let result
@@ -197,7 +212,10 @@ export default function RealEstateManagement() {
       rooms: '',
       bathrooms: '',
       price: '',
-      price_negotiable: false
+      price_negotiable: false,
+      sale_status: 'new',
+      internal_notes: '',
+      follow_up_status: 'pending'
     })
     setEditingProperty(null)
     setShowAddForm(false)
@@ -220,7 +238,10 @@ export default function RealEstateManagement() {
       rooms: property.rooms?.toString() || '',
       bathrooms: property.bathrooms?.toString() || '',
       price: property.price.toString(),
-      price_negotiable: property.price_negotiable
+      price_negotiable: property.price_negotiable,
+      sale_status: property.sale_status || 'new',
+      internal_notes: property.internal_notes || '',
+      follow_up_status: property.follow_up_status || 'pending'
     })
     setEditingProperty(property)
     setShowAddForm(true)
@@ -307,6 +328,91 @@ export default function RealEstateManagement() {
     return `https://wa.me/${formattedNumber}?text=${message}`
   }
 
+  // دوال إدارة حالات البيع
+  const updateSaleStatus = async (propertyId: string, newStatus: 'new' | 'selling' | 'sold') => {
+    try {
+      const { error } = await supabase
+        .from('real_estate')
+        .update({ sale_status: newStatus })
+        .eq('id', propertyId)
+
+      if (error) {
+        console.error('Error updating sale status:', error)
+        setMessage({
+          type: 'error',
+          text: `خطأ في تحديث حالة البيع: ${error.message}`
+        })
+        return
+      }
+
+      setMessage({
+        type: 'success',
+        text: `تم تحديث حالة العقار إلى "${newStatus === 'selling' ? 'جاري البيع' : newStatus === 'sold' ? 'تم البيع' : 'جديد'}" بنجاح!`
+      })
+
+      await loadProperties()
+
+      setTimeout(() => {
+        setMessage({ type: null, text: '' })
+      }, 3000)
+
+    } catch (error) {
+      console.error('Error:', error)
+      setMessage({
+        type: 'error',
+        text: 'حدث خطأ أثناء تحديث حالة البيع'
+      })
+    }
+  }
+
+  const updateFollowUpStatus = async (propertyId: string, status: 'contacted' | 'needs_follow_up') => {
+    try {
+      const updateData: any = {
+        follow_up_status: status,
+        last_contact_date: new Date().toISOString()
+      }
+
+      if (status === 'contacted') {
+        // زيادة عدد مرات التواصل
+        const property = properties.find(p => p.id === propertyId)
+        updateData.contact_count = (property?.contact_count || 0) + 1
+        updateData.trust_rating = Math.min(5, Math.floor((property?.contact_count || 0) / 2) + 1)
+      }
+
+      const { error } = await supabase
+        .from('real_estate')
+        .update(updateData)
+        .eq('id', propertyId)
+
+      if (error) {
+        console.error('Error updating follow-up status:', error)
+        return
+      }
+
+      await loadProperties()
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  const updateInternalNotes = async (propertyId: string, notes: string) => {
+    try {
+      const { error } = await supabase
+        .from('real_estate')
+        .update({ internal_notes: notes })
+        .eq('id', propertyId)
+
+      if (error) {
+        console.error('Error updating notes:', error)
+        return
+      }
+
+      await loadProperties()
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   return (
     <RouteGuard>
       <div className="space-y-6">
@@ -334,6 +440,20 @@ export default function RealEstateManagement() {
                 <Plus className="w-4 h-4 ml-2" />
                 إضافة عقار جديد
               </button>
+              <a
+                href="/admin/selling-now"
+                className="bg-orange-600 text-white px-6 py-3 rounded-t-lg hover:bg-orange-700 transition-colors flex items-center"
+              >
+                <TrendingUp className="w-4 h-4 ml-2" />
+                جاري البيع
+              </a>
+              <a
+                href="/admin/sold"
+                className="bg-emerald-600 text-white px-6 py-3 rounded-t-lg hover:bg-emerald-700 transition-colors flex items-center"
+              >
+                <CheckCircle className="w-4 h-4 ml-2" />
+                تم البيع
+              </a>
               <button
                 onClick={() => setActiveTab('matching')}
                 className="bg-purple-600 text-white px-6 py-3 rounded-t-lg hover:bg-purple-700 transition-colors flex items-center"
@@ -577,6 +697,104 @@ export default function RealEstateManagement() {
                     </div>
                   </div>
 
+                  {/* Sale Status */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">حالة البيع:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        property.sale_status === 'selling' ? 'bg-orange-100 text-orange-800' :
+                        property.sale_status === 'sold' ? 'bg-green-100 text-green-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {property.sale_status === 'selling' ? 'جاري البيع' :
+                         property.sale_status === 'sold' ? 'تم البيع' : 'جديد'}
+                      </span>
+                    </div>
+
+                    {/* Sale Status Buttons */}
+                    {property.sale_status !== 'sold' && (
+                      <div className="flex space-x-2 mb-3">
+                        {property.sale_status !== 'selling' && (
+                          <button
+                            onClick={() => updateSaleStatus(property.id, 'selling')}
+                            className="flex-1 bg-orange-600 text-white px-2 py-1 rounded text-xs hover:bg-orange-700 transition-colors flex items-center justify-center"
+                          >
+                            <ArrowRight className="w-3 h-3 ml-1" />
+                            نقل إلى جاري البيع
+                          </button>
+                        )}
+                        <button
+                          onClick={() => updateSaleStatus(property.id, 'sold')}
+                          className="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors flex items-center justify-center"
+                        >
+                          <CheckCircle className="w-3 h-3 ml-1" />
+                          تم البيع
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Follow-up Status */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">المتابعة:</span>
+                      <div className="flex items-center">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ml-2 ${
+                          property.follow_up_status === 'contacted' ? 'bg-green-100 text-green-800' :
+                          property.follow_up_status === 'needs_follow_up' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {property.follow_up_status === 'contacted' ? 'تم التواصل' :
+                           property.follow_up_status === 'needs_follow_up' ? 'يحتاج متابعة' : 'في الانتظار'}
+                        </span>
+                        {property.trust_rating && property.trust_rating > 0 && (
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span
+                                key={star}
+                                className={`text-sm ${
+                                  star <= property.trust_rating! ? 'text-yellow-400' : 'text-gray-300'
+                                }`}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Follow-up Buttons */}
+                    <div className="flex space-x-2 mb-3">
+                      <button
+                        onClick={() => updateFollowUpStatus(property.id, 'contacted')}
+                        className="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 transition-colors flex items-center justify-center"
+                      >
+                        <Phone className="w-3 h-3 ml-1" />
+                        تم التواصل
+                      </button>
+                      <button
+                        onClick={() => updateFollowUpStatus(property.id, 'needs_follow_up')}
+                        className="flex-1 bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-yellow-700 transition-colors flex items-center justify-center"
+                      >
+                        <Bell className="w-3 h-3 ml-1" />
+                        يحتاج متابعة
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Internal Notes */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات داخلية:</label>
+                    <textarea
+                      value={property.internal_notes || ''}
+                      onChange={(e) => updateInternalNotes(property.id, e.target.value)}
+                      placeholder="مثال: يرد فقط بالليل"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-xs resize-none"
+                      rows={2}
+                    />
+                  </div>
+
                   {/* Action Buttons */}
                   <div className="flex space-x-2">
                     <a
@@ -589,8 +807,18 @@ export default function RealEstateManagement() {
                       واتساب
                     </a>
                     <button
-                      onClick={() => handleEdit(property)}
+                      onClick={() => {
+                        const shareText = `عقار ${getPropertyTypeLabel(property.property_type)} - ${property.title}\nالسعر: ${property.price.toLocaleString()} جنيه\nالموقع: ${property.city}, ${property.governorate}\nللتواصل: ${property.customer_phone}`
+                        navigator.share ? navigator.share({ text: shareText }) : navigator.clipboard.writeText(shareText)
+                      }}
                       className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                      title="مشاركة"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleEdit(property)}
+                      className="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
@@ -844,6 +1072,52 @@ export default function RealEstateManagement() {
                     <label htmlFor="price_negotiable" className="mr-2 block text-sm text-gray-900">
                       السعر قابل للتفاوض
                     </label>
+                  </div>
+
+                  {/* Advanced Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        حالة البيع
+                      </label>
+                      <select
+                        value={formData.sale_status}
+                        onChange={(e) => setFormData({...formData, sale_status: e.target.value as any})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="new">جديد</option>
+                        <option value="selling">جاري البيع</option>
+                        <option value="sold">تم البيع</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        حالة المتابعة
+                      </label>
+                      <select
+                        value={formData.follow_up_status}
+                        onChange={(e) => setFormData({...formData, follow_up_status: e.target.value as any})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="pending">في الانتظار</option>
+                        <option value="contacted">تم التواصل</option>
+                        <option value="needs_follow_up">يحتاج متابعة</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      ملاحظات داخلية
+                    </label>
+                    <textarea
+                      value={formData.internal_notes}
+                      onChange={(e) => setFormData({...formData, internal_notes: e.target.value})}
+                      placeholder="مثال: يرد فقط بالليل، يفضل التواصل عبر واتساب..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
                   </div>
 
                   {/* Form Actions */}

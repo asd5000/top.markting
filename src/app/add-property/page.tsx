@@ -373,12 +373,13 @@ export default function AddPropertyPage() {
                       value={formData.property_type}
                       onChange={(e) => setFormData({...formData, property_type: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
                     >
                       <option value="apartment">شقة</option>
+                      <option value="house">بيت</option>
                       <option value="villa">فيلا</option>
                       <option value="land">أرض</option>
                       <option value="shop">محل</option>
-                      <option value="house">بيت</option>
                       <option value="office">مكتب</option>
                     </select>
                   </div>
@@ -388,6 +389,7 @@ export default function AddPropertyPage() {
                       value={formData.operation_type}
                       onChange={(e) => setFormData({...formData, operation_type: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
                     >
                       <option value="">اختر نوع العملية</option>
                       <option value="seller">🟢 بائع (لدي عقار أريد بيعه)</option>
