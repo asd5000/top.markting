@@ -103,9 +103,9 @@ export default function AdminLayout({
     },
     {
       name: 'برنامج التسويق العقاري',
-      href: '/real-estate-program',
+      href: '/admin/real-estate',
       icon: Building,
-      current: pathname === '/real-estate-program'
+      current: pathname === '/admin/real-estate'
     },
     {
       name: 'الإيصالات',
