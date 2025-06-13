@@ -303,7 +303,7 @@ export default function PackagesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold mb-4">باقات إدارة الصفحات</h1>
           <p className="text-xl mb-8 max-w-3xl mx-auto">
-            اختر الباقة المناسبة لك واترك إدارة صفحاتك على السوشيال ميديا لنا
+            اختر الباقة المناسبة لك واترك إدارة صفحاتك على السوشيال ميديا لنا - محدث
           </p>
           <div className="flex items-center justify-center space-x-4 text-sm">
             <div className="flex items-center">
