@@ -507,22 +507,38 @@ export default function RealEstateSystemPage() {
     }
   }
 
-  // Export to Excel function
+  // Enhanced Export to Excel function
   const exportToExcel = () => {
     const csvContent = [
-      ['اسم العميل', 'الهاتف', 'نوع العملية', 'نوع العقار', 'العنوان', 'المدينة', 'المحافظة', 'السعر', 'المساحة', 'حالة البيع', 'تاريخ الإضافة'],
+      [
+        'اسم العميل', 'الهاتف', 'الواتساب', 'الإيميل', 'نوع العملية', 'نوع العقار',
+        'العنوان', 'المدينة', 'المحافظة', 'المنطقة', 'السعر', 'قابل للتفاوض',
+        'المساحة', 'عدد الغرف', 'عدد الحمامات', 'حالة البيع', 'حالة المتابعة',
+        'عدد مرات التواصل', 'تقييم الثقة', 'الملاحظات الداخلية', 'تاريخ الإضافة', 'آخر تواصل'
+      ],
       ...filteredProperties.map(property => [
         property.customer_name,
         property.customer_phone,
+        property.customer_whatsapp || '',
+        property.customer_email || '',
         property.operation_type === 'seller' ? 'بائع' : 'مشتري',
         getPropertyTypeLabel(property.property_type),
         property.title,
         property.city,
         property.governorate,
+        property.district || '',
         property.price.toLocaleString(),
+        property.price_negotiable ? 'نعم' : 'لا',
         property.area || '',
+        property.rooms || '',
+        property.bathrooms || '',
         property.sale_status === 'selling' ? 'جاري البيع' : property.sale_status === 'sold' ? 'تم البيع' : 'جديد',
-        new Date(property.created_at).toLocaleDateString('ar-EG')
+        property.follow_up_status === 'contacted' ? 'تم التواصل' : property.follow_up_status === 'needs_follow_up' ? 'يحتاج متابعة' : 'في الانتظار',
+        property.contact_count || 0,
+        property.trust_rating || 0,
+        property.internal_notes || '',
+        new Date(property.created_at).toLocaleDateString('ar-EG'),
+        property.last_contact_date ? new Date(property.last_contact_date).toLocaleDateString('ar-EG') : ''
       ])
     ]
 
@@ -530,8 +546,62 @@ export default function RealEstateSystemPage() {
     const blob = new Blob(['\ufeff' + csvString], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = `عقارات_${new Date().toLocaleDateString('ar-EG')}.csv`
+    link.download = `عقارات_مفصل_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.csv`
     link.click()
+  }
+
+  // Enhanced WhatsApp sharing functions
+  const sharePropertyWhatsApp = (property: Property) => {
+    const message = `🏠 *عقار ${getPropertyTypeLabel(property.property_type)}*
+
+📍 *الموقع:* ${property.city}, ${property.governorate}
+💰 *السعر:* ${property.price.toLocaleString()} جنيه ${property.price_negotiable ? '(قابل للتفاوض)' : ''}
+📐 *المساحة:* ${property.area ? property.area + ' م²' : 'غير محدد'}
+${property.rooms ? `🛏️ *الغرف:* ${property.rooms}` : ''}
+${property.bathrooms ? `🚿 *الحمامات:* ${property.bathrooms}` : ''}
+
+📝 *التفاصيل:* ${property.title}
+${property.description ? `\n📋 *الوصف:* ${property.description}` : ''}
+
+👤 *${property.operation_type === 'seller' ? 'البائع' : 'المشتري'}:* ${property.customer_name}
+📞 *للتواصل:* ${property.customer_phone}
+
+---
+🏢 *برنامج التسويق العقاري*`
+
+    const encodedMessage = encodeURIComponent(message)
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank')
+  }
+
+  const shareMatchingResults = () => {
+    const matchingData = Object.entries(stats.byType)
+      .filter(([type]) => {
+        const sellers = stats.sellersByType[type as keyof typeof stats.sellersByType]
+        const buyers = stats.buyersByType[type as keyof typeof stats.buyersByType]
+        return sellers > 0 && buyers > 0
+      })
+      .map(([type]) => {
+        const sellers = stats.sellersByType[type as keyof typeof stats.sellersByType]
+        const buyers = stats.buyersByType[type as keyof typeof stats.buyersByType]
+        return `${getPropertyTypeLabel(type)}: ${sellers} بائع، ${buyers} مشتري`
+      })
+
+    const message = `📊 *تقرير التطابقات العقارية*
+
+${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابقات حالياً'}
+
+📈 *الإحصائيات العامة:*
+• إجمالي العقارات: ${stats.total}
+• البائعين: ${stats.sellers}
+• المشترين: ${stats.buyers}
+• جاري البيع: ${stats.selling}
+• تم البيع: ${stats.sold}
+
+---
+🏢 *برنامج التسويق العقاري*`
+
+    const encodedMessage = encodeURIComponent(message)
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank')
   }
 
   return (
@@ -737,16 +807,54 @@ export default function RealEstateSystemPage() {
             </div>
 
             <div className="flex items-center space-x-3">
-              <button
-                onClick={exportToExcel}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-sm"
-              >
-                <Download className="w-4 h-4 ml-2" />
-                📤 تصدير Excel
-              </button>
+              {/* Enhanced Export Button */}
+              <div className="relative group">
+                <button
+                  onClick={exportToExcel}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-sm"
+                >
+                  <Download className="w-4 h-4 ml-2" />
+                  📤 تصدير Excel
+                </button>
+                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  تصدير جميع البيانات المفصلة
+                </div>
+              </div>
 
-              <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-200">
-                <span className="text-sm font-medium">النظام الجديد يعمل! ✨</span>
+              {/* WhatsApp Share Button */}
+              <div className="relative group">
+                <button
+                  onClick={shareMatchingResults}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center shadow-sm"
+                >
+                  <MessageCircle className="w-4 h-4 ml-2" />
+                  📱 مشاركة التقرير
+                </button>
+                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  مشاركة تقرير التطابقات عبر واتساب
+                </div>
+              </div>
+
+              {/* Refresh Button */}
+              <div className="relative group">
+                <button
+                  onClick={loadProperties}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center shadow-sm"
+                >
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                  🔄 تحديث
+                </button>
+                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  تحديث البيانات
+                </div>
+              </div>
+
+              {/* Status Indicator */}
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-200 shadow-sm">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2"></div>
+                  <span className="text-sm font-medium">النظام المطور يعمل! ✨</span>
+                </div>
               </div>
             </div>
           </div>
@@ -828,22 +936,68 @@ export default function RealEstateSystemPage() {
                 </div>
               </div>
 
-              {/* Property Type Statistics */}
+              {/* Property Type Statistics with Enhanced Counters */}
               <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">إحصائيات حسب نوع العقار</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {Object.entries(stats.byType).map(([type, count]) => (
-                    <div key={type} className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-gray-900">{getPropertyTypeLabel(type)}</span>
-                        <span className="text-2xl font-bold text-blue-600">{count}</span>
+                <h3 className="text-lg font-bold text-gray-900 mb-6">📊 إحصائيات مفصلة حسب نوع العقار</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Object.entries(stats.byType).map(([type, count]) => {
+                    const sellers = stats.sellersByType[type as keyof typeof stats.sellersByType]
+                    const buyers = stats.buyersByType[type as keyof typeof stats.buyersByType]
+                    const hasMatches = sellers > 0 && buyers > 0
+
+                    return (
+                      <div key={type} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="font-bold text-lg text-gray-900">{getPropertyTypeLabel(type)}</span>
+                          <span className="text-3xl font-bold text-blue-600">{count}</span>
+                        </div>
+
+                        {/* مربعات العدادات المطلوبة */}
+                        <div className="space-y-3">
+                          {/* عداد البائعين */}
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                  <TrendingUp className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="mr-2 font-medium text-green-700">بائعين</span>
+                              </div>
+                              <span className="text-2xl font-bold text-green-600">{sellers}</span>
+                            </div>
+                          </div>
+
+                          {/* عداد المشترين */}
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <Users className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="mr-2 font-medium text-blue-700">مشترين</span>
+                              </div>
+                              <span className="text-2xl font-bold text-blue-600">{buyers}</span>
+                            </div>
+                          </div>
+
+                          {/* مؤشر التطابق */}
+                          {hasMatches && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <Target className="w-4 h-4 text-white" />
+                                  </div>
+                                  <span className="mr-2 font-medium text-yellow-700">تطابقات محتملة</span>
+                                </div>
+                                <span className="text-xl font-bold text-yellow-600">{Math.min(sellers, buyers)}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>بائعين: {stats.sellersByType[type as keyof typeof stats.sellersByType]}</span>
-                        <span>مشترين: {stats.buyersByType[type as keyof typeof stats.buyersByType]}</span>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -1018,39 +1172,175 @@ export default function RealEstateSystemPage() {
             </div>
           )}
 
-          {/* Matching View */}
+          {/* Smart Matching View - Enhanced */}
           {activeTab === 'matching' && (
             <div className="space-y-6">
+              {/* Alert Summary */}
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Bell className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="mr-4">
+                    <h3 className="text-xl font-bold text-gray-900">🚨 نظام التنبيه الذكي</h3>
+                    <p className="text-gray-600">تطابقات محتملة بين البائعين والمشترين</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-lg p-4 border border-yellow-200">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {Object.values(stats.byType).reduce((total, count, index) => {
+                          const type = Object.keys(stats.byType)[index]
+                          const sellers = stats.sellersByType[type as keyof typeof stats.sellersByType]
+                          const buyers = stats.buyersByType[type as keyof typeof stats.buyersByType]
+                          return total + (sellers > 0 && buyers > 0 ? Math.min(sellers, buyers) : 0)
+                        }, 0)}
+                      </div>
+                      <div className="text-sm text-gray-600">إجمالي التطابقات المحتملة</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-green-200">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{stats.sellers}</div>
+                      <div className="text-sm text-gray-600">إجمالي البائعين</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{stats.buyers}</div>
+                      <div className="text-sm text-gray-600">إجمالي المشترين</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Matches by Property Type */}
               <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">🚨 نظام التنبيه الذكي - التطابقات المحتملة</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-6">🔍 تطابقات مفصلة حسب نوع العقار</h3>
                 <div className="space-y-4">
                   {Object.entries(stats.byType).map(([type, total]) => {
                     const sellers = stats.sellersByType[type as keyof typeof stats.sellersByType]
                     const buyers = stats.buyersByType[type as keyof typeof stats.buyersByType]
                     const hasMatches = sellers > 0 && buyers > 0
-
-                    if (!hasMatches) return null
+                    const matchCount = hasMatches ? Math.min(sellers, buyers) : 0
 
                     return (
-                      <div key={type} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div key={type} className={`rounded-lg p-4 border-2 transition-all duration-200 ${
+                        hasMatches
+                          ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300 hover:shadow-md'
+                          : 'bg-gray-50 border-gray-200'
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <AlertCircle className="w-5 h-5 text-yellow-600 ml-2" />
-                            <span className="font-medium text-gray-900">
-                              تطابق محتمل في {getPropertyTypeLabel(type)}
-                            </span>
+                            {hasMatches ? (
+                              <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <Target className="w-5 h-5 text-white" />
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
+                                <Building className="w-5 h-5 text-white" />
+                              </div>
+                            )}
+                            <div className="mr-3">
+                              <span className="font-bold text-lg text-gray-900">
+                                {getPropertyTypeLabel(type)}
+                              </span>
+                              {hasMatches && (
+                                <div className="flex items-center mt-1">
+                                  <AlertCircle className="w-4 h-4 text-yellow-600 ml-1" />
+                                  <span className="text-sm text-yellow-700 font-medium">
+                                    تطابق محتمل متاح!
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-4">
-                            <span className="text-sm text-green-600">{sellers} بائع</span>
-                            <span className="text-sm text-blue-600">{buyers} مشتري</span>
-                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
-                              {Math.min(sellers, buyers)} تطابق محتمل
-                            </span>
+
+                          <div className="flex items-center space-x-6">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-green-600">{sellers}</div>
+                              <div className="text-xs text-gray-600">بائع</div>
+                            </div>
+
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-blue-600">{buyers}</div>
+                              <div className="text-xs text-gray-600">مشتري</div>
+                            </div>
+
+                            <div className="text-center">
+                              <div className={`text-2xl font-bold ${hasMatches ? 'text-yellow-600' : 'text-gray-400'}`}>
+                                {matchCount}
+                              </div>
+                              <div className="text-xs text-gray-600">تطابق</div>
+                            </div>
+
+                            {hasMatches && (
+                              <div className="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-full">
+                                <div className="flex items-center">
+                                  <Bell className="w-4 h-4 ml-1" />
+                                  <span className="text-sm font-medium">يحتاج متابعة</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
+
+                        {hasMatches && (
+                          <div className="mt-4 pt-4 border-t border-yellow-200">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-gray-600">
+                                💡 نصيحة: يمكنك التواصل مع البائعين والمشترين لترتيب المعاينات
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setFilterType(type)
+                                  setActiveTab('properties')
+                                }}
+                                className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm flex items-center"
+                              >
+                                <Eye className="w-4 h-4 ml-1" />
+                                عرض التفاصيل
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">⚡ إجراءات سريعة</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    onClick={() => setActiveTab('properties')}
+                    className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  >
+                    <Building className="w-5 h-5 ml-2" />
+                    عرض جميع العقارات
+                  </button>
+
+                  <button
+                    onClick={exportToExcel}
+                    className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+                  >
+                    <Download className="w-5 h-5 ml-2" />
+                    تصدير البيانات
+                  </button>
+
+                  <button
+                    onClick={() => setShowAddForm(true)}
+                    className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center"
+                  >
+                    <Plus className="w-5 h-5 ml-2" />
+                    إضافة عقار جديد
+                  </button>
                 </div>
               </div>
             </div>
@@ -1094,11 +1384,9 @@ export default function RealEstateSystemPage() {
                             واتساب
                           </a>
                           <button
-                            onClick={() => {
-                              const shareText = `عقار ${getPropertyTypeLabel(property.property_type)} - ${property.title}\nالسعر: ${property.price.toLocaleString()} جنيه\nالموقع: ${property.city}, ${property.governorate}\nللتواصل: ${property.customer_phone}`
-                              navigator.share ? navigator.share({ text: shareText }) : navigator.clipboard.writeText(shareText)
-                            }}
+                            onClick={() => sharePropertyWhatsApp(property)}
                             className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center justify-center"
+                            title="مشاركة عبر واتساب"
                           >
                             <Share2 className="w-3 h-3" />
                           </button>
@@ -1303,12 +1591,9 @@ export default function RealEstateSystemPage() {
                       واتساب
                     </a>
                     <button
-                      onClick={() => {
-                        const shareText = `عقار ${getPropertyTypeLabel(property.property_type)} - ${property.title}\nالسعر: ${property.price.toLocaleString()} جنيه\nالموقع: ${property.city}, ${property.governorate}\nللتواصل: ${property.customer_phone}`
-                        navigator.share ? navigator.share({ text: shareText }) : navigator.clipboard.writeText(shareText)
-                      }}
+                      onClick={() => sharePropertyWhatsApp(property)}
                       className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                      title="مشاركة"
+                      title="مشاركة عبر واتساب"
                     >
                       <Share2 className="w-4 h-4" />
                     </button>
