@@ -907,55 +907,11 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
               </p>
             </div>
 
-            <div className="flex items-center space-x-3">
-              {/* Enhanced Export Button */}
-              <div className="relative group">
-                <button
-                  onClick={exportToExcel}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-sm"
-                >
-                  <Download className="w-4 h-4 ml-2" />
-                  📤 تصدير Excel
-                </button>
-                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  تصدير جميع البيانات المفصلة
-                </div>
-              </div>
-
-              {/* WhatsApp Share Button */}
-              <div className="relative group">
-                <button
-                  onClick={shareMatchingResults}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center shadow-sm"
-                >
-                  <MessageCircle className="w-4 h-4 ml-2" />
-                  📱 مشاركة التقرير
-                </button>
-                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  مشاركة تقرير التطابقات عبر واتساب
-                </div>
-              </div>
-
-              {/* Refresh Button */}
-              <div className="relative group">
-                <button
-                  onClick={loadProperties}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center shadow-sm"
-                >
-                  <RefreshCw className="w-4 h-4 ml-2" />
-                  🔄 تحديث
-                </button>
-                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  تحديث البيانات
-                </div>
-              </div>
-
-              {/* Status Indicator */}
-              <div className="bg-gradient-to-r from-blue-50 to-green-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-200 shadow-sm">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2"></div>
-                  <span className="text-sm font-medium">النظام المطور يعمل! ✨</span>
-                </div>
+            {/* Status Indicator Only */}
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-200 shadow-sm">
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2"></div>
+                <span className="text-sm font-medium">النظام المطور يعمل! ✨</span>
               </div>
             </div>
           </div>
@@ -1349,35 +1305,7 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">⚡ إجراءات سريعة</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button
-                    onClick={() => setActiveTab('properties')}
-                    className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-                  >
-                    <Building className="w-5 h-5 ml-2" />
-                    عرض جميع العقارات
-                  </button>
 
-                  <button
-                    onClick={exportToExcel}
-                    className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
-                  >
-                    <Download className="w-5 h-5 ml-2" />
-                    تصدير البيانات
-                  </button>
-
-                  <button
-                    onClick={() => setShowAddForm(true)}
-                    className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus className="w-5 h-5 ml-2" />
-                    إضافة عقار جديد
-                  </button>
-                </div>
-              </div>
             </div>
           )}
 
