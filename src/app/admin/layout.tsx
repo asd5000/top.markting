@@ -111,9 +111,9 @@ export default function AdminLayout({
     },
     {
       name: 'برنامج التسويق العقاري',
-      href: '/real-estate-system',
+      href: '/real-estate-new',
       icon: Building,
-      current: pathname === '/real-estate-system',
+      current: pathname === '/real-estate-new',
       menuItem: 'real-estate',
       external: true
     },
