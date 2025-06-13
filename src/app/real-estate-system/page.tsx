@@ -738,6 +738,116 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
               {sidebarOpen && <span className="font-medium">🏢 جميع العقارات</span>}
             </button>
           </div>
+
+          {/* قسم الفلاتر الجانبية */}
+          {sidebarOpen && (
+            <div className="mt-6 border-t border-gray-200 pt-6">
+              <div className="px-4 mb-4">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                  🔍 فلاتر البحث
+                </h3>
+              </div>
+
+              <div className="space-y-4 px-4">
+                {/* البحث */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">بحث سريع</label>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="اسم، مدينة، هاتف..."
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* نوع العقار */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">نوع العقار</label>
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="all">جميع الأنواع</option>
+                    <option value="apartment">شقة ({stats.byType.apartment})</option>
+                    <option value="villa">فيلا ({stats.byType.villa})</option>
+                    <option value="house">بيت ({stats.byType.house})</option>
+                    <option value="land">أرض ({stats.byType.land})</option>
+                    <option value="shop">محل ({stats.byType.shop})</option>
+                    <option value="office">مكتب ({stats.byType.office})</option>
+                  </select>
+                </div>
+
+                {/* نوع العملية */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">نوع العملية</label>
+                  <select
+                    value={filterOperation}
+                    onChange={(e) => setFilterOperation(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="all">الكل</option>
+                    <option value="seller">بائع ({stats.sellers})</option>
+                    <option value="buyer">مشتري ({stats.buyers})</option>
+                  </select>
+                </div>
+
+                {/* حالة البيع */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">حالة البيع</label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="all">جميع الحالات</option>
+                    <option value="new">جديد ({stats.new})</option>
+                    <option value="selling">جاري البيع ({stats.selling})</option>
+                    <option value="sold">تم البيع ({stats.sold})</option>
+                  </select>
+                </div>
+
+                {/* حالة المتابعة */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">حالة المتابعة</label>
+                  <select
+                    value={filterFollowUp}
+                    onChange={(e) => setFilterFollowUp(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="all">جميع حالات المتابعة</option>
+                    <option value="pending">في الانتظار</option>
+                    <option value="contacted">تم التواصل</option>
+                    <option value="needs_follow_up">يحتاج متابعة</option>
+                  </select>
+                </div>
+
+                {/* عداد النتائج */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-600">{filteredProperties.length}</div>
+                    <div className="text-xs text-blue-700">من {stats.total} عقار</div>
+                  </div>
+                </div>
+
+                {/* زر إعادة تعيين الفلاتر */}
+                <button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setFilterType('all')
+                    setFilterOperation('all')
+                    setFilterStatus('all')
+                    setFilterFollowUp('all')
+                  }}
+                  className="w-full bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm flex items-center justify-center"
+                >
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                  إعادة تعيين الفلاتر
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* معلومات المستخدم */}
@@ -994,88 +1104,22 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
             </div>
           )}
 
-          {/* Properties View with Filters */}
+          {/* Properties View - Simplified without filters */}
           {activeTab === 'properties' && (
             <div className="space-y-6">
-              {/* Advanced Filters */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">🔍 فلاتر البحث المتقدمة</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">بحث بالاسم، الرقم</label>
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="ابحث بالاسم أو المدينة أو الهاتف..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+              {/* Info Banner */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <Building className="w-4 h-4 text-white" />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">نوع العقار</label>
-                    <select
-                      value={filterType}
-                      onChange={(e) => setFilterType(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">جميع الأنواع</option>
-                      <option value="apartment">شقة ({stats.byType.apartment})</option>
-                      <option value="villa">فيلا ({stats.byType.villa})</option>
-                      <option value="house">بيت ({stats.byType.house})</option>
-                      <option value="land">أرض ({stats.byType.land})</option>
-                      <option value="shop">محل ({stats.byType.shop})</option>
-                      <option value="office">مكتب ({stats.byType.office})</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">نوع العملية</label>
-                    <select
-                      value={filterOperation}
-                      onChange={(e) => setFilterOperation(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">الكل</option>
-                      <option value="seller">بائع ({stats.sellers})</option>
-                      <option value="buyer">مشتري ({stats.buyers})</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">حالة البيع</label>
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">جميع الحالات</option>
-                      <option value="new">جديد ({stats.new})</option>
-                      <option value="selling">جاري البيع ({stats.selling})</option>
-                      <option value="sold">تم البيع ({stats.sold})</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">حالة المتابعة</label>
-                    <select
-                      value={filterFollowUp}
-                      onChange={(e) => setFilterFollowUp(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">جميع حالات المتابعة</option>
-                      <option value="pending">في الانتظار</option>
-                      <option value="contacted">تم التواصل</option>
-                      <option value="needs_follow_up">يحتاج متابعة</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg w-full text-center">
-                      النتائج: {filteredProperties.length} من {stats.total}
-                    </div>
+                  <div className="mr-3">
+                    <p className="text-sm font-medium text-blue-900">
+                      استخدم الفلاتر في القائمة الجانبية للبحث والتصفية
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      عرض {filteredProperties.length} من {stats.total} عقار
+                    </p>
                   </div>
                 </div>
               </div>
