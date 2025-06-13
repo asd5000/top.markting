@@ -86,7 +86,8 @@ export const ADMIN_ROLES: { [key: string]: AdminRole } = {
       '/admin/real-estate',
       '/admin/selling-now',
       '/admin/sold',
-      '/admin/matching'
+      '/admin/matching',
+      '/real-estate-system'
     ],
     redirectRoute: '/admin/real-estate',
     menuItems: ['real-estate']
