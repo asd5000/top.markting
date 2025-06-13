@@ -141,17 +141,38 @@ export default function PackagesPage() {
       return
     }
 
-    // التحقق من تسجيل الدخول
-    const savedUser = localStorage.getItem('visitor')
-    if (!savedUser) {
+    // التحقق من تسجيل الدخول - فحص Supabase Auth أولاً
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    let userData = null
+
+    if (session && session.user) {
+      // المستخدم مسجل دخول عبر Supabase Auth
+      userData = {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'مستخدم',
+        phone: session.user.user_metadata?.phone || '',
+        isLoggedIn: true
+      }
+      console.log('👤 User data from Supabase:', userData)
+    } else {
+      // التحقق من localStorage كبديل
+      const savedUser = localStorage.getItem('visitor') || localStorage.getItem('userSession')
+      if (savedUser) {
+        userData = JSON.parse(savedUser)
+        console.log('👤 User data from localStorage:', userData)
+      }
+    }
+
+    if (!userData) {
       alert('يرجى تسجيل الدخول أولاً')
       window.location.href = '/visitor-login'
       return
     }
 
     try {
-      const user = JSON.parse(savedUser)
-      console.log('👤 User data:', user)
+      console.log('👤 User data:', userData)
       console.log('📦 Package data with UUID:', pkg)
       console.log('🔍 Package ID validation:', {
         id: pkg.id,
@@ -167,7 +188,7 @@ export default function PackagesPage() {
       endDate.setMonth(endDate.getMonth() + pkg.duration)
 
       const subscriptionData = {
-        user_id: user.id || null, // يمكن أن يكون null للزوار
+        user_id: userData.id || null, // يمكن أن يكون null للزوار
         package_id: pkg.id,
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],

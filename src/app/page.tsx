@@ -382,20 +382,18 @@ export default function HomePage() {
               </div>
             </Link>
 
-            {/* Contact */}
+            {/* Packages Management */}
             <div className="group bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl shadow-lg p-6 hover:shadow-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 transform hover:-translate-y-2">
               <div className="text-center">
-                <div className="text-4xl mb-4">📞</div>
-                <h3 className="text-xl font-bold mb-3">تواصل معنا</h3>
-                <p className="text-purple-100 text-sm mb-4">احصل على استشارة مجانية</p>
-                <a
-                  href="https://wa.me/201068275557"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <div className="text-4xl mb-4">📋</div>
+                <h3 className="text-xl font-bold mb-3">إدارة الصفحات</h3>
+                <p className="text-purple-100 text-sm mb-4">باقات إدارة احترافية لصفحاتك</p>
+                <Link
+                  href="/packages"
                   className="inline-block bg-white bg-opacity-20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-30 transition-colors"
                 >
-                  واتساب
-                </a>
+                  اطلب الآن
+                </Link>
               </div>
             </div>
           </div>
