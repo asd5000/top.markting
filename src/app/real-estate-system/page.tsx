@@ -50,6 +50,7 @@ export default function RealEstateSystemPage() {
   // Real Estate System States
   const [properties, setProperties] = useState<Property[]>([])
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [filterOperation, setFilterOperation] = useState('all')
@@ -534,25 +535,207 @@ export default function RealEstateSystemPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
-      {/* تأكيد أن النظام الجديد يعمل */}
-      <div className="bg-green-600 text-white p-4 text-center">
-        <h1 className="text-xl font-bold">🎉 النظام العقاري الجديد يعمل الآن! 🎉</h1>
-        <p>تم تطبيق جميع المميزات المطلوبة بنجاح</p>
+    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+      {/* القائمة الجانبية الجديدة */}
+      <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-white shadow-lg border-l border-gray-200 flex flex-col transition-all duration-300`}>
+        {/* رأس القائمة الجانبية */}
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                <Building className="w-6 h-6 text-white" />
+              </div>
+              {sidebarOpen && (
+                <div className="mr-3">
+                  <h1 className="text-lg font-bold">برنامج التسويق العقاري</h1>
+                  <p className="text-sm text-blue-100">نظام إدارة العقارات المتكامل</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
+            >
+              <ArrowLeft className={`w-5 h-5 transition-transform ${sidebarOpen ? '' : 'rotate-180'}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* قائمة التنقل */}
+        <div className="flex-1 p-4">
+          <nav className="space-y-2">
+            {/* لوحة التحكم */}
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                activeTab === 'dashboard'
+                  ? 'bg-blue-100 text-blue-700 border border-blue-200 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <Home className="w-5 h-5 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span>🏠 لوحة التحكم</span>}
+            </button>
+
+            {/* إضافة عقار */}
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="w-full flex items-center px-4 py-3 rounded-lg text-right text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200"
+            >
+              <Plus className="w-5 h-5 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span>➕ إضافة عقار</span>}
+            </button>
+
+            {/* الإحصائيات */}
+            <button
+              onClick={() => setActiveTab('statistics')}
+              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                activeTab === 'statistics'
+                  ? 'bg-purple-100 text-purple-700 border border-purple-200 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <BarChart3 className="w-5 h-5 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span>📊 الإحصائيات</span>}
+            </button>
+
+            {/* المطابقة الذكية */}
+            <button
+              onClick={() => setActiveTab('matching')}
+              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                activeTab === 'matching'
+                  ? 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <Target className="w-5 h-5 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span>🔍 المطابقة</span>}
+            </button>
+
+            {/* جاري البيع */}
+            <button
+              onClick={() => setActiveTab('selling')}
+              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                activeTab === 'selling'
+                  ? 'bg-orange-100 text-orange-700 border border-orange-200 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <TrendingUp className="w-5 h-5 ml-3 flex-shrink-0" />
+              {sidebarOpen && (
+                <div className="flex items-center justify-between w-full">
+                  <span>🔁 جاري البيع</span>
+                  <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-xs">
+                    {stats.selling}
+                  </span>
+                </div>
+              )}
+            </button>
+
+            {/* تم البيع */}
+            <button
+              onClick={() => setActiveTab('sold')}
+              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                activeTab === 'sold'
+                  ? 'bg-green-100 text-green-700 border border-green-200 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <CheckCircle className="w-5 h-5 ml-3 flex-shrink-0" />
+              {sidebarOpen && (
+                <div className="flex items-center justify-between w-full">
+                  <span>✅ تم البيع</span>
+                  <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full text-xs">
+                    {stats.sold}
+                  </span>
+                </div>
+              )}
+            </button>
+
+            {/* عرض جميع العقارات */}
+            <button
+              onClick={() => setActiveTab('properties')}
+              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                activeTab === 'properties'
+                  ? 'bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <Building className="w-5 h-5 ml-3 flex-shrink-0" />
+              {sidebarOpen && <span>🏢 جميع العقارات</span>}
+            </button>
+          </nav>
+        </div>
+
+        {/* معلومات المستخدم */}
+        <div className="p-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center mb-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <Users className="w-4 h-4 text-white" />
+            </div>
+            {sidebarOpen && (
+              <div className="mr-3">
+                <p className="text-sm font-medium text-gray-900">{admin.name}</p>
+                <p className="text-xs text-gray-600">مدير عقارات</p>
+              </div>
+            )}
+          </div>
+
+          {sidebarOpen && (
+            <div className="space-y-2">
+              <Link
+                href="/admin"
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-blue-600 rounded-lg hover:bg-white transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4 ml-2" />
+                العودة للوحة التحكم
+              </Link>
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-red-600 rounded-lg hover:bg-white transition-colors"
+              >
+                <LogOut className="w-4 h-4 ml-2" />
+                تسجيل الخروج
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex">
-      {/* Sidebar */}
-      <div className="w-80 bg-white shadow-lg border-l border-gray-200 flex flex-col min-h-screen">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <Building className="w-6 h-6 text-white" />
+      {/* المحتوى الرئيسي */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* الشريط العلوي */}
+        <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {activeTab === 'dashboard' && '🏠 لوحة التحكم'}
+                {activeTab === 'statistics' && '📊 الإحصائيات المتقدمة'}
+                {activeTab === 'matching' && '🔍 المطابقة الذكية'}
+                {activeTab === 'selling' && '🔁 العقارات جاري البيع'}
+                {activeTab === 'sold' && '✅ العقارات المباعة'}
+                {activeTab === 'properties' && '🏢 جميع العقارات'}
+              </h2>
+              <p className="text-gray-600 mt-1">
+                إجمالي العقارات: <span className="font-semibold text-blue-600">{stats.total}</span> |
+                بائعين: <span className="font-semibold text-green-600">{stats.sellers}</span> |
+                مشترين: <span className="font-semibold text-blue-600">{stats.buyers}</span>
+              </p>
             </div>
-            <div className="mr-3">
-              <h1 className="text-lg font-bold text-gray-900">برنامج التسويق العقاري</h1>
-              <p className="text-sm text-gray-600">نظام إدارة العقارات المتكامل</p>
+
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={exportToExcel}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-sm"
+              >
+                <Download className="w-4 h-4 ml-2" />
+                📤 تصدير Excel
+              </button>
+
+              <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-200">
+                <span className="text-sm font-medium">النظام الجديد يعمل! ✨</span>
+              </div>
             </div>
           </div>
         </div>
