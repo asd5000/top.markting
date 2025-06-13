@@ -121,9 +121,9 @@ export default function AdminLayout({
     },
     {
       name: 'النسخ الاحتياطية',
-      href: '/admin/backups',
+      href: '/admin/backup-system',
       icon: Database,
-      current: pathname === '/admin/backups'
+      current: pathname === '/admin/backup-system'
     },
     {
       name: 'إعدادات الموقع',
