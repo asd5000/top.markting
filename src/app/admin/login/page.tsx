@@ -251,48 +251,12 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
+          {/* Security Notice */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h4 className="text-sm font-medium text-blue-900 mb-3">🔑 بيانات تسجيل الدخول المتاحة:</h4>
-            <div className="text-sm text-blue-700 space-y-2">
-              <div className="bg-green-50 p-3 rounded border border-green-200">
-                <p><strong>👤 البريد الإلكتروني:</strong> asdasheref@gmail.com</p>
-                <p><strong>🔒 كلمة المرور:</strong> 0453328124</p>
-                <p className="text-xs text-green-600">المدير الرئيسي - أشرف الشريف</p>
-              </div>
-              <div className="bg-white p-3 rounded border">
-                <p><strong>👤 البريد الإلكتروني:</strong> admin@topmarketing.com</p>
-                <p><strong>🔒 كلمة المرور:</strong> admin123</p>
-                <p className="text-xs text-blue-600">مدير النظام</p>
-              </div>
-              <div className="bg-white p-3 rounded border">
-                <p><strong>👤 البريد الإلكتروني:</strong> test@topmarketing.com</p>
-                <p><strong>🔒 كلمة المرور:</strong> 123456</p>
-                <p className="text-xs text-blue-600">مدير تجريبي</p>
-              </div>
-              <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
-                <p className="text-xs text-yellow-700">
-                  💡 <strong>للمديرين الجدد:</strong> استخدم البريد الإلكتروني وكلمة المرور التي أدخلتها عند إنشاء الحساب
-                </p>
-              </div>
-              <div className="mt-3 flex space-x-2">
-                <button
-                  onClick={() => {
-                    setFormData({ username: 'asdasheref@gmail.com', password: '0453328124' })
-                  }}
-                  className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700"
-                >
-                  ملء تلقائي - المدير الرئيسي
-                </button>
-                <button
-                  onClick={() => {
-                    setFormData({ username: 'admin@topmarketing.com', password: 'admin123' })
-                  }}
-                  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
-                >
-                  ملء تلقائي - admin
-                </button>
-              </div>
+            <h4 className="text-sm font-medium text-blue-900 mb-3">🔒 تسجيل دخول آمن</h4>
+            <div className="text-sm text-blue-700">
+              <p>استخدم البريد الإلكتروني وكلمة المرور التي تم توفيرها لك من قبل المدير العام.</p>
+              <p className="mt-2 text-xs">للحصول على بيانات تسجيل الدخول، تواصل مع إدارة النظام.</p>
             </div>
           </div>
         </div>

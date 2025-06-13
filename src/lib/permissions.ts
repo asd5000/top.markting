@@ -39,10 +39,13 @@ export const ADMIN_ROLES: { [key: string]: AdminRole } = {
       '/admin/orders',
       '/admin/receipts',
       '/admin/manage-admins',
-      '/admin/site-settings'
+      '/admin/site-settings',
+      '/admin/backup-system',
+      '/admin/contact-info',
+      '/admin/portfolio'
     ],
     redirectRoute: '/admin',
-    menuItems: ['services', 'packages', 'real-estate', 'orders', 'receipts', 'manage-admins', 'site-settings']
+    menuItems: ['services', 'packages', 'real-estate', 'orders', 'receipts', 'manage-admins', 'site-settings', 'backup-system', 'contact-info', 'portfolio']
   },
 
   marketing_manager: {
@@ -51,10 +54,11 @@ export const ADMIN_ROLES: { [key: string]: AdminRole } = {
     permissions: ['services', 'marketing'],
     allowedRoutes: [
       '/admin',
-      '/admin/services'
+      '/admin/services',
+      '/admin/orders'
     ],
     redirectRoute: '/admin/services',
-    menuItems: ['services']
+    menuItems: ['services', 'orders']
   },
 
   packages_manager: {
@@ -63,10 +67,11 @@ export const ADMIN_ROLES: { [key: string]: AdminRole } = {
     permissions: ['packages'],
     allowedRoutes: [
       '/admin',
-      '/admin/packages'
+      '/admin/packages',
+      '/admin/subscriptions'
     ],
     redirectRoute: '/admin/packages',
-    menuItems: ['packages']
+    menuItems: ['packages', 'subscriptions']
   },
 
   real_estate_manager: {
@@ -84,13 +89,18 @@ export const ADMIN_ROLES: { [key: string]: AdminRole } = {
   support: {
     role: 'support',
     name: 'الدعم الفني',
-    permissions: ['receipts', 'support'],
+    permissions: ['support', 'orders', 'services', 'packages', 'real_estate'],
     allowedRoutes: [
       '/admin',
-      '/admin/receipts'
+      '/admin/services',
+      '/admin/packages',
+      '/admin/real-estate',
+      '/admin/orders',
+      '/admin/receipts',
+      '/admin/portfolio'
     ],
-    redirectRoute: '/admin/receipts',
-    menuItems: ['receipts']
+    redirectRoute: '/admin',
+    menuItems: ['services', 'packages', 'real-estate', 'orders', 'receipts', 'portfolio']
   }
 }
 

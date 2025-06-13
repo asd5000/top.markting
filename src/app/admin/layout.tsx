@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { canViewMenuItem, getRoleName } from '@/lib/permissions'
 import {
   LayoutDashboard,
   Package,
@@ -70,74 +71,94 @@ export default function AdminLayout({
     router.push('/admin/login')
   }
 
-  const navigation = [
+  // إنشاء قائمة التنقل بناءً على صلاحيات المدير
+  const allNavigationItems = [
     {
       name: 'لوحة التحكم',
       href: '/admin',
       icon: LayoutDashboard,
-      current: pathname === '/admin'
+      current: pathname === '/admin',
+      menuItem: 'dashboard',
+      alwaysShow: true // الصفحة الرئيسية متاحة للجميع
     },
     {
       name: 'إدارة الخدمات',
       href: '/admin/services',
       icon: Package,
-      current: pathname === '/admin/services'
+      current: pathname === '/admin/services',
+      menuItem: 'services'
     },
     {
       name: 'إدارة الطلبات',
       href: '/admin/orders',
       icon: ShoppingCart,
-      current: pathname === '/admin/orders'
+      current: pathname === '/admin/orders',
+      menuItem: 'orders'
     },
     {
       name: 'إدارة الباقات',
       href: '/admin/packages',
       icon: CreditCard,
-      current: pathname === '/admin/packages'
+      current: pathname === '/admin/packages',
+      menuItem: 'packages'
     },
     {
       name: 'سابقات الأعمال',
       href: '/admin/portfolio',
       icon: Image,
-      current: pathname === '/admin/portfolio'
+      current: pathname === '/admin/portfolio',
+      menuItem: 'portfolio'
     },
     {
       name: 'برنامج التسويق العقاري',
       href: '/admin/real-estate',
       icon: Building,
-      current: pathname === '/admin/real-estate'
+      current: pathname === '/admin/real-estate',
+      menuItem: 'real-estate'
     },
     {
       name: 'الإيصالات',
       href: '/admin/receipts',
       icon: FileText,
-      current: pathname === '/admin/receipts'
+      current: pathname === '/admin/receipts',
+      menuItem: 'receipts'
     },
     {
       name: 'إدارة المديرين',
       href: '/admin/manage-admins',
       icon: Users,
-      current: pathname === '/admin/manage-admins'
+      current: pathname === '/admin/manage-admins',
+      menuItem: 'manage-admins'
     },
     {
       name: 'النسخ الاحتياطية',
       href: '/admin/backup-system',
       icon: Database,
-      current: pathname === '/admin/backup-system'
+      current: pathname === '/admin/backup-system',
+      menuItem: 'backup-system'
     },
     {
       name: 'إعدادات الموقع',
       href: '/admin/site-settings',
       icon: Settings,
-      current: pathname === '/admin/site-settings'
+      current: pathname === '/admin/site-settings',
+      menuItem: 'site-settings'
     },
     {
       name: 'معلومات الاتصال',
       href: '/admin/contact-info',
       icon: Phone,
-      current: pathname === '/admin/contact-info'
+      current: pathname === '/admin/contact-info',
+      menuItem: 'contact-info'
     }
   ]
+
+  // تصفية القائمة بناءً على صلاحيات المدير
+  const navigation = allNavigationItems.filter(item => {
+    if (item.alwaysShow) return true
+    if (!admin?.role) return false
+    return canViewMenuItem(admin.role, item.menuItem)
+  })
 
   // إذا كانت صفحة تسجيل الدخول، عرض المحتوى مباشرة
   if (pathname === '/admin/login') {
@@ -237,7 +258,7 @@ export default function AdminLayout({
                     </div>
                     <div className="mr-3">
                       <p className="font-medium">{admin.name}</p>
-                      <p className="text-xs text-slate-400">{admin.role}</p>
+                      <p className="text-xs text-slate-400">{getRoleName(admin.role)}</p>
                     </div>
                   </div>
                   <button
