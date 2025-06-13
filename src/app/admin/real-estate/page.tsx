@@ -1,49 +1,33 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import {
-  Building, Search, Filter, Plus, Edit, Trash2, Eye,
-  MapPin, DollarSign, Home, Users, Phone, Mail,
-  CheckCircle, XCircle, Clock, Star, ArrowLeft, Save, X, MessageCircle,
-  BarChart3
-} from 'lucide-react'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import RouteGuard from '@/components/admin/RouteGuard'
+import {
+  Building, Search, Plus, Edit, Trash2, Eye,
+  MapPin, DollarSign, Home, Users, Phone, Mail,
+  Save, X, MessageCircle
+} from 'lucide-react'
 
 interface Property {
   id: string
-  user_id?: string
   customer_name: string
   customer_phone: string
   customer_email?: string
   customer_whatsapp?: string
+  property_type: 'apartment' | 'villa' | 'land' | 'shop' | 'house' | 'office'
+  operation_type: 'sale' | 'rent'
+  title: string
   description?: string
-  property_type: string
-  listing_type: string
-  price: number
-  area?: number
-  bedrooms?: number
-  bathrooms?: number
-  floor_number?: number
-  total_floors?: number
-  governorate?: string
-  city?: string
+  governorate: string
+  city: string
   district?: string
-  address?: string
-  has_garden?: boolean
-  has_parking?: boolean
-  has_elevator?: boolean
-  has_balcony?: boolean
-  is_furnished?: boolean
-  has_security?: boolean
-  // إزالة نظام الحالات - البرنامج لجمع البيانات فقط
+  area?: number
+  rooms?: number
+  bathrooms?: number
+  price: number
+  price_negotiable: boolean
   created_at: string
-  users?: {
-    id: string
-    name: string
-    email: string
-    phone: string
-  }
 }
 
 export default function RealEstateManagement() {
@@ -51,37 +35,32 @@ export default function RealEstateManagement() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
-  // إزالة فلتر الحالات
-  const [filterListingType, setFilterListingType] = useState('all')
+  const [filterOperation, setFilterOperation] = useState('all')
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [showDetails, setShowDetails] = useState(false)
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error' | null
+    text: string
+  }>({ type: null, text: '' })
+
   const [newProperty, setNewProperty] = useState({
     customer_name: '',
     customer_phone: '',
     customer_email: '',
     customer_whatsapp: '',
     property_type: 'apartment',
-    listing_type: 'seller',
+    operation_type: 'sale',
     title: '',
     description: '',
     governorate: '',
     city: '',
     district: '',
-    address: '',
     area: '',
-    price: '',
-    bedrooms: '',
+    rooms: '',
     bathrooms: '',
-    floor_number: '',
-    total_floors: '',
-    has_garden: false,
-    has_parking: false,
-    has_elevator: false,
-    has_balcony: false,
-    is_furnished: false,
-    has_security: false,
-    notes: ''
+    price: '',
+    price_negotiable: false
   })
 
   useEffect(() => {
@@ -108,31 +87,25 @@ export default function RealEstateManagement() {
   const loadProperties = async () => {
     try {
       setLoading(true)
+      console.log('🏠 تحميل العقارات من قاعدة البيانات...')
 
-      // تحميل العقارات من Supabase مع بيانات المستخدمين
       const { data: propertiesData, error } = await supabase
-        .from('properties')
-        .select(`
-          *,
-          users (
-            id,
-            name,
-            email,
-            phone
-          )
-        `)
+        .from('real_estate')
+        .select('*')
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error loading properties:', error)
+        console.error('❌ خطأ في تحميل العقارات:', error)
+        alert(`خطأ في تحميل العقارات: ${error.message}`)
         return
       }
 
-      console.log('Loaded properties from database:', propertiesData)
+      console.log('✅ تم تحميل العقارات بنجاح:', propertiesData)
       setProperties(propertiesData || [])
 
     } catch (error) {
-      console.error('Error loading properties:', error)
+      console.error('❌ خطأ عام في تحميل العقارات:', error)
+      alert('حدث خطأ أثناء تحميل العقارات')
     } finally {
       setLoading(false)
     }
@@ -142,13 +115,13 @@ export default function RealEstateManagement() {
     const matchesSearch = property.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (property.city && property.city.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (property.district && property.district.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (property.description && property.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (property.title && property.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          property.customer_phone.includes(searchTerm)
 
     const matchesType = filterType === 'all' || property.property_type === filterType
-    const matchesListingType = filterListingType === 'all' || property.listing_type === filterListingType
+    const matchesOperation = filterListingType === 'all' || property.operation_type === filterListingType
 
-    return matchesSearch && matchesType && matchesListingType
+    return matchesSearch && matchesType && matchesOperation
   })
 
   // إحصائيات العقارات
@@ -189,50 +162,54 @@ export default function RealEstateManagement() {
   }
 
   const handleAddProperty = async () => {
-    if (!newProperty.customer_name || !newProperty.customer_phone) {
-      alert('يرجى ملء جميع الحقول المطلوبة')
+    if (!newProperty.customer_name || !newProperty.customer_phone || !newProperty.title) {
+      alert('يرجى ملء جميع الحقول المطلوبة (الاسم، الهاتف، العنوان)')
       return
     }
 
     try {
+      console.log('🏠 إضافة عقار جديد:', newProperty)
+
+      const propertyData = {
+        customer_name: newProperty.customer_name.trim(),
+        customer_phone: newProperty.customer_phone.trim(),
+        customer_email: newProperty.customer_email?.trim() || null,
+        customer_whatsapp: newProperty.customer_whatsapp?.trim() || null,
+        title: newProperty.title.trim(),
+        description: newProperty.description?.trim() || null,
+        property_type: newProperty.property_type,
+        operation_type: newProperty.listing_type, // تحويل listing_type إلى operation_type
+        price: newProperty.price ? parseFloat(newProperty.price) : 0,
+        area: newProperty.area ? parseFloat(newProperty.area) : null,
+        rooms: newProperty.bedrooms ? parseInt(newProperty.bedrooms) : null,
+        bathrooms: newProperty.bathrooms ? parseInt(newProperty.bathrooms) : null,
+        floor_number: newProperty.floor_number ? parseInt(newProperty.floor_number) : null,
+        total_floors: newProperty.total_floors ? parseInt(newProperty.total_floors) : null,
+        governorate: newProperty.governorate.trim(),
+        city: newProperty.city.trim(),
+        district: newProperty.district?.trim() || null,
+        street: newProperty.address?.trim() || null,
+        price_negotiable: true, // افتراضي
+        payment_method: 'cash', // افتراضي
+        status: 'pending', // افتراضي
+        priority: 'normal', // افتراضي
+        views_count: 0,
+        inquiries_count: 0,
+        images: []
+      }
+
       const { data, error } = await supabase
-        .from('properties')
-        .insert([{
-          customer_name: newProperty.customer_name.trim(),
-          customer_phone: newProperty.customer_phone.trim(),
-          customer_email: newProperty.customer_email?.trim() || null,
-          customer_whatsapp: newProperty.customer_whatsapp?.trim() || null,
-          title: newProperty.title?.trim() || `${getPropertyTypeLabel(newProperty.property_type)} ${newProperty.listing_type === 'seller' ? 'للبيع' : 'للشراء'}`,
-          description: newProperty.description?.trim() || null,
-          property_type: newProperty.property_type,
-          listing_type: newProperty.listing_type,
-          price: newProperty.price ? parseFloat(newProperty.price) : 0,
-          area: newProperty.area ? parseFloat(newProperty.area) : null,
-          bedrooms: newProperty.bedrooms ? parseInt(newProperty.bedrooms) : null,
-          bathrooms: newProperty.bathrooms ? parseInt(newProperty.bathrooms) : null,
-          floor_number: newProperty.floor_number ? parseInt(newProperty.floor_number) : null,
-          total_floors: newProperty.total_floors ? parseInt(newProperty.total_floors) : null,
-          governorate: newProperty.governorate.trim(),
-          city: newProperty.city.trim(),
-          district: newProperty.district?.trim() || null,
-          address: newProperty.address?.trim() || null,
-          has_garden: newProperty.has_garden || false,
-          has_parking: newProperty.has_parking || false,
-          has_elevator: newProperty.has_elevator || false,
-          has_balcony: newProperty.has_balcony || false,
-          is_furnished: newProperty.is_furnished || false,
-          has_security: newProperty.has_security || false,
-          images: []
-        }])
+        .from('real_estate')
+        .insert([propertyData])
         .select()
 
       if (error) {
-        console.error('Error adding property:', error)
-        alert('حدث خطأ أثناء إضافة العقار')
+        console.error('❌ خطأ في إضافة العقار:', error)
+        alert(`خطأ في إضافة العقار: ${error.message}`)
         return
       }
 
-      console.log('Property added successfully:', data)
+      console.log('✅ تم إضافة العقار بنجاح:', data)
 
       // إعادة تحميل العقارات
       await loadProperties()
@@ -244,7 +221,7 @@ export default function RealEstateManagement() {
         customer_email: '',
         customer_whatsapp: '',
         property_type: 'apartment',
-        listing_type: 'seller',
+        listing_type: 'sale',
         title: '',
         description: '',
         governorate: '',
@@ -269,7 +246,7 @@ export default function RealEstateManagement() {
       setShowAddForm(false)
       alert('تم إضافة العقار بنجاح!')
     } catch (error) {
-      console.error('Error adding property:', error)
+      console.error('❌ خطأ عام في إضافة العقار:', error)
       alert('حدث خطأ أثناء إضافة العقار')
     }
   }
@@ -280,7 +257,7 @@ export default function RealEstateManagement() {
     if (confirm('هل أنت متأكد من حذف هذا العقار؟')) {
       try {
         const { error } = await supabase
-          .from('properties')
+          .from('real_estate')
           .delete()
           .eq('id', propertyId)
 
@@ -344,7 +321,7 @@ export default function RealEstateManagement() {
 
     try {
       const { data, error } = await supabase
-        .from('properties')
+        .from('real_estate')
         .update({
           customer_name: newProperty.customer_name.trim(),
           customer_phone: newProperty.customer_phone.trim(),
@@ -353,17 +330,17 @@ export default function RealEstateManagement() {
           title: newProperty.title?.trim() || `${getPropertyTypeLabel(newProperty.property_type)} ${newProperty.listing_type === 'seller' ? 'للبيع' : 'للشراء'}`,
           description: newProperty.description?.trim() || null,
           property_type: newProperty.property_type,
-          listing_type: newProperty.listing_type,
+          operation_type: newProperty.listing_type,
           price: newProperty.price ? parseFloat(newProperty.price) : 0,
           area: newProperty.area ? parseFloat(newProperty.area) : null,
-          bedrooms: newProperty.bedrooms ? parseInt(newProperty.bedrooms) : null,
+          rooms: newProperty.bedrooms ? parseInt(newProperty.bedrooms) : null,
           bathrooms: newProperty.bathrooms ? parseInt(newProperty.bathrooms) : null,
           floor_number: newProperty.floor_number ? parseInt(newProperty.floor_number) : null,
           total_floors: newProperty.total_floors ? parseInt(newProperty.total_floors) : null,
           governorate: newProperty.governorate.trim(),
           city: newProperty.city.trim(),
           district: newProperty.district?.trim() || null,
-          address: newProperty.address?.trim() || null,
+          street: newProperty.address?.trim() || null,
           has_garden: newProperty.has_garden || false,
           has_parking: newProperty.has_parking || false,
           has_elevator: newProperty.has_elevator || false,
@@ -558,7 +535,7 @@ export default function RealEstateManagement() {
                   <div className="mr-4">
                     <p className="text-sm font-medium text-gray-600">البائعين</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {properties.filter(p => p.listing_type === 'sale').length}
+                      {properties.filter(p => p.operation_type === 'sale').length}
                     </p>
                   </div>
                 </div>
@@ -570,9 +547,9 @@ export default function RealEstateManagement() {
                     <Users className="w-6 h-6 text-indigo-600" />
                   </div>
                   <div className="mr-4">
-                    <p className="text-sm font-medium text-gray-600">المشترين</p>
+                    <p className="text-sm font-medium text-gray-600">الإيجار</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {properties.filter(p => p.listing_type === 'buyer').length}
+                      {properties.filter(p => p.operation_type === 'rent').length}
                     </p>
                   </div>
                 </div>
@@ -695,9 +672,9 @@ export default function RealEstateManagement() {
                   onChange={(e) => setFilterListingType(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
-                  <option value="all">جميع العملاء</option>
-                  <option value="seller">بائعين</option>
-                  <option value="buyer">مشترين</option>
+                  <option value="all">جميع العمليات</option>
+                  <option value="sale">بيع</option>
+                  <option value="rent">إيجار</option>
                 </select>
 
                 <div className="flex items-center justify-between">
@@ -706,10 +683,10 @@ export default function RealEstateManagement() {
                   </span>
                   <div className="flex items-center space-x-2">
                     <span className="text-xs text-green-600">
-                      {properties.filter(p => p.listing_type === 'seller').length} بائع
+                      {properties.filter(p => p.operation_type === 'sale').length} بيع
                     </span>
                     <span className="text-xs text-blue-600">
-                      {properties.filter(p => p.listing_type === 'buyer').length} مشتري
+                      {properties.filter(p => p.operation_type === 'rent').length} إيجار
                     </span>
                   </div>
                 </div>
@@ -732,9 +709,9 @@ export default function RealEstateManagement() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        property.listing_type === 'seller' ? 'bg-blue-100' : 'bg-orange-100'
+                        property.operation_type === 'sale' ? 'bg-blue-100' : 'bg-orange-100'
                       }`}>
-                        {property.listing_type === 'seller' ?
+                        {property.operation_type === 'sale' ?
                           <Home className="w-4 h-4 text-blue-600" /> :
                           <Users className="w-4 h-4 text-orange-600" />
                         }
