@@ -317,7 +317,7 @@ export default function RealEstateManagement() {
               <Building className="w-6 h-6 text-green-600 ml-3" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">برنامج التسويق العقاري</h1>
-                <p className="text-gray-600">نظام مكتمل لإدارة البائعين والمشترين ومقارنة المواصفات</p>
+                <p className="text-gray-600">نظام مكتمل لإدارة البائعين والمشترين ومقارنة المواصفات - محدث</p>
               </div>
             </div>
           </div>
