@@ -43,7 +43,7 @@ interface Property {
 export default function RealEstateManagement() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('properties')
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [filterOperation, setFilterOperation] = useState('all')
@@ -415,6 +415,12 @@ export default function RealEstateManagement() {
 
   return (
     <RouteGuard>
+      {/* شريط تأكيد أن النظام المطور يعمل */}
+      <div className="bg-green-600 text-white p-3 text-center">
+        <h1 className="text-lg font-bold">🎉 النظام العقاري المطور يعمل الآن! 🎉</h1>
+        <p className="text-sm">تم إضافة القائمة الجانبية والمميزات الجديدة بنجاح</p>
+      </div>
+
       <div className="min-h-screen bg-gray-50 flex" dir="rtl">
         {/* القائمة الجانبية الجديدة */}
         <div className="w-80 bg-white shadow-lg border-l border-gray-200 flex flex-col">
