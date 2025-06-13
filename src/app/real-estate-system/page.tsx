@@ -535,7 +535,14 @@ export default function RealEstateSystemPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="min-h-screen bg-gray-50" dir="rtl">
+      {/* شريط تأكيد أن النظام المطور يعمل */}
+      <div className="bg-green-600 text-white p-3 text-center">
+        <h1 className="text-lg font-bold">🎉 النظام العقاري المطور يعمل الآن! 🎉</h1>
+        <p className="text-sm">تم إضافة القائمة الجانبية والمميزات الجديدة بنجاح</p>
+      </div>
+
+      <div className="flex min-h-screen">
       {/* القائمة الجانبية الجديدة */}
       <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-white shadow-lg border-l border-gray-200 flex flex-col transition-all duration-300`}>
         {/* رأس القائمة الجانبية */}
@@ -740,153 +747,7 @@ export default function RealEstateSystemPage() {
           </div>
         </div>
 
-        {/* Navigation Menu */}
-        <div className="flex-1 p-4">
-          <nav className="space-y-2">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-colors ${
-                activeTab === 'dashboard'
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Home className="w-5 h-5 ml-3" />
-              🏠 لوحة التحكم
-            </button>
-
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="w-full flex items-center px-4 py-3 rounded-lg text-right text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              <Plus className="w-5 h-5 ml-3" />
-              ➕ إضافة عقار
-            </button>
-
-            <button
-              onClick={() => setActiveTab('statistics')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-colors ${
-                activeTab === 'statistics'
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <BarChart3 className="w-5 h-5 ml-3" />
-              📊 الإحصائيات
-            </button>
-
-            <button
-              onClick={() => setActiveTab('matching')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-colors ${
-                activeTab === 'matching'
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Target className="w-5 h-5 ml-3" />
-              🔍 المطابقة
-            </button>
-
-            <button
-              onClick={() => setActiveTab('selling')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-colors ${
-                activeTab === 'selling'
-                  ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <TrendingUp className="w-5 h-5 ml-3" />
-              🔁 جاري البيع ({stats.selling})
-            </button>
-
-            <button
-              onClick={() => setActiveTab('sold')}
-              className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-colors ${
-                activeTab === 'sold'
-                  ? 'bg-green-100 text-green-700 border border-green-200'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <CheckCircle className="w-5 h-5 ml-3" />
-              ✅ تم البيع ({stats.sold})
-            </button>
-          </nav>
-        </div>
-
-        {/* User Info */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center mb-3">
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <Users className="w-4 h-4" />
-            </div>
-            <div className="mr-3">
-              <p className="text-sm font-medium text-gray-900">{admin.name}</p>
-              <p className="text-xs text-gray-600">مدير عقارات</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Link
-              href="/admin"
-              className="w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-blue-600 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 ml-2" />
-              العودة للوحة التحكم
-            </Link>
-
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-red-600 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <LogOut className="w-4 h-4 ml-2" />
-              تسجيل الخروج
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Header */}
-        <div className="bg-white shadow-sm border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                {activeTab === 'dashboard' && 'لوحة التحكم'}
-                {activeTab === 'statistics' && 'الإحصائيات'}
-                {activeTab === 'matching' && 'المطابقة الذكية'}
-                {activeTab === 'selling' && 'العقارات جاري البيع'}
-                {activeTab === 'sold' && 'العقارات المباعة'}
-                {activeTab === 'properties' && 'إدارة العقارات'}
-              </h2>
-              <p className="text-gray-600">إجمالي العقارات: {stats.total}</p>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={exportToExcel}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
-              >
-                <Download className="w-4 h-4 ml-2" />
-                📤 تصدير Excel
-              </button>
-
-              <button
-                onClick={() => setActiveTab('properties')}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center ${
-                  activeTab === 'properties'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                <Building className="w-4 h-4 ml-2" />
-                عرض جميع العقارات
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Area */}
+        {/* المحتوى الرئيسي */}
         <main className="flex-1 p-6 overflow-y-auto">
           {/* Messages */}
           {message.type && (
@@ -1654,6 +1515,8 @@ export default function RealEstateSystemPage() {
           </div>
         )}
       </main>
+    </div>
+    </div>
     </div>
   )
 }
