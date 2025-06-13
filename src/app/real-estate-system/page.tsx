@@ -1917,10 +1917,10 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
                         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
                           <Plus className="w-6 h-6 text-blue-600" />
                         </div>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 font-medium">
                           {selectedImages.length >= 4
-                            ? 'تم الوصول للحد الأقصى (4 صور)'
-                            : 'اضغط لاختيار الصور أو اسحبها هنا'
+                            ? '✅ تم الوصول للحد الأقصى (4 صور)'
+                            : '📸 اضغط لاختيار الصور أو اسحبها هنا'
                           }
                         </span>
                         <span className="text-xs text-gray-400 mt-1">

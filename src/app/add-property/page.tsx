@@ -720,10 +720,10 @@ export default function AddPropertyPage() {
                     <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
                       <Plus className="w-8 h-8 text-indigo-600" />
                     </div>
-                    <span className="text-lg text-gray-700 font-medium mb-2">
+                    <span className="text-lg text-gray-700 font-bold mb-2">
                       {selectedImages.length >= 4
-                        ? 'تم الوصول للحد الأقصى (4 صور)'
-                        : 'اضغط لاختيار الصور أو اسحبها هنا'
+                        ? '✅ تم الوصول للحد الأقصى (4 صور)'
+                        : '📸 اضغط لاختيار الصور أو اسحبها هنا'
                       }
                     </span>
                     <span className="text-sm text-gray-500">
