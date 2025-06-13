@@ -15,7 +15,11 @@ import {
   Mail,
   Lock,
   User,
-  Shield
+  Shield,
+  Edit,
+  Trash2,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react'
 import Link from 'next/link'
 import bcrypt from 'bcryptjs'
@@ -53,6 +57,9 @@ export default function ManageAdminsPage() {
 
   const [admins, setAdmins] = useState<AdminUser[]>([])
   const [loadingAdmins, setLoadingAdmins] = useState(false)
+  const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [deletingAdmin, setDeletingAdmin] = useState<string | null>(null)
 
   // تحميل المشرفين الموجودين
   const loadAdmins = async () => {
@@ -76,6 +83,168 @@ export default function ManageAdminsPage() {
       console.error('Error loading admins:', error)
     } finally {
       setLoadingAdmins(false)
+    }
+  }
+
+  // حذف مدير
+  const deleteAdmin = async (adminId: string, adminName: string) => {
+    if (!confirm(`هل أنت متأكد من حذف المدير "${adminName}"؟\n\nهذا الإجراء لا يمكن التراجع عنه.`)) {
+      return
+    }
+
+    try {
+      setDeletingAdmin(adminId)
+      console.log('🗑️ Deleting admin:', adminId)
+
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', adminId)
+
+      if (error) {
+        console.error('Error deleting admin:', error)
+        setMessage({
+          type: 'error',
+          text: `فشل في حذف المدير: ${error.message}`
+        })
+      } else {
+        console.log('✅ Admin deleted successfully')
+        setMessage({
+          type: 'success',
+          text: `تم حذف المدير "${adminName}" بنجاح`
+        })
+
+        // إعادة تحميل القائمة
+        await loadAdmins()
+      }
+    } catch (error) {
+      console.error('Error deleting admin:', error)
+      setMessage({
+        type: 'error',
+        text: 'حدث خطأ أثناء حذف المدير'
+      })
+    } finally {
+      setDeletingAdmin(null)
+    }
+  }
+
+  // تعديل حالة المدير (تفعيل/إلغاء تفعيل)
+  const toggleAdminStatus = async (adminId: string, currentStatus: boolean, adminName: string) => {
+    try {
+      console.log('🔄 Toggling admin status:', adminId, !currentStatus)
+
+      const { error } = await supabase
+        .from('users')
+        .update({ is_active: !currentStatus })
+        .eq('id', adminId)
+
+      if (error) {
+        console.error('Error updating admin status:', error)
+        setMessage({
+          type: 'error',
+          text: `فشل في تحديث حالة المدير: ${error.message}`
+        })
+      } else {
+        console.log('✅ Admin status updated successfully')
+        setMessage({
+          type: 'success',
+          text: `تم ${!currentStatus ? 'تفعيل' : 'إلغاء تفعيل'} المدير "${adminName}" بنجاح`
+        })
+
+        // إعادة تحميل القائمة
+        await loadAdmins()
+      }
+    } catch (error) {
+      console.error('Error updating admin status:', error)
+      setMessage({
+        type: 'error',
+        text: 'حدث خطأ أثناء تحديث حالة المدير'
+      })
+    }
+  }
+
+  // تعديل دور المدير
+  const updateAdminRole = async (adminId: string, newRole: string, adminName: string) => {
+    try {
+      console.log('🔄 Updating admin role:', adminId, newRole)
+
+      const { error } = await supabase
+        .from('users')
+        .update({ role: newRole })
+        .eq('id', adminId)
+
+      if (error) {
+        console.error('Error updating admin role:', error)
+        setMessage({
+          type: 'error',
+          text: `فشل في تحديث دور المدير: ${error.message}`
+        })
+      } else {
+        console.log('✅ Admin role updated successfully')
+        setMessage({
+          type: 'success',
+          text: `تم تحديث دور المدير "${adminName}" بنجاح`
+        })
+
+        // إعادة تحميل القائمة
+        await loadAdmins()
+      }
+    } catch (error) {
+      console.error('Error updating admin role:', error)
+      setMessage({
+        type: 'error',
+        text: 'حدث خطأ أثناء تحديث دور المدير'
+      })
+    }
+  }
+
+  // فتح نافذة التعديل
+  const openEditModal = (admin: AdminUser) => {
+    setEditingAdmin(admin)
+    setShowEditModal(true)
+  }
+
+  // إغلاق نافذة التعديل
+  const closeEditModal = () => {
+    setEditingAdmin(null)
+    setShowEditModal(false)
+  }
+
+  // حفظ تعديلات المدير
+  const saveAdminEdit = async (updatedData: Partial<AdminUser>) => {
+    if (!editingAdmin) return
+
+    try {
+      console.log('💾 Saving admin edit:', editingAdmin.id, updatedData)
+
+      const { error } = await supabase
+        .from('users')
+        .update(updatedData)
+        .eq('id', editingAdmin.id)
+
+      if (error) {
+        console.error('Error updating admin:', error)
+        setMessage({
+          type: 'error',
+          text: `فشل في تحديث بيانات المدير: ${error.message}`
+        })
+      } else {
+        console.log('✅ Admin updated successfully')
+        setMessage({
+          type: 'success',
+          text: `تم تحديث بيانات المدير "${editingAdmin.name}" بنجاح`
+        })
+
+        // إغلاق النافذة وإعادة تحميل القائمة
+        closeEditModal()
+        await loadAdmins()
+      }
+    } catch (error) {
+      console.error('Error updating admin:', error)
+      setMessage({
+        type: 'error',
+        text: 'حدث خطأ أثناء تحديث بيانات المدير'
+      })
     }
   }
 
@@ -776,6 +945,9 @@ export default function ManageAdminsPage() {
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                           تاريخ الإنشاء
                         </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          الإجراءات
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -826,6 +998,54 @@ export default function ManageAdminsPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(admin.created_at).toLocaleDateString('ar-EG')}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                              {/* تعديل الدور */}
+                              <select
+                                value={admin.role}
+                                onChange={(e) => updateAdminRole(admin.id, e.target.value, admin.name)}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500"
+                              >
+                                <option value="super_admin">مدير عام</option>
+                                <option value="marketing_manager">مدير تسويق</option>
+                                <option value="packages_manager">مدير باقات</option>
+                                <option value="real_estate_manager">مدير عقارات</option>
+                                <option value="support">دعم فني</option>
+                              </select>
+
+                              {/* تفعيل/إلغاء تفعيل */}
+                              <button
+                                onClick={() => toggleAdminStatus(admin.id, admin.is_active, admin.name)}
+                                className={`px-2 py-1 rounded text-xs font-medium ${
+                                  admin.is_active
+                                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                }`}
+                                title={admin.is_active ? 'إلغاء التفعيل' : 'تفعيل'}
+                              >
+                                {admin.is_active ? 'إلغاء تفعيل' : 'تفعيل'}
+                              </button>
+
+                              {/* تعديل */}
+                              <button
+                                onClick={() => openEditModal(admin)}
+                                className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded text-xs font-medium"
+                                title="تعديل البيانات"
+                              >
+                                تعديل
+                              </button>
+
+                              {/* حذف */}
+                              <button
+                                onClick={() => deleteAdmin(admin.id, admin.name)}
+                                disabled={deletingAdmin === admin.id}
+                                className="bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 px-2 py-1 rounded text-xs font-medium"
+                                title="حذف المدير"
+                              >
+                                {deletingAdmin === admin.id ? 'جاري الحذف...' : 'حذف'}
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -836,6 +1056,126 @@ export default function ManageAdminsPage() {
           </div>
         </div>
       </div>
+
+      {/* نافذة التعديل المنبثقة */}
+      {showEditModal && editingAdmin && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              تعديل بيانات المدير: {editingAdmin.name}
+            </h3>
+
+            <EditAdminForm
+              admin={editingAdmin}
+              onSave={saveAdminEdit}
+              onCancel={closeEditModal}
+            />
+          </div>
+        </div>
+      )}
     </RouteGuard>
+  )
+}
+
+// مكون نموذج تعديل المدير
+function EditAdminForm({
+  admin,
+  onSave,
+  onCancel
+}: {
+  admin: AdminUser
+  onSave: (data: Partial<AdminUser>) => void
+  onCancel: () => void
+}) {
+  const [formData, setFormData] = useState({
+    name: admin.name,
+    email: admin.email,
+    role: admin.role,
+    is_active: admin.is_active
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSave(formData)
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* الاسم */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          الاسم الكامل
+        </label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          required
+        />
+      </div>
+
+      {/* البريد الإلكتروني */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          البريد الإلكتروني
+        </label>
+        <input
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          required
+        />
+      </div>
+
+      {/* الدور */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          الدور
+        </label>
+        <select
+          value={formData.role}
+          onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="super_admin">مدير عام (جميع الصلاحيات)</option>
+          <option value="marketing_manager">مدير التسويق</option>
+          <option value="packages_manager">مدير الباقات</option>
+          <option value="real_estate_manager">مدير العقارات</option>
+          <option value="support">الدعم الفني</option>
+        </select>
+      </div>
+
+      {/* الحالة */}
+      <div>
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={formData.is_active}
+            onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="mr-2 text-sm text-gray-700">المدير نشط</span>
+        </label>
+      </div>
+
+      {/* أزرار الإجراءات */}
+      <div className="flex justify-end space-x-3 space-x-reverse pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+        >
+          إلغاء
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          حفظ التغييرات
+        </button>
+      </div>
+    </form>
   )
 }
