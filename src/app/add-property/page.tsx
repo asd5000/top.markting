@@ -54,27 +54,64 @@ export default function AddPropertyPage() {
     checkUserSession()
   }, [])
 
-  const checkUserSession = () => {
-    const savedUser = localStorage.getItem('visitor')
-    if (!savedUser) {
+  const checkUserSession = async () => {
+    try {
+      // التحقق من جلسة Supabase أولاً
+      const { data: { session }, error } = await supabase.auth.getSession()
+
+      if (session && session.user) {
+        // المستخدم مسجل دخول عبر Supabase Auth
+        const userData = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'مستخدم',
+          phone: session.user.user_metadata?.phone || '',
+          isLoggedIn: true
+        }
+
+        setUser(userData)
+
+        // ملء بيانات العميل من بيانات المستخدم
+        setFormData(prev => ({
+          ...prev,
+          customer_name: userData.name || '',
+          customer_email: userData.email || '',
+          customer_phone: userData.phone || ''
+        }))
+
+        setLoading(false)
+        return
+      }
+
+      // التحقق من localStorage كبديل
+      const savedUser = localStorage.getItem('visitor') || localStorage.getItem('userSession')
+      if (savedUser) {
+        const userData = JSON.parse(savedUser)
+        setUser(userData)
+
+        // ملء بيانات العميل من بيانات المستخدم
+        setFormData(prev => ({
+          ...prev,
+          customer_name: userData.name || '',
+          customer_email: userData.email || '',
+          customer_phone: userData.phone || ''
+        }))
+
+        setLoading(false)
+        return
+      }
+
+      // لا يوجد مستخدم مسجل دخول
       alert('يجب تسجيل الدخول أولاً لإضافة عقار')
       localStorage.setItem('redirectAfterLogin', '/add-property')
       router.push('/visitor-login')
-      return
+
+    } catch (error) {
+      console.error('Error checking user session:', error)
+      alert('يجب تسجيل الدخول أولاً لإضافة عقار')
+      localStorage.setItem('redirectAfterLogin', '/add-property')
+      router.push('/visitor-login')
     }
-    
-    const userData = JSON.parse(savedUser)
-    setUser(userData)
-    
-    // ملء بيانات العميل من بيانات المستخدم
-    setFormData(prev => ({
-      ...prev,
-      customer_name: userData.name || '',
-      customer_email: userData.email || '',
-      customer_phone: userData.phone || ''
-    }))
-    
-    setLoading(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,38 +130,29 @@ export default function AddPropertyPage() {
 
       // إعداد بيانات العقار مع التأكد من صحة البيانات
       const propertyData = {
-        user_id: user.id,
         customer_name: formData.customer_name.trim(),
         customer_phone: formData.customer_phone.trim(),
         customer_whatsapp: formData.customer_whatsapp?.trim() || null,
         customer_email: formData.customer_email?.trim() || null,
+        title: formData.title?.trim() || 'عقار جديد',
         description: formData.description?.trim() || null,
         property_type: formData.property_type,
-        listing_type: formData.operation_type, // seller أو buyer
+        operation_type: formData.operation_type, // seller أو buyer
         price: parseFloat(formData.price) || 0,
+        price_negotiable: formData.price_negotiable || false,
         area: formData.area ? parseFloat(formData.area) : null,
-        bedrooms: formData.rooms ? parseInt(formData.rooms) : null, // تصحيح اسم الحقل
+        rooms: formData.rooms ? parseInt(formData.rooms) : null,
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
-        floor_number: formData.floor ? parseInt(formData.floor) : null, // تصحيح اسم الحقل
-        total_floors: formData.total_floors ? parseInt(formData.total_floors) : null,
         governorate: formData.governorate.trim(),
         city: formData.city.trim(),
-        district: formData.district?.trim() || null,
-        address: formData.address?.trim() || null,
-        has_garden: formData.has_garden || false,
-        has_parking: formData.has_parking || false,
-        has_elevator: formData.has_elevator || false,
-        has_balcony: formData.has_balcony || false,
-        is_furnished: formData.is_furnished || false,
-        has_security: formData.has_security || false,
-        images: []
+        district: formData.district?.trim() || null
       }
 
       console.log('Prepared property data for database:', propertyData)
 
       // إدراج البيانات في قاعدة البيانات
       const { data: insertedProperty, error } = await supabase
-        .from('properties')
+        .from('real_estate')
         .insert([propertyData])
         .select()
         .single()
@@ -148,7 +176,7 @@ export default function AddPropertyPage() {
         title: '',
         description: '',
         property_type: 'apartment',
-        operation_type: 'sale',
+        operation_type: 'seller',
         price: '',
         price_negotiable: false,
         area: '',
@@ -212,7 +240,10 @@ export default function AddPropertyPage() {
                 <div className="flex items-center space-x-3">
                   <span className="text-sm text-gray-600">مرحباً، {user.name}</span>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
+                      // تسجيل الخروج من Supabase
+                      await supabase.auth.signOut()
+                      // حذف البيانات من localStorage
                       localStorage.removeItem('visitor')
                       localStorage.removeItem('userSession')
                       router.push('/')
