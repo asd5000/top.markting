@@ -40,6 +40,8 @@ interface Property {
   last_contact_date?: string
   contact_count?: number
   trust_rating?: number
+  video_url?: string
+  images?: string
   created_at: string
 }
 
@@ -83,8 +85,15 @@ export default function RealEstateSystemPage() {
     price_negotiable: false,
     sale_status: 'new',
     internal_notes: '',
-    follow_up_status: 'pending'
+    follow_up_status: 'pending',
+    video_url: '',
+    images: []
   })
+
+  // States for image upload
+  const [selectedImages, setSelectedImages] = useState<File[]>([])
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     checkAuth()
@@ -156,6 +165,98 @@ export default function RealEstateSystemPage() {
     router.push('/admin/login')
   }
 
+  // Image upload functions
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+
+    if (selectedImages.length + files.length > 4) {
+      setMessage({
+        type: 'error',
+        text: 'يمكن رفع 4 صور كحد أقصى'
+      })
+      return
+    }
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith('image/')
+      const isValidSize = file.size <= 5 * 1024 * 1024 // 5MB
+
+      if (!isValidType) {
+        setMessage({
+          type: 'error',
+          text: `${file.name} ليس ملف صورة صالح`
+        })
+        return false
+      }
+
+      if (!isValidSize) {
+        setMessage({
+          type: 'error',
+          text: `${file.name} حجم الملف كبير جداً (الحد الأقصى 5MB)`
+        })
+        return false
+      }
+
+      return true
+    })
+
+    setSelectedImages(prev => [...prev, ...validFiles])
+
+    // Create preview URLs
+    validFiles.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreviewUrls(prev => [...prev, e.target?.result as string])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index))
+    setImagePreviewUrls(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const uploadImages = async (): Promise<string[]> => {
+    if (selectedImages.length === 0) return []
+
+    setUploading(true)
+    const uploadedUrls: string[] = []
+
+    try {
+      for (const file of selectedImages) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `property_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+
+        const { data, error } = await supabase.storage
+          .from('images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          })
+
+        if (error) {
+          console.error('Upload error:', error)
+          throw error
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('images')
+          .getPublicUrl(fileName)
+
+        uploadedUrls.push(urlData.publicUrl)
+      }
+
+      return uploadedUrls
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      throw error
+    } finally {
+      setUploading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center" dir="rtl">
@@ -184,6 +285,14 @@ export default function RealEstateSystemPage() {
     }
 
     try {
+      setUploading(true)
+
+      // Upload images first
+      let imageUrls: string[] = []
+      if (selectedImages.length > 0) {
+        imageUrls = await uploadImages()
+      }
+
       const propertyData = {
         customer_name: formData.customer_name.trim(),
         customer_phone: formData.customer_phone.trim(),
@@ -205,7 +314,9 @@ export default function RealEstateSystemPage() {
         internal_notes: formData.internal_notes?.trim() || null,
         follow_up_status: formData.follow_up_status,
         contact_count: 0,
-        trust_rating: 0
+        trust_rating: 0,
+        video_url: formData.video_url?.trim() || null,
+        images: JSON.stringify(imageUrls)
       }
 
       let result
@@ -274,8 +385,12 @@ export default function RealEstateSystemPage() {
       price_negotiable: false,
       sale_status: 'new',
       internal_notes: '',
-      follow_up_status: 'pending'
+      follow_up_status: 'pending',
+      video_url: '',
+      images: []
     })
+    setSelectedImages([])
+    setImagePreviewUrls([])
     setEditingProperty(null)
     setShowAddForm(false)
   }
@@ -300,8 +415,21 @@ export default function RealEstateSystemPage() {
       price_negotiable: property.price_negotiable,
       sale_status: property.sale_status || 'new',
       internal_notes: property.internal_notes || '',
-      follow_up_status: property.follow_up_status || 'pending'
+      follow_up_status: property.follow_up_status || 'pending',
+      video_url: (property as any).video_url || '',
+      images: []
     })
+
+    // Load existing images if any
+    if ((property as any).images) {
+      try {
+        const existingImages = JSON.parse((property as any).images)
+        setImagePreviewUrls(existingImages)
+      } catch (e) {
+        console.error('Error parsing existing images:', e)
+      }
+    }
+
     setEditingProperty(property)
     setShowAddForm(true)
   }
@@ -1746,19 +1874,108 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
                     </div>
                   </div>
 
+                  {/* Video URL */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      رابط فيديو العقار (اختياري)
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.video_url}
+                      onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      يمكنك إضافة رابط فيديو من YouTube أو أي منصة أخرى
+                    </p>
+                  </div>
+
+                  {/* Images Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      صور العقار (حتى 4 صور)
+                    </label>
+
+                    {/* Image Upload Input */}
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                        id="image-upload"
+                        disabled={selectedImages.length >= 4}
+                      />
+                      <label
+                        htmlFor="image-upload"
+                        className={`cursor-pointer flex flex-col items-center ${
+                          selectedImages.length >= 4 ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                          <Plus className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          {selectedImages.length >= 4
+                            ? 'تم الوصول للحد الأقصى (4 صور)'
+                            : 'اضغط لاختيار الصور أو اسحبها هنا'
+                          }
+                        </span>
+                        <span className="text-xs text-gray-400 mt-1">
+                          PNG, JPG, WEBP حتى 5MB لكل صورة
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Image Previews */}
+                    {imagePreviewUrls.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        {imagePreviewUrls.map((url, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={url}
+                              alt={`معاينة ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Form Actions */}
                   <div className="flex space-x-4 pt-4">
                     <button
                       type="submit"
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      disabled={uploading}
+                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Save className="w-4 h-4 ml-2" />
-                      {editingProperty ? 'تحديث العقار' : 'إضافة العقار'}
+                      {uploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
+                          جاري الرفع...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 ml-2" />
+                          {editingProperty ? 'تحديث العقار' : 'إضافة العقار'}
+                        </>
+                      )}
                     </button>
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                      disabled={uploading}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <X className="w-4 h-4 ml-2" />
                       إلغاء

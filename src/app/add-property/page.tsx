@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Home, MapPin, User, Shield } from 'lucide-react'
+import { Home, MapPin, User, Shield, Plus, X, Camera } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
@@ -47,8 +47,17 @@ export default function AddPropertyPage() {
     has_security: false,
 
     // ملاحظات
-    notes: ''
+    notes: '',
+
+    // صور وفيديو
+    video_url: '',
+    images: []
   })
+
+  // States for image upload
+  const [selectedImages, setSelectedImages] = useState<File[]>([])
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     checkUserSession()
@@ -114,6 +123,89 @@ export default function AddPropertyPage() {
     }
   }
 
+  // Image upload functions
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+
+    if (selectedImages.length + files.length > 4) {
+      alert('يمكن رفع 4 صور كحد أقصى')
+      return
+    }
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith('image/')
+      const isValidSize = file.size <= 5 * 1024 * 1024 // 5MB
+
+      if (!isValidType) {
+        alert(`${file.name} ليس ملف صورة صالح`)
+        return false
+      }
+
+      if (!isValidSize) {
+        alert(`${file.name} حجم الملف كبير جداً (الحد الأقصى 5MB)`)
+        return false
+      }
+
+      return true
+    })
+
+    setSelectedImages(prev => [...prev, ...validFiles])
+
+    // Create preview URLs
+    validFiles.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreviewUrls(prev => [...prev, e.target?.result as string])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index))
+    setImagePreviewUrls(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const uploadImages = async (): Promise<string[]> => {
+    if (selectedImages.length === 0) return []
+
+    setUploading(true)
+    const uploadedUrls: string[] = []
+
+    try {
+      for (const file of selectedImages) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `property_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+
+        const { data, error } = await supabase.storage
+          .from('images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          })
+
+        if (error) {
+          console.error('Upload error:', error)
+          throw error
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('images')
+          .getPublicUrl(fileName)
+
+        uploadedUrls.push(urlData.publicUrl)
+      }
+
+      return uploadedUrls
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      throw error
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -127,6 +219,13 @@ export default function AddPropertyPage() {
 
     try {
       console.log('Submitting property data:', formData)
+      setUploading(true)
+
+      // Upload images first
+      let imageUrls: string[] = []
+      if (selectedImages.length > 0) {
+        imageUrls = await uploadImages()
+      }
 
       // إعداد بيانات العقار مع التأكد من صحة البيانات
       const propertyData = {
@@ -145,7 +244,9 @@ export default function AddPropertyPage() {
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
         governorate: formData.governorate.trim(),
         city: formData.city.trim(),
-        district: formData.district?.trim() || null
+        district: formData.district?.trim() || null,
+        video_url: formData.video_url?.trim() || null,
+        images: JSON.stringify(imageUrls)
       }
 
       console.log('Prepared property data for database:', propertyData)
@@ -194,8 +295,14 @@ export default function AddPropertyPage() {
         has_balcony: false,
         is_furnished: false,
         has_security: false,
-        notes: ''
+        notes: '',
+        video_url: '',
+        images: []
       })
+
+      // Reset image states
+      setSelectedImages([])
+      setImagePreviewUrls([])
 
     } catch (error) {
       console.error('Unexpected error:', error)
@@ -563,6 +670,95 @@ export default function AddPropertyPage() {
               </div>
             </div>
 
+            {/* صور وفيديو العقار */}
+            <div className="bg-indigo-50 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-indigo-900 mb-6 flex items-center">
+                <Camera className="w-6 h-6 ml-2" />
+                صور وفيديو العقار
+              </h3>
+
+              {/* Video URL */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  رابط فيديو العقار (اختياري)
+                </label>
+                <input
+                  type="url"
+                  value={formData.video_url}
+                  onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                  placeholder="https://youtube.com/watch?v=... أو أي رابط فيديو آخر"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  يمكنك إضافة رابط فيديو من YouTube أو أي منصة أخرى لعرض العقار
+                </p>
+              </div>
+
+              {/* Images Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  صور العقار (حتى 4 صور)
+                </label>
+
+                {/* Image Upload Input */}
+                <div className="border-2 border-dashed border-indigo-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                    id="image-upload"
+                    disabled={selectedImages.length >= 4}
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className={`cursor-pointer flex flex-col items-center ${
+                      selectedImages.length >= 4 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
+                      <Plus className="w-8 h-8 text-indigo-600" />
+                    </div>
+                    <span className="text-lg text-gray-700 font-medium mb-2">
+                      {selectedImages.length >= 4
+                        ? 'تم الوصول للحد الأقصى (4 صور)'
+                        : 'اضغط لاختيار الصور أو اسحبها هنا'
+                      }
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      PNG, JPG, WEBP حتى 5MB لكل صورة
+                    </span>
+                  </label>
+                </div>
+
+                {/* Image Previews */}
+                {imagePreviewUrls.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    {imagePreviewUrls.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={url}
+                          alt={`معاينة ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border-2 border-gray-200 shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                          صورة {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* المميزات الإضافية */}
             <div className="bg-purple-50 rounded-lg p-6">
               <h3 className="text-xl font-bold text-purple-900 mb-6 flex items-center">
@@ -643,10 +839,22 @@ export default function AddPropertyPage() {
             <div className="text-center">
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting || uploading}
+                className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
               >
-                {isSubmitting ? 'جاري الإرسال...' : 'إرسال العقار للمراجعة'}
+                {uploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+                    جاري رفع الصور...
+                  </>
+                ) : isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+                    جاري الإرسال...
+                  </>
+                ) : (
+                  'إرسال العقار للمراجعة'
+                )}
               </button>
               <p className="text-sm text-gray-500 mt-3">
                 سيتم مراجعة العقار من قبل الإدارة قبل النشر
