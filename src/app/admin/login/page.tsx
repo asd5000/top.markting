@@ -60,6 +60,8 @@ export default function AdminLoginPage() {
 
       if (matchedCredential) {
         console.log('✅ تسجيل دخول سريع نجح:', matchedCredential.name)
+        console.log('📝 البيانات المدخلة:', { username: formData.username, password: formData.password })
+        console.log('📝 البيانات المطابقة:', matchedCredential)
 
         // إنشاء جلسة المشرف
         const adminSession = {
@@ -78,7 +80,17 @@ export default function AdminLoginPage() {
         localStorage.setItem('adminSession', JSON.stringify(adminSession))
 
         console.log('✅ جلسة المدير محفوظة')
-        router.push('/admin')
+
+        // إعادة التوجيه لصفحة تعمل
+        alert('تم تسجيل الدخول بنجاح! مرحباً ' + matchedCredential.name)
+
+        // محاولة الذهاب للوحة التحكم، وإذا فشلت اذهب للصفحة الرئيسية
+        try {
+          window.location.href = '/admin/dashboard'
+        } catch (error) {
+          console.log('فشل في الوصول للوحة التحكم، إعادة توجيه للصفحة الرئيسية')
+          window.location.href = '/'
+        }
         return
       }
 
