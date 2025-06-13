@@ -357,8 +357,9 @@ export default function ManageAdminsPage() {
       // إعداد البيانات للحفظ في جدول admins
       const adminData = {
         name: formData.full_name.trim(),
+        username: formData.email.toLowerCase().trim().split('@')[0], // استخراج اسم المستخدم من البريد
         email: formData.email.toLowerCase().trim(),
-        password: hashedPassword,
+        password_hash: hashedPassword,
         role: formData.role,
         is_active: true
       }
@@ -447,10 +448,12 @@ export default function ManageAdminsPage() {
       setMessage({ type: null, text: '' })
 
       const testPassword = await bcrypt.hash('123456', 10)
+      const testEmail = `test-${Date.now()}@topmarketing.com`
       const testAdmin = {
         name: 'مشرف تجريبي',
-        email: `test-${Date.now()}@topmarketing.com`,
-        password: testPassword,
+        username: testEmail.split('@')[0],
+        email: testEmail,
+        password_hash: testPassword,
         role: 'support',
         is_active: true
       }
@@ -513,10 +516,12 @@ export default function ManageAdminsPage() {
 
       // اختبار إدراج وحذف سجل تجريبي
       const testPassword = await bcrypt.hash('test123', 10)
+      const testEmail = `test-${Date.now()}@test.com`
       const testAdmin = {
         name: 'اختبار الاتصال',
-        email: `test-${Date.now()}@test.com`,
-        password: testPassword,
+        username: testEmail.split('@')[0],
+        email: testEmail,
+        password_hash: testPassword,
         role: 'support',
         is_active: true
       }
@@ -569,43 +574,56 @@ export default function ManageAdminsPage() {
 
       const seedAdmins = [
         {
-          email: 'admin@topmarketing.com',
-          name: 'أحمد محمد - المدير العام',
-          password: defaultPassword,
+          email: 'asdasheref@gmail.com',
+          username: 'asdasheref',
+          name: 'أشرف الشريف - المدير الرئيسي',
+          password_hash: await bcrypt.hash('0453328124', 10),
           role: 'super_admin',
           is_active: true
         },
         {
+          email: 'admin@topmarketing.com',
+          username: 'admin',
+          name: 'أحمد محمد - المدير العام',
+          password_hash: await bcrypt.hash('admin123', 10),
+          role: 'super_admin',
+          is_active: true
+        },
+        {
+          email: 'test@topmarketing.com',
+          username: 'test',
+          name: 'مدير تجريبي',
+          password_hash: await bcrypt.hash('123456', 10),
+          role: 'support',
+          is_active: true
+        },
+        {
           email: 'marketing@topmarketing.com',
+          username: 'marketing',
           name: 'سارة أحمد - مدير التسويق',
-          password: defaultPassword,
+          password_hash: defaultPassword,
           role: 'marketing_manager',
           is_active: true
         },
         {
           email: 'packages@topmarketing.com',
+          username: 'packages',
           name: 'عمر خالد - مدير الباقات',
-          password: defaultPassword,
+          password_hash: defaultPassword,
           role: 'packages_manager',
           is_active: true
         },
         {
           email: 'realestate@topmarketing.com',
+          username: 'realestate',
           name: 'فاطمة حسن - مدير العقارات',
-          password: defaultPassword,
+          password_hash: defaultPassword,
           role: 'real_estate_manager',
-          is_active: true
-        },
-        {
-          email: 'support@topmarketing.com',
-          name: 'محمد علي - الدعم الفني',
-          password: defaultPassword,
-          role: 'support',
           is_active: true
         }
       ]
 
-      console.log('📝 Inserting seed admins:', seedAdmins.map(admin => ({ ...admin, password: '[ENCRYPTED]' })))
+      console.log('📝 Inserting seed admins:', seedAdmins.map(admin => ({ ...admin, password_hash: '[ENCRYPTED]' })))
 
       // إدراج كل مدير بشكل منفصل لتجنب مشاكل upsert
       let insertedCount = 0
@@ -646,7 +664,7 @@ export default function ManageAdminsPage() {
 
       setMessage({
         type: 'success',
-        text: `✅ تم إدراج ${insertedCount} مديرين جدد، ${existingCount} موجودين مسبقاً. كلمة المرور الافتراضية: 123456`
+        text: `✅ تم إدراج ${insertedCount} مديرين جدد، ${existingCount} موجودين مسبقاً. كلمات المرور: asdasheref@gmail.com (0453328124), admin@topmarketing.com (admin123), test@topmarketing.com (123456)`
       })
 
     } catch (error) {
