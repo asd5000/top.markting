@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Check, Star, ArrowLeft, Package } from 'lucide-react'
+import { Check, Star, ArrowLeft, Package, User, LogOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
@@ -20,11 +20,46 @@ export default function PackagesPage() {
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
   const [packages, setPackages] = useState<Package[]>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
 
   // تحميل الباقات من قاعدة البيانات
   useEffect(() => {
     loadPackages()
+    checkUserAuth()
   }, [])
+
+  // فحص حالة المستخدم
+  const checkUserAuth = async () => {
+    try {
+      // التحقق من Supabase Auth
+      const { data: { session }, error } = await supabase.auth.getSession()
+
+      if (session && session.user) {
+        // المستخدم مسجل دخول عبر Supabase Auth
+        const userData = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'مستخدم',
+          phone: session.user.user_metadata?.phone || '',
+          isLoggedIn: true
+        }
+        setUser(userData)
+        console.log('👤 User logged in via Supabase:', userData)
+      } else {
+        // التحقق من localStorage كبديل
+        const savedUser = localStorage.getItem('visitor') || localStorage.getItem('userSession')
+        if (savedUser) {
+          const userData = JSON.parse(savedUser)
+          setUser(userData)
+          console.log('👤 User logged in via localStorage:', userData)
+        } else {
+          console.log('👤 No user session found')
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user auth:', error)
+    }
+  }
 
   const loadPackages = async () => {
     try {
@@ -306,14 +341,39 @@ export default function PackagesPage() {
               <Link href="/real-estate" className="text-gray-700 hover:text-blue-600">العقارات</Link>
             </nav>
 
-            {/* Login Button */}
+            {/* User Status */}
             <div className="flex items-center space-x-4">
-              <Link
-                href="/visitor-login"
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-              >
-                تسجيل الدخول
-              </Link>
+              {user ? (
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center bg-green-50 px-3 py-2 rounded-lg">
+                    <User className="w-4 h-4 text-green-600 ml-2" />
+                    <span className="text-sm font-medium text-green-700">
+                      مرحباً، {user.name}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      // تسجيل الخروج
+                      supabase.auth.signOut()
+                      localStorage.removeItem('visitor')
+                      localStorage.removeItem('userSession')
+                      setUser(null)
+                      window.location.reload()
+                    }}
+                    className="text-gray-700 hover:text-red-600 text-sm font-medium flex items-center"
+                  >
+                    <LogOut className="w-4 h-4 ml-1" />
+                    تسجيل خروج
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/visitor-login"
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  تسجيل الدخول
+                </Link>
+              )}
             </div>
           </div>
         </div>
