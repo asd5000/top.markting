@@ -25,7 +25,7 @@ export default function LoginSuccessPage() {
         if (prev <= 1) {
           clearInterval(timer)
           // الانتقال للوحة التحكم الجديدة
-          window.location.href = '/dashboard'
+          window.location.href = '/control-panel'
           return 0
         }
         return prev - 1
@@ -74,7 +74,7 @@ export default function LoginSuccessPage() {
           {/* Action Buttons */}
           <div className="space-y-3">
             <Link
-              href="/dashboard"
+              href="/control-panel"
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center"
             >
               <Settings className="w-5 h-5 ml-2" />
