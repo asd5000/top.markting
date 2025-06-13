@@ -165,7 +165,7 @@ export default function AddPropertyPage() {
 
       console.log('Property inserted successfully:', insertedProperty)
 
-      alert('تم إرسال العقار بنجاح! سيتم مراجعته من قبل الإدارة قبل النشر.')
+      alert('تم إضافة البيانات بنجاح! برنامجنا يجمع بيانات المشترين والبائعين لتسهيل عملية المطابقة والتواصل.')
 
       // إعادة تعيين النموذج
       setFormData({
@@ -270,13 +270,33 @@ export default function AddPropertyPage() {
       <section className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Home className="w-16 h-16 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold mb-4">أضف عقارك مجاناً</h1>
-          <p className="text-xl mb-8">سوّق عقارك واوصل لأكبر عدد من العملاء المهتمين</p>
+          <h1 className="text-4xl font-bold mb-4">أضف بياناتك مجاناً</h1>
+          <p className="text-xl mb-8">برنامج التسويق العقاري - نجمع بيانات المشترين والبائعين لتسهيل عملية المطابقة والتواصل</p>
         </div>
       </section>
 
       {/* Add Property Form */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Info Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 mb-8 border border-blue-200">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">🏠 برنامج التسويق العقاري</h2>
+            <p className="text-lg text-gray-700 mb-4">
+              نحن نجمع بيانات <span className="font-bold text-green-600">البائعين</span> و <span className="font-bold text-blue-600">المشترين</span> لتسهيل عملية المطابقة والتواصل
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <div className="bg-green-100 rounded-lg p-4">
+                <h3 className="font-bold text-green-800 mb-2">🟢 إذا كنت بائع</h3>
+                <p className="text-sm text-green-700">أضف بيانات العقار الذي تريد بيعه وسنساعدك في الوصول للمشترين المهتمين</p>
+              </div>
+              <div className="bg-blue-100 rounded-lg p-4">
+                <h3 className="font-bold text-blue-800 mb-2">🔵 إذا كنت مشتري</h3>
+                <p className="text-sm text-blue-700">أضف مواصفات العقار الذي تبحث عنه وسنساعدك في العثور على العقار المناسب</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* بيانات العميل */}
@@ -340,7 +360,7 @@ export default function AddPropertyPage() {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="مثال: شقة للبيع في المعادي 120 متر"
+                    placeholder="مثال: شقة للبيع في المعادي 120 متر أو أبحث عن شقة في مدينة نصر"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
@@ -370,8 +390,8 @@ export default function AddPropertyPage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">اختر نوع العملية</option>
-                      <option value="seller">بائع (أريد بيع عقار)</option>
-                      <option value="buyer">مشتري (أريد شراء عقار)</option>
+                      <option value="seller">🟢 بائع (لدي عقار أريد بيعه)</option>
+                      <option value="buyer">🔵 مشتري (أبحث عن عقار للشراء)</option>
                     </select>
                   </div>
                 </div>
