@@ -68,19 +68,26 @@ export default function ManageAdminsPage() {
       console.log('📋 Loading existing admins...')
 
       const { data: adminUsers, error } = await supabase
-        .from('users')
+        .from('admins')
         .select('id, name, email, role, is_active, created_at')
-        .in('role', ['super_admin', 'marketing_manager', 'packages_manager', 'real_estate_manager', 'support'])
         .order('created_at', { ascending: false })
 
       if (error) {
         console.error('Error loading admins:', error)
+        setMessage({
+          type: 'error',
+          text: `خطأ في تحميل المديرين: ${error.message}`
+        })
       } else {
         console.log('✅ Admins loaded:', adminUsers)
         setAdmins(adminUsers || [])
       }
     } catch (error) {
       console.error('Error loading admins:', error)
+      setMessage({
+        type: 'error',
+        text: 'حدث خطأ أثناء تحميل المديرين'
+      })
     } finally {
       setLoadingAdmins(false)
     }
@@ -97,7 +104,7 @@ export default function ManageAdminsPage() {
       console.log('🗑️ Deleting admin:', adminId)
 
       const { error } = await supabase
-        .from('users')
+        .from('admins')
         .delete()
         .eq('id', adminId)
 
@@ -134,7 +141,7 @@ export default function ManageAdminsPage() {
       console.log('🔄 Toggling admin status:', adminId, !currentStatus)
 
       const { error } = await supabase
-        .from('users')
+        .from('admins')
         .update({ is_active: !currentStatus })
         .eq('id', adminId)
 
@@ -169,7 +176,7 @@ export default function ManageAdminsPage() {
       console.log('🔄 Updating admin role:', adminId, newRole)
 
       const { error } = await supabase
-        .from('users')
+        .from('admins')
         .update({ role: newRole })
         .eq('id', adminId)
 
@@ -218,7 +225,7 @@ export default function ManageAdminsPage() {
       console.log('💾 Saving admin edit:', editingAdmin.id, updatedData)
 
       const { error } = await supabase
-        .from('users')
+        .from('admins')
         .update(updatedData)
         .eq('id', editingAdmin.id)
 
@@ -290,20 +297,20 @@ export default function ManageAdminsPage() {
     try {
       console.log('🔍 Checking if email exists:', email)
 
-      // التحقق من جدول users (الجدول الوحيد الموجود)
-      const { data: userData, error: userError } = await supabase
-        .from('users')
+      // التحقق من جدول admins
+      const { data: adminData, error: adminError } = await supabase
+        .from('admins')
         .select('email')
         .eq('email', email.toLowerCase())
 
-      console.log('👤 User check result:', { data: userData, error: userError })
+      console.log('👤 Admin check result:', { data: adminData, error: adminError })
 
-      if (userError) {
-        console.error('Error checking email in users:', userError)
+      if (adminError) {
+        console.error('Error checking email in admins:', adminError)
         return false
       }
 
-      const emailExists = userData && userData.length > 0
+      const emailExists = adminData && adminData.length > 0
       console.log('📧 Email exists:', emailExists)
 
       return emailExists
@@ -344,48 +351,53 @@ export default function ManageAdminsPage() {
 
       console.log('✅ Email is unique, proceeding...')
 
-      // إعداد البيانات للحفظ في جدول users (الأعمدة الموجودة فقط)
-      const userData = {
+      // تشفير كلمة المرور
+      const hashedPassword = await bcrypt.hash(formData.password, 10)
+
+      // إعداد البيانات للحفظ في جدول admins
+      const adminData = {
         name: formData.full_name.trim(),
         email: formData.email.toLowerCase().trim(),
-        phone: null,
+        password: hashedPassword,
         role: formData.role,
         is_active: true
       }
 
-      console.log('📝 Final user data for insertion:', userData)
-      console.log('🔍 Available columns in users table:', Object.keys(userData))
+      console.log('📝 Final admin data for insertion:', {
+        ...adminData,
+        password: '[ENCRYPTED]'
+      })
 
-      // حفظ المشرف في جدول users
-      const { data: userResult, error: userError } = await supabase
-        .from('users')
-        .insert(userData)
+      // حفظ المشرف في جدول admins
+      const { data: adminResult, error: adminError } = await supabase
+        .from('admins')
+        .insert(adminData)
         .select()
         .single()
 
       console.log('💾 Insert operation result:')
-      console.log('- Data:', userResult)
-      console.log('- Error:', userError)
+      console.log('- Data:', adminResult ? { ...adminResult, password: '[HIDDEN]' } : null)
+      console.log('- Error:', adminError)
 
-      if (userError) {
+      if (adminError) {
         console.error('❌ Detailed error:', {
-          message: userError.message,
-          details: userError.details,
-          hint: userError.hint,
-          code: userError.code
+          message: adminError.message,
+          details: adminError.details,
+          hint: adminError.hint,
+          code: adminError.code
         })
       }
 
-      if (userError) {
-        console.error('❌ Failed to create user:', userError)
+      if (adminError) {
+        console.error('❌ Failed to create admin:', adminError)
         setMessage({
           type: 'error',
-          text: `فشل في إضافة المشرف: ${userError.message}`
+          text: `فشل في إضافة المشرف: ${adminError.message}`
         })
         return
       }
 
-      if (!userResult) {
+      if (!adminResult) {
         console.error('❌ No data returned from insert')
         setMessage({
           type: 'error',
@@ -394,30 +406,13 @@ export default function ManageAdminsPage() {
         return
       }
 
-      console.log('✅ User created successfully:', userResult)
-
-      // إنشاء سجل في جدول activity_logs لتسجيل العملية
-      try {
-        console.log('📝 Creating activity log...')
-        await supabase
-          .from('activity_logs')
-          .insert({
-            user_id: userResult.id,
-            action: 'admin_created',
-            entity_type: 'user',
-            entity_id: userResult.id,
-            description: `تم إنشاء مشرف جديد: ${userData.name} (${userData.email})`
-          })
-        console.log('✅ Activity log created')
-      } catch (logError) {
-        console.log('⚠️ Could not create activity log:', logError)
-      }
+      console.log('✅ Admin created successfully:', { ...adminResult, password: '[HIDDEN]' })
 
       // نجح الحفظ فعلياً
       console.log('🎉 Admin creation completed successfully!')
       setMessage({
         type: 'success',
-        text: `تم إضافة المشرف "${userData.name}" بنجاح! الرقم التعريفي: ${userResult.id.slice(0, 8)}`
+        text: `تم إضافة المشرف "${adminData.name}" بنجاح! الرقم التعريفي: ${adminResult.id.slice(0, 8)}`
       })
 
       // مسح النموذج
@@ -425,7 +420,7 @@ export default function ManageAdminsPage() {
         full_name: '',
         email: '',
         password: '',
-        role: 'admin'
+        role: 'support'
       })
 
       // إعادة تحميل قائمة المشرفين فوراً
@@ -451,18 +446,19 @@ export default function ManageAdminsPage() {
       console.log('🧪 Testing single admin insert...')
       setMessage({ type: null, text: '' })
 
+      const testPassword = await bcrypt.hash('123456', 10)
       const testAdmin = {
         name: 'مشرف تجريبي',
         email: `test-${Date.now()}@topmarketing.com`,
-        phone: '01234567890',
+        password: testPassword,
         role: 'support',
         is_active: true
       }
 
-      console.log('📝 Test admin data:', testAdmin)
+      console.log('📝 Test admin data:', { ...testAdmin, password: '[ENCRYPTED]' })
 
       const { data: result, error } = await supabase
-        .from('users')
+        .from('admins')
         .insert(testAdmin)
         .select()
         .single()
@@ -474,10 +470,10 @@ export default function ManageAdminsPage() {
           text: `فشل اختبار الإدراج: ${error.message}`
         })
       } else {
-        console.log('✅ Test insert successful:', result)
+        console.log('✅ Test insert successful:', { ...result, password: '[HIDDEN]' })
         setMessage({
           type: 'success',
-          text: `✅ نجح اختبار الإدراج! ID: ${result.id}`
+          text: `✅ نجح اختبار الإدراج! ID: ${result.id.slice(0, 8)}`
         })
 
         // إعادة تحميل القائمة
@@ -499,34 +495,36 @@ export default function ManageAdminsPage() {
       console.log('🔍 Testing database connection...')
       setMessage({ type: null, text: '' })
 
-      // اختبار قراءة جدول users
-      const { data: users, error: usersError } = await supabase
-        .from('users')
+      // اختبار قراءة جدول admins
+      const { data: admins, error: adminsError } = await supabase
+        .from('admins')
         .select('id, name, email, role')
         .limit(5)
 
-      console.log('👥 Users table test:', { data: users, error: usersError })
+      console.log('👥 Admins table test:', { data: admins, error: adminsError })
 
-      if (usersError) {
+      if (adminsError) {
         setMessage({
           type: 'error',
-          text: `خطأ في الاتصال بجدول المستخدمين: ${usersError.message}`
+          text: `خطأ في الاتصال بجدول المديرين: ${adminsError.message}`
         })
         return
       }
 
       // اختبار إدراج وحذف سجل تجريبي
-      const testUser = {
+      const testPassword = await bcrypt.hash('test123', 10)
+      const testAdmin = {
         name: 'اختبار الاتصال',
         email: `test-${Date.now()}@test.com`,
-        role: 'marketing_manager',
+        password: testPassword,
+        role: 'support',
         is_active: true
       }
 
       console.log('📝 Testing insert operation...')
       const { data: insertResult, error: insertError } = await supabase
-        .from('users')
-        .insert(testUser)
+        .from('admins')
+        .insert(testAdmin)
         .select()
         .single()
 
@@ -538,18 +536,18 @@ export default function ManageAdminsPage() {
         return
       }
 
-      console.log('✅ Insert test successful:', insertResult)
+      console.log('✅ Insert test successful:', { ...insertResult, password: '[HIDDEN]' })
 
       // حذف السجل التجريبي
       console.log('🗑️ Cleaning up test record...')
       await supabase
-        .from('users')
+        .from('admins')
         .delete()
         .eq('id', insertResult.id)
 
       setMessage({
         type: 'success',
-        text: `✅ الاتصال بقاعدة البيانات يعمل بشكل صحيح! عدد المستخدمين: ${users?.length || 0}`
+        text: `✅ الاتصال بقاعدة البيانات يعمل بشكل صحيح! عدد المديرين: ${admins?.length || 0}`
       })
 
     } catch (error) {
@@ -567,77 +565,79 @@ export default function ManageAdminsPage() {
       console.log('🌱 Inserting seed data...')
       setMessage({ type: null, text: '' })
 
-      const seedUsers = [
+      const defaultPassword = await bcrypt.hash('123456', 10)
+
+      const seedAdmins = [
         {
           email: 'admin@topmarketing.com',
           name: 'أحمد محمد - المدير العام',
+          password: defaultPassword,
           role: 'super_admin',
-          is_active: true,
-          phone: '01000000001'
+          is_active: true
         },
         {
           email: 'marketing@topmarketing.com',
           name: 'سارة أحمد - مدير التسويق',
+          password: defaultPassword,
           role: 'marketing_manager',
-          is_active: true,
-          phone: '01000000002'
+          is_active: true
         },
         {
           email: 'packages@topmarketing.com',
           name: 'عمر خالد - مدير الباقات',
+          password: defaultPassword,
           role: 'packages_manager',
-          is_active: true,
-          phone: '01000000003'
+          is_active: true
         },
         {
           email: 'realestate@topmarketing.com',
           name: 'فاطمة حسن - مدير العقارات',
+          password: defaultPassword,
           role: 'real_estate_manager',
-          is_active: true,
-          phone: '01000000004'
+          is_active: true
         },
         {
           email: 'support@topmarketing.com',
           name: 'محمد علي - الدعم الفني',
+          password: defaultPassword,
           role: 'support',
-          is_active: true,
-          phone: '01000000005'
+          is_active: true
         }
       ]
 
-      console.log('📝 Inserting seed users:', seedUsers)
+      console.log('📝 Inserting seed admins:', seedAdmins.map(admin => ({ ...admin, password: '[ENCRYPTED]' })))
 
-      // إدراج كل مستخدم بشكل منفصل لتجنب مشاكل upsert
+      // إدراج كل مدير بشكل منفصل لتجنب مشاكل upsert
       let insertedCount = 0
       let existingCount = 0
 
-      for (const user of seedUsers) {
+      for (const admin of seedAdmins) {
         try {
-          // التحقق من وجود المستخدم
-          const { data: existingUser } = await supabase
-            .from('users')
+          // التحقق من وجود المدير
+          const { data: existingAdmin } = await supabase
+            .from('admins')
             .select('email')
-            .eq('email', user.email)
+            .eq('email', admin.email)
             .single()
 
-          if (!existingUser) {
-            // إدراج المستخدم الجديد
+          if (!existingAdmin) {
+            // إدراج المدير الجديد
             const { error: insertError } = await supabase
-              .from('users')
-              .insert([user])
+              .from('admins')
+              .insert([admin])
 
             if (insertError) {
-              console.error(`❌ Error inserting ${user.email}:`, insertError)
+              console.error(`❌ Error inserting ${admin.email}:`, insertError)
             } else {
               insertedCount++
-              console.log(`✅ Inserted: ${user.name}`)
+              console.log(`✅ Inserted: ${admin.name}`)
             }
           } else {
             existingCount++
-            console.log(`⚠️ User already exists: ${user.email}`)
+            console.log(`⚠️ Admin already exists: ${admin.email}`)
           }
         } catch (error) {
-          console.error(`❌ Error processing ${user.email}:`, error)
+          console.error(`❌ Error processing ${admin.email}:`, error)
         }
       }
 
@@ -646,7 +646,7 @@ export default function ManageAdminsPage() {
 
       setMessage({
         type: 'success',
-        text: `✅ تم إدراج ${insertedCount} مشرفين جدد، ${existingCount} موجودين مسبقاً`
+        text: `✅ تم إدراج ${insertedCount} مديرين جدد، ${existingCount} موجودين مسبقاً. كلمة المرور الافتراضية: 123456`
       })
 
     } catch (error) {
@@ -890,10 +890,11 @@ export default function ManageAdminsPage() {
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">ملاحظات مهمة:</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>يتم الحفظ في جدول users مع دور إداري</li>
+                  <li>يتم الحفظ في جدول admins مع تشفير كلمة المرور</li>
                   <li>البريد الإلكتروني يجب أن يكون فريد</li>
                   <li>المشرف الجديد سيتمكن من تسجيل الدخول فوراً</li>
                   <li>استخدم زر "اختبار قاعدة البيانات" للتأكد من الاتصال</li>
+                  <li>كلمة المرور الافتراضية للبيانات الأولية: 123456</li>
                 </ul>
               </div>
             </div>
