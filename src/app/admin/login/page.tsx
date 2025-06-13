@@ -43,7 +43,75 @@ export default function AdminLoginPage() {
         return
       }
 
-      // التحقق السريع من البيانات المعروفة
+      // البحث في قاعدة البيانات أولاً
+      console.log('🔍 البحث في قاعدة البيانات عن:', formData.username)
+
+      try {
+        // البحث بالبريد الإلكتروني أو اسم المستخدم
+        const { data: adminData, error: adminError } = await supabase
+          .from('admins')
+          .select('*')
+          .or(`email.eq.${formData.username},username.eq.${formData.username}`)
+          .eq('is_active', true)
+          .single()
+
+        if (adminError && adminError.code !== 'PGRST116') {
+          console.error('خطأ في البحث عن المدير:', adminError)
+        }
+
+        if (adminData) {
+          console.log('✅ تم العثور على المدير:', {
+            id: adminData.id,
+            name: adminData.name,
+            email: adminData.email,
+            role: adminData.role
+          })
+
+          // التحقق من كلمة المرور
+          const passwordMatch = await bcrypt.compare(formData.password, adminData.password_hash)
+
+          if (passwordMatch) {
+            console.log('✅ كلمة المرور صحيحة')
+
+            // إنشاء جلسة المشرف
+            const adminSession = {
+              id: adminData.id,
+              username: adminData.username,
+              email: adminData.email,
+              name: adminData.name,
+              role: adminData.role,
+              permissions: adminData.permissions || { all: true },
+              loginTime: new Date().toISOString(),
+              source: 'database'
+            }
+
+            localStorage.setItem('admin', JSON.stringify(adminSession))
+            localStorage.setItem('adminSession', JSON.stringify(adminSession))
+
+            console.log('✅ جلسة المدير محفوظة')
+
+            // تحديث آخر تسجيل دخول
+            await supabase
+              .from('admins')
+              .update({ last_login: new Date().toISOString() })
+              .eq('id', adminData.id)
+
+            // إعادة التوجيه للوحة التحكم
+            console.log('🔄 إعادة التوجيه للوحة التحكم...')
+            setTimeout(() => {
+              window.location.href = '/admin'
+            }, 500)
+
+            return
+          } else {
+            console.log('❌ كلمة المرور غير صحيحة')
+          }
+        }
+      } catch (dbError) {
+        console.error('خطأ في الاتصال بقاعدة البيانات:', dbError)
+      }
+
+      // التحقق السريع من البيانات المعروفة كخيار احتياطي
       const knownCredentials = [
         { username: 'asdasheref@gmail.com', password: '0453328124', name: 'أشرف الشريف', role: 'super_admin' },
         { username: 'admin@topmarketing.com', password: 'admin123', name: 'أحمد محمد', role: 'super_admin' },
@@ -60,13 +128,11 @@ export default function AdminLoginPage() {
       )
 
       if (matchedCredential) {
-        console.log('✅ تسجيل دخول سريع نجح:', matchedCredential.name)
-        console.log('📝 البيانات المدخلة:', { username: formData.username, password: formData.password })
-        console.log('📝 البيانات المطابقة:', matchedCredential)
+        console.log('✅ تسجيل دخول احتياطي نجح:', matchedCredential.name)
 
         // إنشاء جلسة المشرف
         const adminSession = {
-          id: 'quick-login-' + Date.now(),
+          id: 'fallback-login-' + Date.now(),
           username: matchedCredential.username,
           email: matchedCredential.username,
           name: matchedCredential.name,
@@ -74,18 +140,14 @@ export default function AdminLoginPage() {
           phone: '01068275557',
           permissions: { all: true },
           loginTime: new Date().toISOString(),
-          source: 'quick-login'
+          source: 'fallback'
         }
 
         localStorage.setItem('admin', JSON.stringify(adminSession))
         localStorage.setItem('adminSession', JSON.stringify(adminSession))
 
-        console.log('✅ جلسة المدير محفوظة')
+        console.log('✅ جلسة المدير محفوظة (احتياطي)')
 
-        // إعادة التوجيه مباشرة للوحة التحكم مع تأخير قصير
-        console.log('🔄 إعادة التوجيه للوحة التحكم...')
-
-        // تأخير قصير لضمان حفظ البيانات ثم الانتقال
         setTimeout(() => {
           window.location.href = '/admin'
         }, 500)
@@ -95,7 +157,7 @@ export default function AdminLoginPage() {
 
       // إذا لم تتطابق البيانات
       console.log('❌ بيانات تسجيل الدخول غير صحيحة')
-      setError('بيانات تسجيل الدخول غير صحيحة. استخدم البيانات المعروضة أدناه.')
+      setError('بيانات تسجيل الدخول غير صحيحة. تأكد من البريد الإلكتروني وكلمة المرور.')
       
     } catch (err) {
       console.error('Login error:', err)
@@ -194,22 +256,24 @@ export default function AdminLoginPage() {
             <h4 className="text-sm font-medium text-blue-900 mb-3">🔑 بيانات تسجيل الدخول المتاحة:</h4>
             <div className="text-sm text-blue-700 space-y-2">
               <div className="bg-green-50 p-3 rounded border border-green-200">
-                <p><strong>👤 اسم المستخدم:</strong> asdasheref@gmail.com</p>
+                <p><strong>👤 البريد الإلكتروني:</strong> asdasheref@gmail.com</p>
                 <p><strong>🔒 كلمة المرور:</strong> 0453328124</p>
                 <p className="text-xs text-green-600">المدير الرئيسي - أشرف الشريف</p>
               </div>
               <div className="bg-white p-3 rounded border">
-                <p><strong>👤 اسم المستخدم:</strong> admin</p>
+                <p><strong>👤 البريد الإلكتروني:</strong> admin@topmarketing.com</p>
                 <p><strong>🔒 كلمة المرور:</strong> admin123</p>
                 <p className="text-xs text-blue-600">مدير النظام</p>
               </div>
               <div className="bg-white p-3 rounded border">
-                <p><strong>👤 اسم المستخدم:</strong> test</p>
+                <p><strong>👤 البريد الإلكتروني:</strong> test@topmarketing.com</p>
                 <p><strong>🔒 كلمة المرور:</strong> 123456</p>
                 <p className="text-xs text-blue-600">مدير تجريبي</p>
               </div>
-              <div className="text-xs text-blue-600 mt-2">
-                💡 يمكن أيضاً استخدام كلمة المرور: <code>admin</code>
+              <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                <p className="text-xs text-yellow-700">
+                  💡 <strong>للمديرين الجدد:</strong> استخدم البريد الإلكتروني وكلمة المرور التي أدخلتها عند إنشاء الحساب
+                </p>
               </div>
               <div className="mt-3 flex space-x-2">
                 <button
@@ -222,7 +286,7 @@ export default function AdminLoginPage() {
                 </button>
                 <button
                   onClick={() => {
-                    setFormData({ username: 'admin', password: 'admin123' })
+                    setFormData({ username: 'admin@topmarketing.com', password: 'admin123' })
                   }}
                   className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
                 >
