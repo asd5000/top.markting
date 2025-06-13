@@ -54,38 +54,57 @@ export default function RegisterPage() {
     try {
       setLoading(true)
 
-      // محاكاة إنشاء حساب جديد
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // حفظ بيانات المستخدم في قاعدة البيانات
-      const { data, error } = await supabase
-        .from('users')
-        .insert([
-          {
-            email: formData.email,
+      // إنشاء حساب جديد باستخدام Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
             name: formData.name,
-            phone: formData.phone,
-            role: 'customer',
-            is_active: true,
-            created_at: new Date().toISOString()
+            phone: formData.phone
           }
-        ])
-        .select()
-        .single()
+        }
+      })
 
-      if (error) {
-        console.error('Error creating user:', error)
-        setError(`حدث خطأ أثناء إنشاء الحساب: ${error.message}`)
+      if (authError) {
+        console.error('Auth error:', authError)
+        if (authError.message.includes('already registered')) {
+          setError('البريد الإلكتروني مسجل بالفعل')
+        } else {
+          setError(`حدث خطأ أثناء إنشاء الحساب: ${authError.message}`)
+        }
         return
       }
 
-      console.log('✅ User created successfully:', data)
-      setSuccess('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول')
+      // إضافة بيانات المستخدم إلى جدول users
+      if (authData.user) {
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: authData.user.id,
+              email: authData.user.email,
+              name: formData.name,
+              phone: formData.phone,
+              role: 'customer',
+              is_active: true,
+              created_at: new Date().toISOString()
+            }
+          ])
 
-      // التوجيه لصفحة تسجيل الدخول بعد 2 ثانية
+        if (insertError) {
+          console.error('Error inserting user data:', insertError)
+          // لا نعرض خطأ للمستخدم هنا لأن الحساب تم إنشاؤه بنجاح
+        }
+      }
+
+      console.log('✅ User created successfully:', authData.user)
+      setSuccess('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب')
+
+      // التوجيه لصفحة تسجيل الدخول بعد 3 ثوان
       setTimeout(() => {
         router.push('/customer-login')
-      }, 2000)
+      }, 3000)
 
     } catch (error: any) {
       console.error('Register error:', error)

@@ -5,83 +5,85 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import DynamicFooter from '@/components/DynamicFooter'
 import AnnouncementBanner from '@/components/AnnouncementBanner'
-import { ArrowLeft, Star, Users, Award, CheckCircle, User, LogOut, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Star, Users, Award, CheckCircle, User, LogOut, ShoppingCart, Package } from 'lucide-react'
 
-// الخدمات الثابتة كما في الصورة الأولى - 8 كروت خدمات
-const services = [
-  {
-    id: 1,
-    title: 'التسويق الرقمي',
-    description: 'خدمات التسويق الإلكتروني والحملات الإعلانية',
-    color: 'from-blue-500 to-blue-600',
-    icon: '📱',
-    link: '/services/digital-marketing'
-  },
-  {
-    id: 2,
-    title: 'مرئي',
-    description: 'تصميم المحتوى المرئي والجرافيك',
-    color: 'from-purple-500 to-purple-600',
-    icon: '🎨',
-    link: '/services/visual'
-  },
-  {
-    id: 3,
-    title: 'خدمة',
-    description: 'خدمات متنوعة حسب احتياجاتك',
-    color: 'from-green-500 to-green-600',
-    icon: '⚙️',
-    link: '/services/general'
-  },
-  {
-    id: 4,
-    title: 'التصميم الجرافيكي',
-    description: 'تصميم الهوية البصرية والمطبوعات',
-    color: 'from-orange-500 to-orange-600',
-    icon: '🎯',
-    link: '/services/graphic-design'
-  },
-  {
-    id: 5,
-    title: 'التسويق العقاري',
-    description: 'تسويق العقارات والمشاريع السكنية',
-    color: 'from-teal-500 to-teal-600',
-    icon: '🏠',
-    link: '/services/real-estate'
-  },
-  {
-    id: 6,
-    title: 'باقات الصفحات',
-    description: 'إدارة صفحات السوشيال ميديا',
-    color: 'from-pink-500 to-pink-600',
-    icon: '📄',
-    link: '/packages'
-  },
-  {
-    id: 7,
-    title: 'المونتاج والفيديو',
-    description: 'مونتاج الفيديوهات والموشن جرافيك',
-    color: 'from-red-500 to-red-600',
-    icon: '🎬',
-    link: '/services/video-editing'
-  },
-  {
-    id: 8,
-    title: 'مونتاج',
-    description: 'خدمات المونتاج الاحترافية',
-    color: 'from-indigo-500 to-indigo-600',
-    icon: '✂️',
-    link: '/services/montage'
-  }
+interface Service {
+  id: string
+  name: string
+  description: string
+  short_description: string
+  icon: string
+  image_url: string
+  icon_url: string
+  custom_color: string
+  sort_order: number
+  is_featured: boolean
+  status: 'active' | 'inactive' | 'draft'
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+// ألوان افتراضية للخدمات
+const defaultColors = [
+  'from-blue-500 to-blue-600',
+  'from-purple-500 to-purple-600',
+  'from-green-500 to-green-600',
+  'from-orange-500 to-orange-600',
+  'from-red-500 to-red-600',
+  'from-indigo-500 to-indigo-600',
+  'from-pink-500 to-pink-600',
+  'from-yellow-500 to-yellow-600',
+  'from-teal-500 to-teal-600',
+  'from-cyan-500 to-cyan-600'
 ]
+
+// أيقونات افتراضية للخدمات
+const defaultIcons = ['📱', '🎨', '⚙️', '🎯', '🏠', '📄', '🎬', '✂️', '🔧', '💼']
+
+// دالة لتحويل اللون من hex إلى gradient
+const hexToGradient = (color: string, index: number) => {
+  if (color && color !== '#3B82F6') {
+    // إذا كان لون مخصص، استخدمه
+    return `bg-gradient-to-br`
+  }
+  // استخدم لون افتراضي
+  return defaultColors[index % defaultColors.length]
+}
 
 export default function HomePage() {
   const [visitor, setVisitor] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [services, setServices] = useState<Service[]>([])
+  const [servicesLoading, setServicesLoading] = useState(true)
 
   useEffect(() => {
     checkVisitorAuth()
+    loadServices()
   }, [])
+
+  const loadServices = async () => {
+    try {
+      setServicesLoading(true)
+      const { data: servicesData, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .eq('status', 'active')
+        .order('sort_order', { ascending: true })
+
+      if (error) {
+        console.error('Error loading services:', error)
+      } else {
+        console.log('✅ Services loaded:', servicesData)
+        setServices(servicesData || [])
+      }
+    } catch (error) {
+      console.error('Error loading services:', error)
+    } finally {
+      setServicesLoading(false)
+    }
+  }
 
 
 
@@ -89,37 +91,31 @@ export default function HomePage() {
 
   const checkVisitorAuth = async () => {
     try {
-      // التحقق من localStorage أولاً
-      const savedVisitor = localStorage.getItem('visitor')
-      const userSession = localStorage.getItem('userSession')
+      // التحقق من Supabase Auth
+      const { data: { session }, error } = await supabase.auth.getSession()
 
-      if (savedVisitor && userSession) {
-        const visitorData = JSON.parse(savedVisitor)
-        const sessionData = JSON.parse(userSession)
+      if (error) {
+        console.error('Error getting session:', error)
+        return
+      }
 
-        // التحقق من صحة الجلسة
-        if (sessionData.isLoggedIn && visitorData.id) {
-          // التحقق من وجود المستخدم في قاعدة البيانات
-          const { data: userData, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', visitorData.id)
-            .eq('is_active', true)
-            .single()
+      if (session?.user) {
+        // جلب بيانات المستخدم من قاعدة البيانات
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .eq('is_active', true)
+          .single()
 
-          if (userData && !error) {
-            setVisitor(userData)
-          } else {
-            // إزالة البيانات المحلية إذا لم تعد صالحة
-            localStorage.removeItem('visitor')
-            localStorage.removeItem('userSession')
-          }
+        if (userData && !userError) {
+          setVisitor(userData)
+        } else {
+          console.log('User not found in database or inactive')
         }
       }
     } catch (error) {
       console.error('Error checking visitor auth:', error)
-      localStorage.removeItem('visitor')
-      localStorage.removeItem('userSession')
     } finally {
       setLoading(false)
     }
@@ -127,9 +123,10 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     try {
-      // مسح جميع بيانات الجلسة
-      localStorage.removeItem('visitor')
-      localStorage.removeItem('userSession')
+      // تسجيل الخروج من Supabase Auth
+      await supabase.auth.signOut()
+
+      // مسح البيانات المحلية
       localStorage.removeItem('cart')
       setVisitor(null)
 
@@ -229,7 +226,7 @@ export default function HomePage() {
                 </div>
               ) : (
                 <Link
-                  href="/visitor-login"
+                  href="/customer-login"
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                 >
                   تسجيل الدخول
@@ -292,29 +289,66 @@ export default function HomePage() {
             <p className="text-xl text-gray-600">نقدم مجموعة شاملة من الخدمات المتخصصة لتلبية احتياجاتك</p>
           </div>
 
-          {/* Services Grid - 8 Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((service) => (
-              <div
-                key={service.id}
-                className={`bg-gradient-to-br ${service.color} text-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`}
-              >
-                <div className="text-center">
-                  <div className="text-4xl mb-4">{service.icon}</div>
-                  <h3 className="text-xl font-bold mb-3">{service.title}</h3>
-                  <p className="text-white text-opacity-90 text-sm mb-6">
-                    {service.description}
-                  </p>
-                  <Link
-                    href={service.link}
-                    className="inline-block bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-3 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm"
-                  >
-                    اطلب الآن
-                  </Link>
+          {/* Services Grid - Dynamic from Database */}
+          {servicesLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, index) => (
+                <div key={index} className="bg-gray-200 animate-pulse rounded-xl p-6 h-48">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                    <div className="h-4 bg-gray-300 rounded mb-3"></div>
+                    <div className="h-3 bg-gray-300 rounded mb-6"></div>
+                    <div className="h-8 bg-gray-300 rounded"></div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : services.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-xl font-medium text-gray-900 mb-2">لا توجد خدمات متاحة</h3>
+              <p className="text-gray-600">سيتم إضافة خدمات قريباً</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {services.map((service, index) => {
+                const gradientColor = hexToGradient(service.custom_color, index)
+                const serviceIcon = service.icon_url || defaultIcons[index % defaultIcons.length]
+
+                return (
+                  <div
+                    key={service.id}
+                    className={`${gradientColor} text-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`}
+                    style={service.custom_color && service.custom_color !== '#3B82F6' ? {
+                      background: `linear-gradient(135deg, ${service.custom_color}, ${service.custom_color}dd)`
+                    } : {}}
+                  >
+                    <div className="text-center">
+                      {service.image_url ? (
+                        <img
+                          src={service.image_url}
+                          alt={service.name}
+                          className="w-12 h-12 mx-auto mb-4 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="text-4xl mb-4">{serviceIcon}</div>
+                      )}
+                      <h3 className="text-xl font-bold mb-3">{service.name}</h3>
+                      <p className="text-white text-opacity-90 text-sm mb-6">
+                        {service.short_description || service.description}
+                      </p>
+                      <Link
+                        href={`/services/${service.id}`}
+                        className="inline-block bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-3 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm"
+                      >
+                        اطلب الآن
+                      </Link>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
           {/* Additional Services Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">

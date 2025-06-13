@@ -28,30 +28,58 @@ export default function CustomerLoginPage() {
     try {
       setLoading(true)
 
-      // التحقق من المستخدم في قاعدة البيانات
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .eq('role', 'customer')
-        .eq('is_active', true)
-        .single()
+      // تسجيل الدخول باستخدام Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
 
-      if (userError || !user) {
-        setError('البريد الإلكتروني غير مسجل أو الحساب غير نشط')
+      if (authError) {
+        console.error('Auth error:', authError)
+        if (authError.message.includes('Invalid login credentials')) {
+          setError('البريد الإلكتروني أو كلمة المرور غير صحيحة')
+        } else {
+          setError(`خطأ في تسجيل الدخول: ${authError.message}`)
+        }
         return
       }
 
-      // محاكاة التحقق من كلمة المرور (أي كلمة مرور تعمل للعملاء)
-      if (password) {
-        // حفظ بيانات العميل
-        localStorage.setItem('customer', JSON.stringify({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          phone: user.phone,
-          role: 'customer'
-        }))
+      if (authData.user) {
+        // التحقق من أن المستخدم عميل وليس مدير
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authData.user.id)
+          .single()
+
+        if (userError || !userData) {
+          // إذا لم يوجد في جدول users، إنشاء سجل جديد
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert([
+              {
+                id: authData.user.id,
+                email: authData.user.email,
+                name: authData.user.user_metadata?.name || 'مستخدم جديد',
+                phone: authData.user.user_metadata?.phone || '',
+                role: 'customer',
+                is_active: true,
+                created_at: new Date().toISOString()
+              }
+            ])
+
+          if (insertError) {
+            console.error('Error creating user record:', insertError)
+          }
+        } else {
+          // التحقق من أن المستخدم ليس مدير
+          const adminRoles = ['super_admin', 'marketing_manager', 'support', 'content_manager', 'real_estate_manager', 'packages_manager']
+          if (adminRoles.includes(userData.role)) {
+            await supabase.auth.signOut()
+            setError('هذا الحساب مخصص للإدارة. يرجى استخدام صفحة تسجيل دخول المدراء')
+            return
+          }
+        }
 
         setSuccess('تم تسجيل الدخول بنجاح!')
 
@@ -59,9 +87,8 @@ export default function CustomerLoginPage() {
         setTimeout(() => {
           window.location.href = '/'
         }, 1000)
-      } else {
-        setError('يرجى إدخال كلمة المرور')
       }
+
     } catch (err) {
       console.error('Login error:', err)
       setError('حدث خطأ أثناء تسجيل الدخول')
