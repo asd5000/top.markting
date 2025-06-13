@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
         console.log('🔄 إعادة التوجيه لصفحة النجاح...')
 
         // استخدام window.location.replace لضمان عدم الرجوع
-        window.location.replace('/admin/login-success')
+        window.location.replace('/login-success')
 
         return
       }
