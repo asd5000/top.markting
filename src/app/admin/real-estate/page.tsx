@@ -415,62 +415,266 @@ export default function RealEstateManagement() {
 
   return (
     <RouteGuard>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
+      <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+        {/* القائمة الجانبية الجديدة */}
+        <div className="w-80 bg-white shadow-lg border-l border-gray-200 flex flex-col">
+          {/* رأس القائمة الجانبية */}
+          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-green-600 to-blue-600 text-white">
             <div className="flex items-center">
-              <Building className="w-6 h-6 text-green-600 ml-3" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">برنامج التسويق العقاري</h1>
-                <p className="text-gray-600">نظام مكتمل لإدارة البائعين والمشترين ومقارنة المواصفات - محدث</p>
+              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                <Building className="w-6 h-6 text-white" />
+              </div>
+              <div className="mr-3">
+                <h1 className="text-lg font-bold">برنامج التسويق العقاري</h1>
+                <p className="text-sm text-green-100">نظام إدارة العقارات المتكامل</p>
+              </div>
+            </div>
+          </div>
+
+          {/* قائمة التنقل */}
+          <div className="flex-1 p-4">
+            <nav className="space-y-2">
+              {/* لوحة التحكم */}
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'dashboard'
+                    ? 'bg-blue-100 text-blue-700 border border-blue-200 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <Home className="w-5 h-5 ml-3 flex-shrink-0" />
+                <span>🏠 لوحة التحكم</span>
+              </button>
+
+              {/* إضافة عقار */}
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="w-full flex items-center px-4 py-3 rounded-lg text-right text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200"
+              >
+                <Plus className="w-5 h-5 ml-3 flex-shrink-0" />
+                <span>➕ إضافة عقار</span>
+              </button>
+
+              {/* الإحصائيات */}
+              <button
+                onClick={() => setActiveTab('statistics')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'statistics'
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <BarChart3 className="w-5 h-5 ml-3 flex-shrink-0" />
+                <span>📊 الإحصائيات</span>
+              </button>
+
+              {/* المطابقة الذكية */}
+              <button
+                onClick={() => setActiveTab('matching')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'matching'
+                    ? 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <Target className="w-5 h-5 ml-3 flex-shrink-0" />
+                <span>🔍 المطابقة</span>
+              </button>
+
+              {/* جاري البيع */}
+              <button
+                onClick={() => setActiveTab('selling')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'selling'
+                    ? 'bg-orange-100 text-orange-700 border border-orange-200 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <TrendingUp className="w-5 h-5 ml-3 flex-shrink-0" />
+                <div className="flex items-center justify-between w-full">
+                  <span>🔁 جاري البيع</span>
+                  <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-xs">
+                    {properties.filter(p => p.sale_status === 'selling').length}
+                  </span>
+                </div>
+              </button>
+
+              {/* تم البيع */}
+              <button
+                onClick={() => setActiveTab('sold')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'sold'
+                    ? 'bg-green-100 text-green-700 border border-green-200 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <CheckCircle className="w-5 h-5 ml-3 flex-shrink-0" />
+                <div className="flex items-center justify-between w-full">
+                  <span>✅ تم البيع</span>
+                  <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full text-xs">
+                    {properties.filter(p => p.sale_status === 'sold').length}
+                  </span>
+                </div>
+              </button>
+
+              {/* عرض جميع العقارات */}
+              <button
+                onClick={() => setActiveTab('properties')}
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-right transition-all duration-200 ${
+                  activeTab === 'properties'
+                    ? 'bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <Building className="w-5 h-5 ml-3 flex-shrink-0" />
+                <span>🏢 جميع العقارات</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* معلومات المستخدم */}
+          <div className="p-4 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center mb-3">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <Users className="w-4 h-4 text-white" />
+              </div>
+              <div className="mr-3">
+                <p className="text-sm font-medium text-gray-900">مدير عقارات</p>
+                <p className="text-xs text-gray-600">النظام المطور</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Navigation Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6" aria-label="Tabs">
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="bg-green-600 text-white px-6 py-3 rounded-t-lg hover:bg-green-700 transition-colors flex items-center"
-              >
-                <Plus className="w-4 h-4 ml-2" />
-                إضافة عقار جديد
-              </button>
-              <a
-                href="/admin/selling-now"
-                className="bg-orange-600 text-white px-6 py-3 rounded-t-lg hover:bg-orange-700 transition-colors flex items-center"
-              >
-                <TrendingUp className="w-4 h-4 ml-2" />
-                جاري البيع
-              </a>
-              <a
-                href="/admin/sold"
-                className="bg-emerald-600 text-white px-6 py-3 rounded-t-lg hover:bg-emerald-700 transition-colors flex items-center"
-              >
-                <CheckCircle className="w-4 h-4 ml-2" />
-                تم البيع
-              </a>
-              <button
-                onClick={() => setActiveTab('matching')}
-                className="bg-purple-600 text-white px-6 py-3 rounded-t-lg hover:bg-purple-700 transition-colors flex items-center"
-              >
-                <Users className="w-4 h-4 ml-2" />
-                المطابقة
-              </button>
-              <button
-                onClick={() => setActiveTab('statistics')}
-                className="bg-blue-600 text-white px-6 py-3 rounded-t-lg hover:bg-blue-700 transition-colors flex items-center"
-              >
-                <BarChart3 className="w-4 h-4 ml-2" />
-                الإحصائيات
-              </button>
-            </nav>
+        {/* المحتوى الرئيسي */}
+        <div className="flex-1 flex flex-col min-h-screen">
+          {/* الشريط العلوي */}
+          <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {activeTab === 'dashboard' && '🏠 لوحة التحكم'}
+                  {activeTab === 'statistics' && '📊 الإحصائيات المتقدمة'}
+                  {activeTab === 'matching' && '🔍 المطابقة الذكية'}
+                  {activeTab === 'selling' && '🔁 العقارات جاري البيع'}
+                  {activeTab === 'sold' && '✅ العقارات المباعة'}
+                  {activeTab === 'properties' && '🏢 جميع العقارات'}
+                  {!activeTab && '🏠 برنامج التسويق العقاري'}
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  إجمالي العقارات: <span className="font-semibold text-blue-600">{properties.length}</span> |
+                  بائعين: <span className="font-semibold text-green-600">{properties.filter(p => p.operation_type === 'seller').length}</span> |
+                  مشترين: <span className="font-semibold text-blue-600">{properties.filter(p => p.operation_type === 'buyer').length}</span>
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200">
+                  <span className="text-sm font-medium">✨ النظام المطور يعمل!</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+
+          {/* المحتوى */}
+          <div className="flex-1 p-6 space-y-6">
+
+            {/* لوحة التحكم الجديدة */}
+            {(activeTab === 'dashboard' || !activeTab) && (
+              <div className="space-y-6">
+                {/* بطاقات الإحصائيات الرئيسية */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm">إجمالي العقارات</p>
+                        <p className="text-3xl font-bold">{properties.length}</p>
+                      </div>
+                      <Building className="w-8 h-8 text-blue-200" />
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm">البائعين</p>
+                        <p className="text-3xl font-bold">{properties.filter(p => p.operation_type === 'seller').length}</p>
+                      </div>
+                      <TrendingUp className="w-8 h-8 text-green-200" />
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-sm">المشترين</p>
+                        <p className="text-3xl font-bold">{properties.filter(p => p.operation_type === 'buyer').length}</p>
+                      </div>
+                      <Users className="w-8 h-8 text-purple-200" />
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-orange-100 text-sm">جاري البيع</p>
+                        <p className="text-3xl font-bold">{properties.filter(p => p.sale_status === 'selling').length}</p>
+                      </div>
+                      <Activity className="w-8 h-8 text-orange-200" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* إحصائيات حسب نوع العقار */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">📊 إحصائيات حسب نوع العقار</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {['apartment', 'villa', 'house', 'land', 'shop', 'office'].map(type => {
+                      const sellers = properties.filter(p => p.property_type === type && p.operation_type === 'seller').length
+                      const buyers = properties.filter(p => p.property_type === type && p.operation_type === 'buyer').length
+                      return (
+                        <div key={type} className="bg-gray-50 rounded-lg p-4 text-center">
+                          <h4 className="font-medium text-gray-900 mb-2">{getPropertyTypeLabel(type)}</h4>
+                          <div className="space-y-1">
+                            <div className="text-sm">
+                              <span className="text-green-600 font-semibold">بائع: {sellers}</span>
+                            </div>
+                            <div className="text-sm">
+                              <span className="text-blue-600 font-semibold">مشتري: {buyers}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* أحدث العقارات */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">🆕 أحدث العقارات المضافة</h3>
+                  <div className="space-y-3">
+                    {properties.slice(0, 5).map(property => (
+                      <div key={property.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full ml-3 ${
+                            property.operation_type === 'seller' ? 'bg-green-500' : 'bg-blue-500'
+                          }`}></div>
+                          <div>
+                            <p className="font-medium text-gray-900">{property.title}</p>
+                            <p className="text-sm text-gray-600">{property.customer_name} - {property.city}</p>
+                          </div>
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-gray-900">{property.price.toLocaleString()} جنيه</p>
+                          <p className="text-xs text-gray-500">{getPropertyTypeLabel(property.property_type)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
         {/* Sub Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
