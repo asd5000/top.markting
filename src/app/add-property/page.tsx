@@ -165,7 +165,7 @@ export default function AddPropertyPage() {
 
       console.log('Property inserted successfully:', insertedProperty)
 
-      alert('تم إضافة البيانات بنجاح! برنامجنا يجمع بيانات المشترين والبائعين لتسهيل عملية المطابقة والتواصل.')
+      alert('تم إضافة البيانات بنجاح في التسويق العقاري بالموقع!')
 
       // إعادة تعيين النموذج
       setFormData({

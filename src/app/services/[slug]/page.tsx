@@ -169,16 +169,35 @@ export default function ServicePage() {
     try {
       console.log('🛒 Buy now:', subService)
 
-      // التحقق من تسجيل الدخول أولاً - استخدام visitor بدلاً من customer
-      const visitor = localStorage.getItem('visitor')
-      if (!visitor) {
-        console.log('❌ No visitor session found')
+      // التحقق من تسجيل الدخول - فحص Supabase Auth أولاً
+      const { data: { session }, error } = await supabase.auth.getSession()
+
+      let userData = null
+
+      if (session && session.user) {
+        // المستخدم مسجل دخول عبر Supabase Auth
+        userData = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'مستخدم',
+          phone: session.user.user_metadata?.phone || '',
+          isLoggedIn: true
+        }
+        console.log('👤 User data from Supabase:', userData)
+      } else {
+        // التحقق من localStorage كبديل
+        const visitor = localStorage.getItem('visitor') || localStorage.getItem('userSession')
+        if (visitor) {
+          userData = JSON.parse(visitor)
+          console.log('👤 User data from localStorage:', userData)
+        }
+      }
+
+      if (!userData) {
+        console.log('❌ No user session found')
         setShowAuthModal(true)
         return
       }
-
-      const userData = JSON.parse(visitor)
-      console.log('👤 User data:', userData)
 
       // إضافة إلى localStorage
       const cart = JSON.parse(localStorage.getItem('cart') || '[]')
