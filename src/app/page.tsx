@@ -77,6 +77,7 @@ export default function HomePage() {
       if (error) {
         console.error('❌ Error loading services:', error)
         setServices([])
+        setServicesLoading(false)
         return
       }
 
@@ -99,6 +100,12 @@ export default function HomePage() {
 
       console.log('✅ Services with sub-services loaded:', servicesWithSubServices)
       setServices(servicesWithSubServices)
+
+      // إذا لم تكن هناك خدمات مع خدمات فرعية، اعرض جميع الخدمات
+      if (servicesWithSubServices.length === 0 && servicesData && servicesData.length > 0) {
+        console.log('⚠️ No services with sub-services found, showing all services')
+        setServices(servicesData)
+      }
     } catch (error) {
       console.error('❌ Error loading services:', error)
       setServices([])
