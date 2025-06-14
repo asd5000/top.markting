@@ -45,6 +45,8 @@ export default function CustomerLoginPage() {
       }
 
       if (authData.user) {
+        console.log('✅ Auth successful, user ID:', authData.user.id)
+
         // التحقق من أن المستخدم عميل وليس مدير
         const { data: userData, error: userError } = await supabase
           .from('users')
@@ -52,25 +54,33 @@ export default function CustomerLoginPage() {
           .eq('id', authData.user.id)
           .single()
 
+        console.log('🔍 User data query result:', { userData, userError })
+
         if (userError || !userData) {
+          console.log('👤 User not found in users table, creating new record...')
+
           // إذا لم يوجد في جدول users، إنشاء سجل جديد للعميل
+          const newUserData = {
+            id: authData.user.id,
+            email: authData.user.email,
+            name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0] || 'عميل جديد',
+            phone: authData.user.user_metadata?.phone || '',
+            role: 'customer',
+            is_active: true,
+            created_at: new Date().toISOString()
+          }
+
+          console.log('📝 Creating user with data:', newUserData)
+
           const { error: insertError } = await supabase
             .from('users')
-            .insert([
-              {
-                id: authData.user.id,
-                email: authData.user.email,
-                name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0] || 'عميل جديد',
-                phone: authData.user.user_metadata?.phone || '',
-                role: 'customer',
-                is_active: true,
-                created_at: new Date().toISOString()
-              }
-            ])
+            .insert([newUserData])
 
           if (insertError) {
-            console.error('Error creating user record:', insertError)
+            console.error('❌ Error creating user record:', insertError)
             // لا نعرض خطأ للمستخدم هنا لأن تسجيل الدخول تم بنجاح
+          } else {
+            console.log('✅ User record created successfully')
           }
         } else {
           // التحقق من أن المستخدم ليس مدير
@@ -94,7 +104,7 @@ export default function CustomerLoginPage() {
         // توجيه لصفحة لوحة تحكم الزائر
         setTimeout(() => {
           router.push('/visitor-dashboard')
-        }, 1500)
+        }, 1000)
       }
 
     } catch (err) {
