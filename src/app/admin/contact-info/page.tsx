@@ -63,15 +63,31 @@ export default function ContactInfoPage() {
     try {
       setInitialLoading(true)
       console.log('🔄 Loading contact info...')
-      
+
+      // التحقق من المصادقة أولاً
+      const adminData = localStorage.getItem('admin') || localStorage.getItem('adminSession')
+      if (!adminData) {
+        console.log('❌ No admin session found')
+        setMessage({
+          type: 'error',
+          text: 'يجب تسجيل الدخول كمدير للوصول لهذه الصفحة'
+        })
+        setInitialLoading(false)
+        return
+      }
+
+      console.log('👤 Admin session found, loading data...')
+
       const { data: settingsData, error } = await supabase
         .from('system_settings')
         .select('setting_key, setting_value')
         .in('setting_key', [
-          'phone_number', 'whatsapp_number', 'email', 'address', 
+          'phone_number', 'whatsapp_number', 'email', 'address',
           'city', 'country', 'working_hours', 'support_hours',
           'emergency_phone', 'business_phone', 'fax_number', 'postal_code'
         ])
+
+      console.log('📊 Supabase response:', { data: settingsData, error })
 
       if (error) {
         console.error('❌ Error loading contact info:', error)
@@ -89,13 +105,23 @@ export default function ContactInfoPage() {
         })
         setContactInfo(settingsObj)
         console.log('✅ Contact info loaded:', settingsObj)
+        setMessage({
+          type: 'success',
+          text: `تم تحميل ${settingsData.length} معلومة اتصال بنجاح`
+        })
+      } else {
+        console.log('⚠️ No contact info found in database')
+        setMessage({
+          type: 'error',
+          text: 'لم يتم العثور على معلومات اتصال في قاعدة البيانات'
+        })
       }
 
     } catch (error) {
       console.error('❌ Error loading contact info:', error)
       setMessage({
         type: 'error',
-        text: 'حدث خطأ أثناء تحميل معلومات الاتصال'
+        text: `حدث خطأ أثناء تحميل معلومات الاتصال: ${error}`
       })
     } finally {
       setInitialLoading(false)
@@ -106,6 +132,17 @@ export default function ContactInfoPage() {
     try {
       setLoading(true)
       setMessage({ type: null, text: '' })
+
+      // التحقق من المصادقة أولاً
+      const adminData = localStorage.getItem('admin') || localStorage.getItem('adminSession')
+      if (!adminData) {
+        setMessage({
+          type: 'error',
+          text: 'يجب تسجيل الدخول كمدير لحفظ التغييرات'
+        })
+        setLoading(false)
+        return
+      }
 
       console.log('💾 Saving contact info:', contactInfo)
 
@@ -128,18 +165,25 @@ export default function ContactInfoPage() {
             .eq('setting_key', key)
             .select()
 
+          console.log(`📊 Update result for ${key}:`, { data: updateData, error: updateError })
+
           // إذا لم يتم العثور على السجل، أنشئه
           if (updateError || !updateData || updateData.length === 0) {
             console.log(`📝 Creating new setting: ${key}`)
-            
-            const { error: insertError } = await supabase
+
+            const { data: insertData, error: insertError } = await supabase
               .from('system_settings')
               .insert({
                 setting_key: key,
                 setting_value: value?.toString() || '',
                 setting_type: 'text',
-                description: getSettingDescription(key)
+                description: getSettingDescription(key),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
               })
+              .select()
+
+            console.log(`📊 Insert result for ${key}:`, { data: insertData, error: insertError })
 
             if (insertError) {
               console.error(`❌ Error creating ${key}:`, insertError)
@@ -160,7 +204,7 @@ export default function ContactInfoPage() {
           hasError = true
           setMessage({
             type: 'error',
-            text: `خطأ في حفظ ${key}`
+            text: `خطأ في حفظ ${key}: ${error}`
           })
           break
         }
@@ -169,14 +213,14 @@ export default function ContactInfoPage() {
       if (!hasError) {
         setMessage({
           type: 'success',
-          text: `تم حفظ ${savedCount} معلومة اتصال بنجاح!`
+          text: `تم حفظ ${savedCount} معلومة اتصال بنجاح! 🎉`
         })
         console.log(`✅ All ${savedCount} contact info saved successfully`)
-        
+
         // إعادة تحميل البيانات للتأكد
         setTimeout(() => {
           loadContactInfo()
-        }, 1000)
+        }, 2000)
       }
 
     } catch (error) {
@@ -220,6 +264,38 @@ export default function ContactInfoPage() {
     return phone.replace(/(\d{4})(\d{3})(\d{4})/, '$1 $2 $3')
   }
 
+  const testDatabaseConnection = async () => {
+    try {
+      setMessage({ type: null, text: '' })
+      console.log('🔍 Testing database connection...')
+
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('count(*)')
+        .limit(1)
+
+      if (error) {
+        console.error('❌ Database connection failed:', error)
+        setMessage({
+          type: 'error',
+          text: `فشل الاتصال بقاعدة البيانات: ${error.message}`
+        })
+      } else {
+        console.log('✅ Database connection successful:', data)
+        setMessage({
+          type: 'success',
+          text: 'تم الاتصال بقاعدة البيانات بنجاح! ✅'
+        })
+      }
+    } catch (error) {
+      console.error('❌ Database test error:', error)
+      setMessage({
+        type: 'error',
+        text: `خطأ في اختبار قاعدة البيانات: ${error}`
+      })
+    }
+  }
+
   if (initialLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -245,6 +321,15 @@ export default function ContactInfoPage() {
           </div>
 
           <div className="flex space-x-3 space-x-reverse">
+            <button
+              onClick={testDatabaseConnection}
+              disabled={loading}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center disabled:opacity-50"
+            >
+              <CheckCircle className="w-4 h-4 ml-2" />
+              اختبار الاتصال
+            </button>
+
             <button
               onClick={loadContactInfo}
               disabled={loading}
