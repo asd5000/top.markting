@@ -159,9 +159,10 @@ CREATE TABLE IF NOT EXISTS real_estate (
     views_count INTEGER DEFAULT 0,
     inquiries_count INTEGER DEFAULT 0,
     
-    -- الصور
+    -- الصور والفيديو
     images JSONB DEFAULT '[]',
-    
+    video_url TEXT,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
