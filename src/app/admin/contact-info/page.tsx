@@ -269,9 +269,10 @@ export default function ContactInfoPage() {
       setMessage({ type: null, text: '' })
       console.log('🔍 Testing database connection...')
 
+      // اختبار بسيط للاتصال بقاعدة البيانات
       const { data, error } = await supabase
         .from('system_settings')
-        .select('count(*)')
+        .select('setting_key')
         .limit(1)
 
       if (error) {
@@ -282,10 +283,25 @@ export default function ContactInfoPage() {
         })
       } else {
         console.log('✅ Database connection successful:', data)
-        setMessage({
-          type: 'success',
-          text: 'تم الاتصال بقاعدة البيانات بنجاح! ✅'
-        })
+
+        // اختبار إضافي: عد السجلات
+        const { count, error: countError } = await supabase
+          .from('system_settings')
+          .select('*', { count: 'exact', head: true })
+
+        if (countError) {
+          console.error('❌ Count query failed:', countError)
+          setMessage({
+            type: 'success',
+            text: 'تم الاتصال بقاعدة البيانات بنجاح! ✅ (لكن فشل في عد السجلات)'
+          })
+        } else {
+          console.log('✅ Count query successful:', count)
+          setMessage({
+            type: 'success',
+            text: `تم الاتصال بقاعدة البيانات بنجاح! ✅ (${count || 0} سجل موجود)`
+          })
+        }
       }
     } catch (error) {
       console.error('❌ Database test error:', error)
