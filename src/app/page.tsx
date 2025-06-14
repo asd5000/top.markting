@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import DynamicFooter from '@/components/DynamicFooter'
 import AnnouncementBanner from '@/components/AnnouncementBanner'
-import { ArrowLeft, Star, Users, Award, CheckCircle, User, LogOut, ShoppingCart, Package, Menu, X, Home, Settings, Briefcase, Image, Building, Phone } from 'lucide-react'
+import { ArrowLeft, Star, Users, Award, CheckCircle, User, LogOut, ShoppingCart, Package, Home, Settings, Briefcase, Image, Building, Phone } from 'lucide-react'
 
 interface Service {
   id: string
@@ -56,12 +56,25 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [services, setServices] = useState<Service[]>([])
   const [servicesLoading, setServicesLoading] = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [cartItems, setCartItems] = useState<any[]>([])
+
 
   useEffect(() => {
     checkVisitorAuth()
     loadServices()
+    loadCartItems()
   }, [])
+
+  const loadCartItems = () => {
+    try {
+      const savedCart = localStorage.getItem('cart')
+      if (savedCart) {
+        setCartItems(JSON.parse(savedCart))
+      }
+    } catch (error) {
+      console.error('Error loading cart:', error)
+    }
+  }
 
   const loadServices = async () => {
     try {
@@ -174,135 +187,88 @@ export default function HomePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white flex" dir="rtl">
-      {/* القائمة الجانبية */}
-      <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-white shadow-lg border-l border-gray-200 flex flex-col transition-all duration-300 fixed h-full z-50`}>
-        {/* رأس القائمة الجانبية */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-white" dir="rtl">
+
+
+      {/* شريط التنقل العلوي */}
+      <nav className="bg-white shadow-lg border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* الشعار */}
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">TM</span>
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">TM</span>
               </div>
-              {sidebarOpen && (
-                <div className="mr-3">
-                  <h1 className="text-lg font-bold">Top Marketing</h1>
-                  <p className="text-sm text-blue-100">نظام إداري متكامل</p>
+              <div className="mr-3">
+                <h1 className="text-xl font-bold text-gray-900">Top Marketing</h1>
+                <p className="text-xs text-gray-600">نظام إداري متكامل</p>
+              </div>
+            </div>
+
+            {/* قائمة التنقل */}
+            <div className="hidden md:flex items-center space-x-8">
+              <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors">
+                🏠 الرئيسية
+              </Link>
+              <Link href="/services" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                ⚙️ الخدمات
+              </Link>
+              <Link href="/packages" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                📦 الباقات
+              </Link>
+              <Link href="/portfolio" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                🎨 معرض الأعمال
+              </Link>
+              <Link href="/add-property" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                🏠 إضافة عقار
+              </Link>
+              <Link href="/cart" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors relative">
+                🛒 السلة
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {cartItems.length}
+                  </span>
+                )}
+              </Link>
+            </div>
+
+            {/* أزرار تسجيل الدخول */}
+            <div className="flex items-center space-x-4">
+              {loading ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              ) : visitor ? (
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-700">مرحباً، {visitor.name}</span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-red-600 hover:text-red-800 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    تسجيل الخروج
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-3">
+                  <Link
+                    href="/customer-login"
+                    className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    تسجيل الدخول
+                  </Link>
+                  <Link
+                    href="/admin/login"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    لوحة التحكم
+                  </Link>
                 </div>
               )}
             </div>
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
-            >
-              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
         </div>
-
-        {/* قائمة التنقل الرئيسية */}
-        <div className="flex-1 p-4">
-          <nav className="space-y-3">
-            {/* الرئيسية */}
-            <Link
-              href="/"
-              className="w-full flex items-center px-4 py-4 rounded-xl text-right bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transition-all duration-200"
-            >
-              <Home className="w-6 h-6 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span className="font-medium">🏠 الرئيسية</span>}
-            </Link>
-
-            {/* الخدمات */}
-            <Link
-              href="/services"
-              className="w-full flex items-center px-4 py-4 rounded-xl text-right bg-white text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200 shadow-sm border border-gray-200 hover:border-green-300"
-            >
-              <Settings className="w-6 h-6 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span className="font-medium">⚙️ الخدمات</span>}
-            </Link>
-
-            {/* الباقات */}
-            <Link
-              href="/packages"
-              className="w-full flex items-center px-4 py-4 rounded-xl text-right bg-white text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 shadow-sm border border-gray-200 hover:border-purple-300"
-            >
-              <Package className="w-6 h-6 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span className="font-medium">📦 الباقات</span>}
-            </Link>
-
-            {/* معرض الأعمال */}
-            <Link
-              href="/portfolio"
-              className="w-full flex items-center px-4 py-4 rounded-xl text-right bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-all duration-200 shadow-sm border border-gray-200 hover:border-orange-300"
-            >
-              <Image className="w-6 h-6 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span className="font-medium">🎨 معرض الأعمال</span>}
-            </Link>
-
-            {/* إضافة عقار */}
-            <Link
-              href="/add-property"
-              className="w-full flex items-center px-4 py-4 rounded-xl text-right bg-white text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-all duration-200 shadow-sm border border-gray-200 hover:border-teal-300"
-            >
-              <Building className="w-6 h-6 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span className="font-medium">🏠 إضافة عقار</span>}
-            </Link>
-
-            {/* السلة */}
-            <Link
-              href="/cart"
-              className="w-full flex items-center px-4 py-4 rounded-xl text-right bg-white text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 shadow-sm border border-gray-200 hover:border-indigo-300"
-            >
-              <ShoppingCart className="w-6 h-6 ml-3 flex-shrink-0" />
-              {sidebarOpen && <span className="font-medium">🛒 السلة</span>}
-            </Link>
-          </nav>
-        </div>
-
-        {/* معلومات المستخدم */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          {loading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            </div>
-          ) : visitor ? (
-            <div>
-              <div className="flex items-center mb-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                {sidebarOpen && (
-                  <div className="mr-3">
-                    <p className="text-sm font-medium text-gray-900">مرحباً، {visitor.name}</p>
-                    <p className="text-xs text-gray-600">عضو مسجل</p>
-                  </div>
-                )}
-              </div>
-              {sidebarOpen && (
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-red-600 rounded-lg hover:bg-white transition-colors"
-                >
-                  <LogOut className="w-4 h-4 ml-2" />
-                  تسجيل الخروج
-                </button>
-              )}
-            </div>
-          ) : (
-            sidebarOpen && (
-              <Link
-                href="/customer-login"
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium text-center block"
-              >
-                تسجيل الدخول
-              </Link>
-            )
-          )}
-        </div>
-      </div>
+      </nav>
 
       {/* المحتوى الرئيسي */}
-      <div className={`flex-1 ${sidebarOpen ? 'mr-80' : 'mr-16'} transition-all duration-300`}>
+      <div className="w-full">
         {/* Announcement Banner */}
         <AnnouncementBanner />
 
@@ -315,23 +281,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Header المبسط */}
-        <header className="bg-white shadow-sm border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">مرحباً بك في Top Marketing</h2>
-              <p className="text-gray-600 mt-1">نظام إداري متكامل لخدمات التسويق والتصميم</p>
-            </div>
 
-            {/* زر القائمة للموبايل */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <Menu className="w-6 h-6 text-gray-600" />
-            </button>
-          </div>
-        </header>
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
