@@ -110,12 +110,11 @@ export default function AdminLayout({
       menuItem: 'portfolio'
     },
     {
-      name: 'برنامج التسويق العقاري',
-      href: '/real-estate-new',
+      name: 'التسويق العقاري',
+      href: '/admin/real-estate',
       icon: Building,
-      current: pathname === '/real-estate-new',
-      menuItem: 'real-estate',
-      external: true
+      current: pathname === '/admin/real-estate' || pathname === '/real-estate-system',
+      menuItem: 'real-estate'
     },
     {
       name: 'الإيصالات',
@@ -196,24 +195,7 @@ export default function AdminLayout({
           <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => {
               const Icon = item.icon
-              return item.external ? (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    item.current
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <Icon className="ml-3 h-5 w-5" />
-                  {item.name}
-                  <span className="mr-auto text-xs text-gray-400">↗</span>
-                </a>
-              ) : (
+              return (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -252,34 +234,17 @@ export default function AdminLayout({
                     const Icon = item.icon
                     return (
                       <li key={item.name}>
-                        {item.external ? (
-                          <a
-                            href={item.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
-                              item.current
-                                ? 'bg-slate-700 text-slate-100'
-                                : 'text-slate-300 hover:text-slate-100 hover:bg-slate-700'
-                            }`}
-                          >
-                            <Icon className="h-5 w-5 shrink-0" />
-                            {item.name}
-                            <span className="mr-auto text-xs text-slate-400">↗</span>
-                          </a>
-                        ) : (
-                          <Link
-                            href={item.href}
-                            className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
-                              item.current
-                                ? 'bg-slate-700 text-slate-100'
-                                : 'text-slate-300 hover:text-slate-100 hover:bg-slate-700'
-                            }`}
-                          >
-                            <Icon className="h-5 w-5 shrink-0" />
-                            {item.name}
-                          </Link>
-                        )}
+                        <Link
+                          href={item.href}
+                          className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
+                            item.current
+                              ? 'bg-slate-700 text-slate-100'
+                              : 'text-slate-300 hover:text-slate-100 hover:bg-slate-700'
+                          }`}
+                        >
+                          <Icon className="h-5 w-5 shrink-0" />
+                          {item.name}
+                        </Link>
                       </li>
                     )
                   })}
