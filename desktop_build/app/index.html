@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Marketing - نظام إدارة التسويق المتكامل</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'arabic': ['Cairo', 'Tajawal', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Arabic Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+        }
+        
+        .desktop-app {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .desktop-app input, .desktop-app textarea {
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+        
+        /* تخصيص شريط التمرير */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* تحسينات للتطبيق المكتبي */
+        .window-controls {
+            -webkit-app-region: drag;
+        }
+        
+        .window-controls button {
+            -webkit-app-region: no-drag;
+        }
+        
+        /* تحميل */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 desktop-app">
+    <!-- شاشة التحميل -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <h2 class="text-xl font-semibold text-gray-700 mb-2">Top Marketing</h2>
+            <p class="text-gray-500">جاري تحميل النظام...</p>
+        </div>
+    </div>
+
+    <!-- التطبيق الرئيسي -->
+    <div id="app" class="hidden">
+        <!-- شريط العنوان للتطبيق المكتبي -->
+        <div class="window-controls bg-blue-600 text-white px-4 py-2 flex items-center justify-between">
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <i data-lucide="monitor" class="w-5 h-5"></i>
+                <span class="font-semibold">Top Marketing Desktop</span>
+            </div>
+            <div class="flex items-center space-x-2 space-x-reverse text-sm">
+                <span id="connection-status" class="flex items-center">
+                    <i data-lucide="wifi" class="w-4 h-4 ml-1"></i>
+                    متصل محلياً
+                </span>
+            </div>
+        </div>
+
+        <!-- المحتوى الرئيسي -->
+        <div class="min-h-screen bg-gray-50">
+            <!-- شريط التنقل العلوي -->
+            <nav class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <h1 class="text-xl font-bold text-gray-900">نظام إدارة التسويق</h1>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <!-- قائمة التنقل -->
+                            <div class="hidden md:flex space-x-8 space-x-reverse">
+                                <a href="#dashboard" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                                    لوحة التحكم
+                                </a>
+                                <a href="#services" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                                    الخدمات
+                                </a>
+                                <a href="#real-estate" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                                    العقارات
+                                </a>
+                                <a href="#packages" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                                    الباقات
+                                </a>
+                                <a href="#orders" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                                    الطلبات
+                                </a>
+                            </div>
+                            
+                            <!-- زر تسجيل الدخول -->
+                            <button id="login-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+                                تسجيل الدخول
+                            </button>
+                            
+                            <!-- معلومات المستخدم -->
+                            <div id="user-menu" class="hidden relative">
+                                <button class="flex items-center space-x-2 space-x-reverse text-gray-700 hover:text-gray-900">
+                                    <i data-lucide="user" class="w-5 h-5"></i>
+                                    <span id="user-name">المدير</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- المحتوى -->
+            <main id="main-content" class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <!-- صفحة الترحيب -->
+                <div id="welcome-page" class="text-center py-12">
+                    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
+                        <i data-lucide="monitor" class="w-16 h-16 mx-auto text-blue-600 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">مرحباً بك في Top Marketing</h2>
+                        <p class="text-gray-600 mb-6">نظام إدارة التسويق المتكامل - إصدار سطح المكتب</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                <span class="text-green-700">قاعدة البيانات</span>
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                <span class="text-green-700">الخادم المحلي</span>
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                <span class="text-blue-700">جاهز للاستخدام</span>
+                                <i data-lucide="play-circle" class="w-5 h-5 text-blue-600"></i>
+                            </div>
+                        </div>
+                        
+                        <button id="start-btn" class="w-full mt-6 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 font-medium">
+                            بدء الاستخدام
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- نافذة تسجيل الدخول -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold text-gray-900 mb-6 text-center">تسجيل دخول المدير</h3>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">اسم المستخدم</label>
+                    <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">كلمة المرور</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div id="login-error" class="hidden text-red-600 text-sm"></div>
+                
+                <div class="flex space-x-3 space-x-reverse">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 font-medium">
+                        دخول
+                    </button>
+                    <button type="button" id="cancel-login" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 font-medium">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-600 mb-2">الحساب الافتراضي:</p>
+                <p class="text-xs text-gray-500">المستخدم: asdasheref</p>
+                <p class="text-xs text-gray-500">كلمة المرور: 0453328124</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- سكريبت التطبيق -->
+    <script src="/js/app.js"></script>
+    <script>
+        // تهيئة الأيقونات
+        lucide.createIcons();
+        
+        // إخفاء شاشة التحميل وإظهار التطبيق
+        setTimeout(() => {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            lucide.createIcons();
+        }, 2000);
+    </script>
+</body>
+</html>

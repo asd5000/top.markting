@@ -250,9 +250,15 @@ export default function HomePage() {
                 <div className="flex items-center space-x-3">
                   <Link
                     href="/customer-login"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     تسجيل الدخول
+                  </Link>
+                  <Link
+                    href="/admin/login"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    لوحة التحكم
                   </Link>
                 </div>
               )}

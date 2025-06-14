@@ -1,0 +1,76 @@
+{
+  "name": "top-marketing-desktop",
+  "version": "1.0.0",
+  "description": "Top Marketing Desktop Application - نظام إدارة التسويق المتكامل",
+  "main": "main.js",
+  "author": "Top Marketing Team",
+  "license": "MIT",
+  "homepage": "./",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --publish=never",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.topmarketing.desktop",
+    "productName": "Top Marketing",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "app/**/*",
+      "db/**/*",
+      "media/**/*",
+      "main.js",
+      "preload.js",
+      "package.json",
+      "README-Windows.txt"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Top Marketing",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "artifactName": "Top-Marketing-Setup-${version}.exe"
+    },
+    "directories": {
+      "app": ".",
+      "output": "dist"
+    }
+  },
+  "dependencies": {
+    "electron": "^27.0.0",
+    "sqlite3": "^5.1.6",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.6.4",
+    "concurrently": "^8.2.2"
+  }
+}
