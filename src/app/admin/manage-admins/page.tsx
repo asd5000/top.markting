@@ -689,6 +689,17 @@ export default function ManageAdminsPage() {
     }
   }
 
+  // مسح النموذج
+  const clearForm = () => {
+    setFormData({
+      full_name: '',
+      email: '',
+      password: '',
+      role: 'support'
+    })
+    setMessage({ type: null, text: '' })
+  }
+
   return (
     <RouteGuard>
       <div className="space-y-6">
@@ -795,8 +806,13 @@ export default function ManageAdminsPage() {
                     className="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="admin@example.com"
                     required
+                    autoComplete="email"
+                    dir="ltr"
                   />
                 </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  مثال: admin@topmarketing.com
+                </p>
               </div>
 
               {/* كلمة المرور */}
@@ -846,8 +862,17 @@ export default function ManageAdminsPage() {
                 </select>
               </div>
 
-              {/* زر الإرسال */}
-              <div className="flex justify-end">
+              {/* أزرار الإجراءات */}
+              <div className="flex justify-between">
+                <button
+                  type="button"
+                  onClick={clearForm}
+                  className="bg-gray-500 text-white px-4 py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors flex items-center"
+                >
+                  <ArrowLeft className="w-5 h-5 ml-2" />
+                  مسح النموذج
+                </button>
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -1145,7 +1170,13 @@ function EditAdminForm({
           onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           required
+          autoComplete="email"
+          dir="ltr"
+          placeholder="admin@example.com"
         />
+        <p className="text-xs text-gray-500 mt-1">
+          يمكن تعديل البريد الإلكتروني
+        </p>
       </div>
 
       {/* الدور */}
