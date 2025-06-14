@@ -44,8 +44,8 @@ const defaultIcons = ['📱', '🎨', '⚙️', '🎯', '🏠', '📄', '🎬', 
 // دالة لتحويل اللون من hex إلى gradient
 const hexToGradient = (color: string, index: number) => {
   if (color && color !== '#3B82F6') {
-    // إذا كان لون مخصص، استخدمه
-    return `bg-gradient-to-br`
+    // إذا كان لون مخصص، لا نستخدم class بل style
+    return ''
   }
   // استخدم لون افتراضي
   return defaultColors[index % defaultColors.length]
@@ -360,13 +360,16 @@ export default function HomePage() {
                 const gradientColor = hexToGradient(service.custom_color, index)
                 const serviceIcon = service.icon_url || defaultIcons[index % defaultIcons.length]
 
+                // تحديد الخلفية - إما لون مخصص أو لون افتراضي
+                const backgroundStyle = service.custom_color && service.custom_color !== '#3B82F6'
+                  ? { background: `linear-gradient(135deg, ${service.custom_color}, ${service.custom_color}dd)` }
+                  : {}
+
                 return (
                   <div
                     key={service.id}
-                    className={`${gradientColor} text-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`}
-                    style={service.custom_color && service.custom_color !== '#3B82F6' ? {
-                      background: `linear-gradient(135deg, ${service.custom_color}, ${service.custom_color}dd)`
-                    } : {}}
+                    className={`${gradientColor || 'bg-gradient-to-br from-blue-500 to-blue-600'} text-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`}
+                    style={backgroundStyle}
                   >
                     <div className="text-center">
                       {service.image_url ? (

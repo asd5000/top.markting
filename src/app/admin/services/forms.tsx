@@ -1,6 +1,11 @@
 import React, { useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
-import { X, Save, Package, Palette, Megaphone, Video, Database, Globe, Layers, Star, Upload } from 'lucide-react'
+import {
+  X, Save, Package, Palette, Megaphone, Video, Database, Globe, Layers, Star, Upload,
+  Camera, Code, Smartphone, Monitor, Headphones, Mic, Edit, Image, Film,
+  Zap, Target, TrendingUp, Users, Heart, ShoppingCart, Mail, Phone,
+  Settings, Tool, Wrench, Cpu, Cloud, Shield, Lock, Key
+} from 'lucide-react'
 
 interface Service {
   id: string
@@ -153,13 +158,50 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   }
 
   const iconOptions = [
+    // خدمات أساسية
     { value: 'package', label: 'حزمة', icon: Package },
     { value: 'palette', label: 'تصميم', icon: Palette },
     { value: 'megaphone', label: 'تسويق', icon: Megaphone },
     { value: 'video', label: 'فيديو', icon: Video },
     { value: 'database', label: 'قاعدة بيانات', icon: Database },
     { value: 'globe', label: 'موقع ويب', icon: Globe },
-    { value: 'layers', label: 'طبقات', icon: Layers }
+    { value: 'layers', label: 'طبقات', icon: Layers },
+
+    // تصميم ومونتاج
+    { value: 'camera', label: 'كاميرا', icon: Camera },
+    { value: 'image', label: 'صورة', icon: Image },
+    { value: 'film', label: 'فيلم', icon: Film },
+    { value: 'edit', label: 'تحرير', icon: Edit },
+
+    // تطوير وبرمجة
+    { value: 'code', label: 'برمجة', icon: Code },
+    { value: 'smartphone', label: 'موبايل', icon: Smartphone },
+    { value: 'monitor', label: 'شاشة', icon: Monitor },
+    { value: 'cpu', label: 'معالج', icon: Cpu },
+    { value: 'cloud', label: 'سحابة', icon: Cloud },
+
+    // تسويق ومبيعات
+    { value: 'target', label: 'هدف', icon: Target },
+    { value: 'trending-up', label: 'نمو', icon: TrendingUp },
+    { value: 'users', label: 'مستخدمين', icon: Users },
+    { value: 'heart', label: 'قلب', icon: Heart },
+    { value: 'shopping-cart', label: 'سلة', icon: ShoppingCart },
+    { value: 'zap', label: 'برق', icon: Zap },
+
+    // تواصل وخدمات
+    { value: 'mail', label: 'بريد', icon: Mail },
+    { value: 'phone', label: 'هاتف', icon: Phone },
+    { value: 'headphones', label: 'سماعات', icon: Headphones },
+    { value: 'mic', label: 'ميكروفون', icon: Mic },
+
+    // أدوات وإعدادات
+    { value: 'settings', label: 'إعدادات', icon: Settings },
+    { value: 'tool', label: 'أداة', icon: Tool },
+    { value: 'wrench', label: 'مفتاح', icon: Wrench },
+    { value: 'shield', label: 'حماية', icon: Shield },
+    { value: 'lock', label: 'قفل', icon: Lock },
+    { value: 'key', label: 'مفتاح', icon: Key },
+    { value: 'star', label: 'نجمة', icon: Star }
   ]
 
   return (
@@ -320,7 +362,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               أيقونة الخدمة
             </label>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-6 gap-2 max-h-64 overflow-y-auto">
               {iconOptions.map((option) => {
                 const IconComponent = option.icon
                 return (
@@ -328,14 +370,15 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                     key={option.value}
                     type="button"
                     onClick={() => setForm({ ...form, icon: option.value })}
-                    className={`p-3 border rounded-lg flex flex-col items-center space-y-1 transition-colors ${
+                    className={`p-2 border rounded-lg flex flex-col items-center space-y-1 transition-colors ${
                       form.icon === option.value
                         ? 'border-blue-500 bg-blue-50 text-blue-600'
                         : 'border-gray-300 hover:border-gray-400'
                     }`}
+                    title={option.label}
                   >
-                    <IconComponent className="w-5 h-5" />
-                    <span className="text-xs">{option.label}</span>
+                    <IconComponent className="w-4 h-4" />
+                    <span className="text-xs truncate w-full text-center">{option.label}</span>
                   </button>
                 )
               })}
