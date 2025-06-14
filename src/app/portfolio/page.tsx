@@ -17,7 +17,9 @@ import {
   Video,
   X,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  User,
+  LogOut
 } from 'lucide-react'
 
 interface PortfolioItem {
@@ -61,10 +63,67 @@ export default function PortfolioPage() {
   const [filterCategory, setFilterCategory] = useState('')
   const [filterType, setFilterType] = useState('')
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [user, setUser] = useState<any>(null)
+  const [userLoading, setUserLoading] = useState(true)
 
   useEffect(() => {
     loadPortfolioItems()
+    checkUserAuth()
   }, [])
+
+  const checkUserAuth = async () => {
+    try {
+      setUserLoading(true)
+
+      // التحقق من Supabase Auth أولاً
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+      if (session && session.user) {
+        // المستخدم مسجل دخول عبر Supabase Auth
+        const userData = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'مستخدم',
+          phone: session.user.user_metadata?.phone || '',
+          isLoggedIn: true
+        }
+        setUser(userData)
+        console.log('👤 User logged in via Supabase:', userData)
+      } else {
+        // التحقق من localStorage كبديل
+        const savedUser = localStorage.getItem('visitor') || localStorage.getItem('userSession')
+        if (savedUser) {
+          const userData = JSON.parse(savedUser)
+          setUser(userData)
+          console.log('👤 User logged in via localStorage:', userData)
+        } else {
+          console.log('👤 No user session found')
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user auth:', error)
+    } finally {
+      setUserLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      // تسجيل الخروج من Supabase
+      await supabase.auth.signOut()
+
+      // مسح localStorage
+      localStorage.removeItem('visitor')
+      localStorage.removeItem('userSession')
+
+      // إعادة تعيين حالة المستخدم
+      setUser(null)
+
+      console.log('👤 User logged out successfully')
+    } catch (error) {
+      console.error('Error logging out:', error)
+    }
+  }
 
   useEffect(() => {
     // Auto-slide for featured items
@@ -179,18 +238,40 @@ export default function PortfolioPage() {
             </nav>
 
             <div className="flex items-center space-x-4">
-              <Link
-                href="/visitor-login"
-                className="text-gray-700 hover:text-blue-600 text-sm font-medium"
-              >
-                تسجيل الدخول
-              </Link>
-              <Link
-                href="/login"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-              >
-                دخول الإدارة
-              </Link>
+              {userLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                </div>
+              ) : user ? (
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg">
+                    <User className="w-4 h-4 text-blue-600" />
+                    <span className="text-blue-600 font-medium text-sm">{user.name}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-600 hover:text-red-600 transition-colors flex items-center text-sm"
+                    title="تسجيل الخروج"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href="/visitor-login"
+                    className="text-gray-700 hover:text-blue-600 text-sm font-medium"
+                  >
+                    تسجيل الدخول
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    دخول الإدارة
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
