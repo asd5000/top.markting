@@ -53,10 +53,25 @@ export default function CustomerLoginPage() {
           .single()
 
         if (userError || !userData) {
-          // إذا لم يوجد في جدول users، التحقق من أنه ليس مدير
-          await supabase.auth.signOut()
-          setError('هذا الحساب غير مسجل كعميل. يرجى التسجيل أولاً أو استخدام صفحة تسجيل دخول المدراء إذا كنت مدير')
-          return
+          // إذا لم يوجد في جدول users، إنشاء سجل جديد للعميل
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert([
+              {
+                id: authData.user.id,
+                email: authData.user.email,
+                name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0] || 'عميل جديد',
+                phone: authData.user.user_metadata?.phone || '',
+                role: 'customer',
+                is_active: true,
+                created_at: new Date().toISOString()
+              }
+            ])
+
+          if (insertError) {
+            console.error('Error creating user record:', insertError)
+            // لا نعرض خطأ للمستخدم هنا لأن تسجيل الدخول تم بنجاح
+          }
         } else {
           // التحقق من أن المستخدم ليس مدير
           const adminRoles = ['super_admin', 'marketing_manager', 'support', 'content_manager', 'real_estate_manager', 'packages_manager']
