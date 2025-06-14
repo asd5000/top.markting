@@ -30,15 +30,26 @@ export default function VisitorDashboard() {
   })
 
   useEffect(() => {
-    checkVisitorAuth()
+    // تأخير قصير للتأكد من أن الجلسة محفوظة بشكل صحيح
+    const timer = setTimeout(() => {
+      checkVisitorAuth()
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const checkVisitorAuth = async () => {
     try {
+      console.log('🔍 Checking visitor authentication...')
+
       // التحقق من جلسة Supabase
       const { data: { session } } = await supabase.auth.getSession()
-      
+
+      console.log('📋 Session status:', session ? 'Found' : 'Not found')
+
       if (!session) {
+        console.log('❌ No session found, redirecting to login')
+        setLoading(false)
         router.push('/customer-login')
         return
       }
@@ -69,7 +80,8 @@ export default function VisitorDashboard() {
           ])
 
         if (insertError) {
-          console.error('Error creating user record:', insertError)
+          console.error('❌ Error creating user record:', insertError)
+          setLoading(false)
           router.push('/customer-login')
           return
         }
@@ -82,11 +94,13 @@ export default function VisitorDashboard() {
           .single()
 
         if (newUserError || !newUserData) {
-          console.error('Error fetching new user data:', newUserError)
+          console.error('❌ Error fetching new user data:', newUserError)
+          setLoading(false)
           router.push('/customer-login')
           return
         }
 
+        console.log('✅ New user data loaded successfully')
         setVisitor(newUserData)
         await loadUserOrders(newUserData.id)
         setLoading(false)
@@ -96,17 +110,20 @@ export default function VisitorDashboard() {
       // التحقق من أن المستخدم عميل وليس مدير
       const adminRoles = ['super_admin', 'marketing_manager', 'support', 'content_manager', 'real_estate_manager', 'packages_manager']
       if (adminRoles.includes(userData.role)) {
+        console.log('🔒 Admin user detected, redirecting to admin panel')
+        setLoading(false)
         router.push('/admin')
         return
       }
 
+      console.log('✅ Customer user verified, loading dashboard')
       setVisitor(userData)
       await loadUserOrders(userData.id)
-    } catch (error) {
-      console.error('Auth check error:', error)
-      router.push('/customer-login')
-    } finally {
       setLoading(false)
+    } catch (error) {
+      console.error('❌ Auth check error:', error)
+      setLoading(false)
+      router.push('/customer-login')
     }
   }
 
