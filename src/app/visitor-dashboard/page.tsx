@@ -51,8 +51,45 @@ export default function VisitorDashboard() {
         .single()
 
       if (error || !userData) {
-        console.error('Error fetching user data:', error)
-        router.push('/customer-login')
+        // إذا لم يوجد المستخدم في جدول users، إنشاء سجل جديد
+        console.log('User not found in users table, creating new record...')
+
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'عميل جديد',
+              phone: session.user.user_metadata?.phone || '',
+              role: 'customer',
+              is_active: true,
+              created_at: new Date().toISOString()
+            }
+          ])
+
+        if (insertError) {
+          console.error('Error creating user record:', insertError)
+          router.push('/customer-login')
+          return
+        }
+
+        // إعادة جلب بيانات المستخدم بعد الإنشاء
+        const { data: newUserData, error: newUserError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+
+        if (newUserError || !newUserData) {
+          console.error('Error fetching new user data:', newUserError)
+          router.push('/customer-login')
+          return
+        }
+
+        setVisitor(newUserData)
+        await loadUserOrders(newUserData.id)
+        setLoading(false)
         return
       }
 
