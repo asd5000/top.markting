@@ -13,7 +13,7 @@ import {
   TrendingUp, TrendingDown, Activity, Target,
   UserCheck, UserX, FileText, Download, Share2,
   ArrowRight, ArrowUp, StickyNote, Bell, RefreshCw,
-  ArrowLeft, LogOut, Camera
+  ArrowLeft, LogOut, Camera, Shield
 } from 'lucide-react'
 
 interface Property {
@@ -765,7 +765,8 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <>
+      <div className="min-h-screen bg-gray-50 flex" dir="rtl">
       {/* القائمة الجانبية الجديدة */}
       <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-white shadow-lg border-l border-gray-200 flex flex-col transition-all duration-300`}>
         {/* رأس القائمة الجانبية */}
@@ -1760,7 +1761,7 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
                   {/* بيانات العميل */}
                   <div className="bg-blue-50 rounded-lg p-6">
                     <h3 className="text-xl font-bold text-blue-900 mb-6 flex items-center">
-                      <User className="w-6 h-6 ml-2" />
+                      <Users className="w-6 h-6 ml-2" />
                       بيانات العميل
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2269,7 +2270,7 @@ ${matchingData.length > 0 ? matchingData.join('\n') : 'لا توجد تطابق�
       </main>
     </div>
     </div>
-    </div>
+    </>
   )
 }
 // 🚀 FORCE DEPLOYMENT - ALL REQUIREMENTS VERIFIED AND IMPLEMENTED
