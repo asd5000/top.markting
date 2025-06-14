@@ -45,7 +45,7 @@ export default function ManageAdminsPage() {
     full_name: '',
     email: '',
     password: '',
-    role: 'admin'
+    role: 'support'
   })
 
   const [loading, setLoading] = useState(false)
@@ -854,11 +854,12 @@ export default function ManageAdminsPage() {
                   onChange={(e) => handleInputChange('role', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="super_admin">مدير عام (جميع الصلاحيات)</option>
-                  <option value="marketing_manager">مدير التسويق (الخدمات والتسويق)</option>
-                  <option value="packages_manager">مدير الباقات (باقات إدارة الصفحات)</option>
-                  <option value="real_estate_manager">مدير العقارات (التسويق العقاري)</option>
                   <option value="support">الدعم الفني (محدود)</option>
+                  <option value="content_manager">مدير المحتوى</option>
+                  <option value="packages_manager">مدير الباقات (باقات إدارة الصفحات)</option>
+                  <option value="marketing_manager">مدير التسويق (الخدمات والتسويق)</option>
+                  <option value="real_estate_manager">مدير العقارات (التسويق العقاري)</option>
+                  <option value="super_admin">مدير عام (جميع الصلاحيات)</option>
                 </select>
               </div>
 
@@ -1021,12 +1022,15 @@ export default function ManageAdminsPage() {
                                 ? 'bg-purple-100 text-purple-800'
                                 : admin.role === 'real_estate_manager'
                                 ? 'bg-green-100 text-green-800'
+                                : admin.role === 'content_manager'
+                                ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}>
                               {admin.role === 'super_admin' ? 'مدير عام' :
                                admin.role === 'marketing_manager' ? 'مدير تسويق' :
                                admin.role === 'packages_manager' ? 'مدير باقات' :
                                admin.role === 'real_estate_manager' ? 'مدير عقارات' :
+                               admin.role === 'content_manager' ? 'مدير محتوى' :
                                admin.role === 'support' ? 'دعم فني' : admin.role}
                             </span>
                           </td>
@@ -1050,11 +1054,12 @@ export default function ManageAdminsPage() {
                                 onChange={(e) => updateAdminRole(admin.id, e.target.value, admin.name)}
                                 className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500"
                               >
-                                <option value="super_admin">مدير عام</option>
-                                <option value="marketing_manager">مدير تسويق</option>
-                                <option value="packages_manager">مدير باقات</option>
-                                <option value="real_estate_manager">مدير عقارات</option>
                                 <option value="support">دعم فني</option>
+                                <option value="content_manager">مدير محتوى</option>
+                                <option value="packages_manager">مدير باقات</option>
+                                <option value="marketing_manager">مدير تسويق</option>
+                                <option value="real_estate_manager">مدير عقارات</option>
+                                <option value="super_admin">مدير عام</option>
                               </select>
 
                               {/* تفعيل/إلغاء تفعيل */}
@@ -1189,11 +1194,12 @@ function EditAdminForm({
           onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="super_admin">مدير عام (جميع الصلاحيات)</option>
-          <option value="marketing_manager">مدير التسويق</option>
-          <option value="packages_manager">مدير الباقات</option>
-          <option value="real_estate_manager">مدير العقارات</option>
           <option value="support">الدعم الفني</option>
+          <option value="content_manager">مدير المحتوى</option>
+          <option value="packages_manager">مدير الباقات</option>
+          <option value="marketing_manager">مدير التسويق</option>
+          <option value="real_estate_manager">مدير العقارات</option>
+          <option value="super_admin">مدير عام (جميع الصلاحيات)</option>
         </select>
       </div>
 
