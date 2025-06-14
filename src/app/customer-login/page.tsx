@@ -93,7 +93,7 @@ export default function CustomerLoginPage() {
 
         // توجيه لصفحة لوحة تحكم الزائر
         setTimeout(() => {
-          window.location.href = '/visitor-dashboard'
+          router.push('/visitor-dashboard')
         }, 1500)
       }
 
