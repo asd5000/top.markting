@@ -103,11 +103,11 @@ export default function RegisterPage() {
       // التحقق من حالة المستخدم
       if (authData.user && authData.session) {
         // المستخدم مسجل دخول تلقائياً
-        setSuccess('تم إنشاء الحساب بنجاح! جاري تسجيل الدخول...')
+        setSuccess('تم إنشاء الحساب وتسجيل الدخول بنجاح! جاري التوجيه...')
 
-        // التوجيه للصفحة الرئيسية مباشرة
+        // التوجيه لصفحة لوحة تحكم الزائر
         setTimeout(() => {
-          router.push('/')
+          router.push('/visitor-dashboard')
         }, 2000)
       } else {
         // في حالة عدم تسجيل الدخول التلقائي
@@ -126,9 +126,9 @@ export default function RegisterPage() {
             router.push('/customer-login')
           }, 2000)
         } else {
-          setSuccess('تم إنشاء الحساب وتسجيل الدخول بنجاح!')
+          setSuccess('تم إنشاء الحساب وتسجيل الدخول بنجاح! جاري التوجيه...')
           setTimeout(() => {
-            router.push('/')
+            router.push('/visitor-dashboard')
           }, 2000)
         }
       }

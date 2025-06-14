@@ -4,7 +4,7 @@ import {
   X, Save, Package, Palette, Megaphone, Video, Database, Globe, Layers, Star, Upload,
   Camera, Code, Smartphone, Monitor, Headphones, Mic, Edit, Image, Film,
   Zap, Target, TrendingUp, Users, Heart, ShoppingCart, Mail, Phone,
-  Settings, Tool, Wrench, Cpu, Cloud, Shield, Lock, Key
+  Settings, Wrench, Cpu, Cloud, Shield, Lock, Key
 } from 'lucide-react'
 
 interface Service {
@@ -196,7 +196,6 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
 
     // أدوات وإعدادات
     { value: 'settings', label: 'إعدادات', icon: Settings },
-    { value: 'tool', label: 'أداة', icon: Tool },
     { value: 'wrench', label: 'مفتاح', icon: Wrench },
     { value: 'shield', label: 'حماية', icon: Shield },
     { value: 'lock', label: 'قفل', icon: Lock },

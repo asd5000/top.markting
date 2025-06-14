@@ -53,24 +53,10 @@ export default function CustomerLoginPage() {
           .single()
 
         if (userError || !userData) {
-          // إذا لم يوجد في جدول users، إنشاء سجل جديد
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert([
-              {
-                id: authData.user.id,
-                email: authData.user.email,
-                name: authData.user.user_metadata?.name || 'مستخدم جديد',
-                phone: authData.user.user_metadata?.phone || '',
-                role: 'customer',
-                is_active: true,
-                created_at: new Date().toISOString()
-              }
-            ])
-
-          if (insertError) {
-            console.error('Error creating user record:', insertError)
-          }
+          // إذا لم يوجد في جدول users، التحقق من أنه ليس مدير
+          await supabase.auth.signOut()
+          setError('هذا الحساب غير مسجل كعميل. يرجى التسجيل أولاً أو استخدام صفحة تسجيل دخول المدراء إذا كنت مدير')
+          return
         } else {
           // التحقق من أن المستخدم ليس مدير
           const adminRoles = ['super_admin', 'marketing_manager', 'support', 'content_manager', 'real_estate_manager', 'packages_manager']
@@ -79,14 +65,21 @@ export default function CustomerLoginPage() {
             setError('هذا الحساب مخصص للإدارة. يرجى استخدام صفحة تسجيل دخول المدراء')
             return
           }
+
+          // التحقق من أن الحساب نشط
+          if (!userData.is_active) {
+            await supabase.auth.signOut()
+            setError('حسابك غير نشط. يرجى التواصل مع الإدارة')
+            return
+          }
         }
 
-        setSuccess('تم تسجيل الدخول بنجاح!')
+        setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...')
 
-        // توجيه للصفحة الرئيسية
+        // توجيه لصفحة لوحة تحكم الزائر
         setTimeout(() => {
-          window.location.href = '/'
-        }, 1000)
+          window.location.href = '/visitor-dashboard'
+        }, 1500)
       }
 
     } catch (err) {

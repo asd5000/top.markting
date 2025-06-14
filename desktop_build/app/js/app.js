@@ -91,6 +91,17 @@ class TopMarketingApp {
             } catch (error) {
                 localStorage.removeItem('auth_token');
                 this.token = null;
+                // إخفاء زر لوحة التحكم عند فشل المصادقة
+                const dashboardLink = document.getElementById('dashboard-link');
+                if (dashboardLink) {
+                    dashboardLink.classList.add('hidden');
+                }
+            }
+        } else {
+            // إخفاء زر لوحة التحكم إذا لم يكن هناك توكن
+            const dashboardLink = document.getElementById('dashboard-link');
+            if (dashboardLink) {
+                dashboardLink.classList.add('hidden');
             }
         }
     }
@@ -145,10 +156,38 @@ class TopMarketingApp {
     showUserMenu() {
         document.getElementById('login-btn').classList.add('hidden');
         document.getElementById('user-menu').classList.remove('hidden');
-        
+
+        // إظهار زر لوحة التحكم عند تسجيل الدخول
+        const dashboardLink = document.getElementById('dashboard-link');
+        if (dashboardLink) {
+            dashboardLink.classList.remove('hidden');
+        }
+
         if (this.currentUser) {
             document.getElementById('user-name').textContent = this.currentUser.name;
         }
+    }
+
+    logout() {
+        // إزالة التوكن والبيانات
+        this.token = null;
+        this.currentUser = null;
+        localStorage.removeItem('auth_token');
+
+        // إخفاء قائمة المستخدم وإظهار زر تسجيل الدخول
+        document.getElementById('user-menu').classList.add('hidden');
+        document.getElementById('login-btn').classList.remove('hidden');
+
+        // إخفاء زر لوحة التحكم
+        const dashboardLink = document.getElementById('dashboard-link');
+        if (dashboardLink) {
+            dashboardLink.classList.add('hidden');
+        }
+
+        // العودة للصفحة الرئيسية
+        this.showWelcomePage();
+
+        this.showNotification('تم تسجيل الخروج بنجاح', 'success');
     }
     
     async apiCall(endpoint, options = {}) {

@@ -130,7 +130,8 @@
                         <div class="flex items-center space-x-4 space-x-reverse">
                             <!-- قائمة التنقل -->
                             <div class="hidden md:flex space-x-8 space-x-reverse">
-                                <a href="#dashboard" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                                <!-- زر لوحة التحكم - مخفي للمستخدمين غير المسجلين -->
+                                <a href="#dashboard" id="dashboard-link" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium hidden">
                                     لوحة التحكم
                                 </a>
                                 <a href="#services" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
@@ -153,11 +154,10 @@
                             </button>
                             
                             <!-- معلومات المستخدم -->
-                            <div id="user-menu" class="hidden relative">
-                                <button class="flex items-center space-x-2 space-x-reverse text-gray-700 hover:text-gray-900">
-                                    <i data-lucide="user" class="w-5 h-5"></i>
-                                    <span id="user-name">المدير</span>
-                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            <div id="user-menu" class="hidden flex items-center space-x-3 space-x-reverse">
+                                <span class="text-sm text-gray-700">مرحباً، <span id="user-name">المدير</span></span>
+                                <button onclick="window.app.logout()" class="bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700">
+                                    تسجيل خروج
                                 </button>
                             </div>
                         </div>
