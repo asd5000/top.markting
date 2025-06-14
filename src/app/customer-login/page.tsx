@@ -103,7 +103,8 @@ export default function CustomerLoginPage() {
 
         // توجيه لصفحة لوحة تحكم الزائر
         setTimeout(() => {
-          router.push('/visitor-dashboard')
+          console.log('🚀 Redirecting to visitor dashboard...')
+          window.location.href = '/visitor-dashboard'
         }, 1000)
       }
 

@@ -30,12 +30,7 @@ export default function VisitorDashboard() {
   })
 
   useEffect(() => {
-    // تأخير قصير للتأكد من أن الجلسة محفوظة بشكل صحيح
-    const timer = setTimeout(() => {
-      checkVisitorAuth()
-    }, 100)
-
-    return () => clearTimeout(timer)
+    checkVisitorAuth()
   }, [])
 
   const checkVisitorAuth = async () => {
@@ -46,11 +41,12 @@ export default function VisitorDashboard() {
       const { data: { session } } = await supabase.auth.getSession()
 
       console.log('📋 Session status:', session ? 'Found' : 'Not found')
+      console.log('📋 Session details:', session)
 
       if (!session) {
         console.log('❌ No session found, redirecting to login')
         setLoading(false)
-        router.push('/customer-login')
+        window.location.href = '/customer-login'
         return
       }
 
@@ -82,7 +78,7 @@ export default function VisitorDashboard() {
         if (insertError) {
           console.error('❌ Error creating user record:', insertError)
           setLoading(false)
-          router.push('/customer-login')
+          window.location.href = '/customer-login'
           return
         }
 
@@ -96,7 +92,7 @@ export default function VisitorDashboard() {
         if (newUserError || !newUserData) {
           console.error('❌ Error fetching new user data:', newUserError)
           setLoading(false)
-          router.push('/customer-login')
+          window.location.href = '/customer-login'
           return
         }
 
@@ -112,7 +108,7 @@ export default function VisitorDashboard() {
       if (adminRoles.includes(userData.role)) {
         console.log('🔒 Admin user detected, redirecting to admin panel')
         setLoading(false)
-        router.push('/admin')
+        window.location.href = '/admin'
         return
       }
 
@@ -123,7 +119,7 @@ export default function VisitorDashboard() {
     } catch (error) {
       console.error('❌ Auth check error:', error)
       setLoading(false)
-      router.push('/customer-login')
+      window.location.href = '/customer-login'
     }
   }
 
