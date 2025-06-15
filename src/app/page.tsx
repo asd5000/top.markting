@@ -213,7 +213,7 @@ export default function HomePage() {
               <Link href="/services" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                 ⚙️ الخدمات
               </Link>
-              <Link href="/packages" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link href="/plans" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                 📦 الباقات
               </Link>
               <Link href="/store" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">

@@ -21,6 +21,7 @@ interface PackageData {
   is_active: boolean
   created_at: string
   updated_at: string
+  image_url?: string
 
   // حقول جديدة للنظام المتكامل
   package_type: string
@@ -52,6 +53,14 @@ interface PackageData {
   subscribers_count: number
   completed_designs: number
   completed_videos: number
+}
+
+interface ServiceItem {
+  id: string
+  service_type: string
+  quantity: number
+  unit_price: number
+  total_price: number
 }
 
 interface Subscription {
@@ -90,6 +99,7 @@ export default function PackagesManagement() {
     package_type: 'social_media',
     monthly_price: 0,
     package_description: '',
+    image_url: '',
 
     // خدمات التصميم
     designs_count: 0,
@@ -112,6 +122,10 @@ export default function PackagesManagement() {
     includes_whatsapp_campaigns: false,
     includes_google_campaigns: false
   })
+
+  // حالة جديدة لإدارة عناصر الخدمات
+  const [serviceItems, setServiceItems] = useState<ServiceItem[]>([])
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -192,6 +206,74 @@ export default function PackagesManagement() {
     }
   }
 
+  // دالة رفع الصور
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true)
+      const fileExt = file.name.split('.').pop()
+      const fileName = `plan-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+      const filePath = `plans/${fileName}`
+
+      const { data, error } = await supabase.storage
+        .from('plan-images')
+        .upload(filePath, file)
+
+      if (error) {
+        console.error('Error uploading image:', error)
+        setMessage({ type: 'error', text: `خطأ في رفع الصورة: ${error.message}` })
+        return null
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('plan-images')
+        .getPublicUrl(filePath)
+
+      return publicUrl
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      setMessage({ type: 'error', text: 'حدث خطأ أثناء رفع الصورة' })
+      return null
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // دالة إضافة عنصر خدمة جديد
+  const addServiceItem = () => {
+    const newItem: ServiceItem = {
+      id: Date.now().toString(),
+      service_type: '',
+      quantity: 1,
+      unit_price: 0,
+      total_price: 0
+    }
+    setServiceItems([...serviceItems, newItem])
+  }
+
+  // دالة تحديث عنصر خدمة
+  const updateServiceItem = (id: string, field: keyof ServiceItem, value: any) => {
+    setServiceItems(items => items.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value }
+        if (field === 'quantity' || field === 'unit_price') {
+          updatedItem.total_price = updatedItem.quantity * updatedItem.unit_price
+        }
+        return updatedItem
+      }
+      return item
+    }))
+  }
+
+  // دالة حذف عنصر خدمة
+  const removeServiceItem = (id: string) => {
+    setServiceItems(items => items.filter(item => item.id !== id))
+  }
+
+  // دالة حساب السعر الإجمالي
+  const calculateTotalPrice = () => {
+    return serviceItems.reduce((total, item) => total + item.total_price, 0)
+  }
+
   const handleAddPackage = async () => {
     if (!newPackage.name || !newPackage.monthly_price) {
       setMessage({
@@ -204,18 +286,23 @@ export default function PackagesManagement() {
     try {
       console.log('📦 Creating new comprehensive package:', newPackage)
 
+      // حساب السعر الإجمالي من عناصر الخدمات أو استخدام السعر المدخل يدوياً
+      const calculatedPrice = calculateTotalPrice()
+      const finalPrice = calculatedPrice > 0 ? calculatedPrice : newPackage.monthly_price
+
       const packageData = {
         // معلومات عامة
         name: newPackage.name.trim(),
         description: newPackage.description.trim(),
-        price: newPackage.monthly_price, // للتوافق مع النظام القديم
+        price: finalPrice, // السعر المحسوب أو المدخل يدوياً
         duration_months: newPackage.duration_months,
         features: newPackage.features,
         is_active: true,
+        image_url: newPackage.image_url,
 
         // حقول جديدة
         package_type: newPackage.package_type,
-        monthly_price: newPackage.monthly_price,
+        monthly_price: finalPrice,
         package_description: newPackage.package_description.trim(),
 
         // خدمات التصميم
@@ -262,6 +349,31 @@ export default function PackagesManagement() {
 
       console.log('✅ Comprehensive package created successfully:', data)
 
+      // حفظ عناصر الخدمات إذا كانت موجودة
+      if (serviceItems.length > 0 && data.id) {
+        const itemsToInsert = serviceItems.map(item => ({
+          plan_id: data.id,
+          service_type: item.service_type,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price
+        }))
+
+        const { error: itemsError } = await supabase
+          .from('plan_items')
+          .insert(itemsToInsert)
+
+        if (itemsError) {
+          console.error('Error saving service items:', itemsError)
+          setMessage({
+            type: 'error',
+            text: `تم إنشاء الباقة ولكن حدث خطأ في حفظ عناصر الخدمات: ${itemsError.message}`
+          })
+        } else {
+          console.log('✅ Service items saved successfully')
+        }
+      }
+
       // إعادة تحميل البيانات
       await loadData()
 
@@ -275,6 +387,7 @@ export default function PackagesManagement() {
         package_type: 'social_media',
         monthly_price: 0,
         package_description: '',
+        image_url: '',
         designs_count: 0,
         design_price: 0,
         includes_videos: false,
@@ -290,6 +403,7 @@ export default function PackagesManagement() {
         includes_google_campaigns: false
       })
 
+      setServiceItems([])
       setShowAddForm(false)
       setMessage({
         type: 'success',
@@ -759,6 +873,163 @@ export default function PackagesManagement() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       placeholder="وصف تفصيلي وجذاب للباقة يوضح مميزاتها الفريدة"
                     />
+                  </div>
+
+                  {/* رفع صورة الباقة */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      صورة الباقة
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      {newPackage.image_url && (
+                        <img
+                          src={newPackage.image_url}
+                          alt="معاينة الباقة"
+                          className="w-20 h-20 rounded-lg object-cover border border-gray-300"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              const url = await uploadImage(file)
+                              if (url) {
+                                setNewPackage({...newPackage, image_url: url})
+                              }
+                            }
+                          }}
+                          className="hidden"
+                          id="package-image"
+                        />
+                        <label
+                          htmlFor="package-image"
+                          className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 transition-colors flex items-center justify-center cursor-pointer"
+                        >
+                          {uploading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                          ) : (
+                            <>
+                              <Upload className="w-5 h-5 ml-2 text-gray-400" />
+                              <span className="text-gray-600">
+                                {newPackage.image_url ? 'تغيير الصورة' : 'رفع صورة الباقة'}
+                              </span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* جدول تفاصيل الخدمات */}
+                <div className="bg-indigo-50 p-4 rounded-lg">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Calculator className="w-5 h-5 ml-2 text-indigo-600" />
+                    تفاصيل الخدمات والأسعار
+                  </h4>
+
+                  <div className="space-y-4">
+                    {serviceItems.length > 0 && (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white rounded-lg border border-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">نوع الخدمة</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">العدد</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">سعر الوحدة</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر الكلي</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {serviceItems.map((item) => (
+                              <tr key={item.id}>
+                                <td className="px-4 py-3">
+                                  <select
+                                    value={item.service_type}
+                                    onChange={(e) => updateServiceItem(item.id, 'service_type', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                  >
+                                    <option value="">اختر نوع الخدمة</option>
+                                    <option value="تصميمات">تصميمات</option>
+                                    <option value="ريلز">ريلز</option>
+                                    <option value="محتوى مكتوب">محتوى مكتوب</option>
+                                    <option value="فيديو تعريفي">فيديو تعريفي</option>
+                                    <option value="رد تلقائي">رد تلقائي</option>
+                                    <option value="متابعة إعلانات">متابعة إعلانات</option>
+                                    <option value="زيادة متابعين">زيادة متابعين</option>
+                                    <option value="إدارة صفحات">إدارة صفحات</option>
+                                  </select>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <input
+                                    type="number"
+                                    value={item.quantity}
+                                    onChange={(e) => updateServiceItem(item.id, 'quantity', Number(e.target.value))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    min="1"
+                                  />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <input
+                                    type="number"
+                                    value={item.unit_price}
+                                    onChange={(e) => updateServiceItem(item.id, 'unit_price', Number(e.target.value))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="font-bold text-indigo-600">{item.total_price.toFixed(2)} ج.م</span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <button
+                                    onClick={() => removeServiceItem(item.id)}
+                                    className="text-red-600 hover:text-red-800"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot className="bg-gray-50">
+                            <tr>
+                              <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900">
+                                إجمالي السعر:
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="font-bold text-lg text-indigo-600">
+                                  {calculateTotalPrice().toFixed(2)} ج.م
+                                </span>
+                              </td>
+                              <td></td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={addServiceItem}
+                      className="w-full px-4 py-3 border-2 border-dashed border-indigo-300 rounded-lg hover:border-indigo-500 transition-colors flex items-center justify-center text-indigo-600 hover:text-indigo-800"
+                    >
+                      <Plus className="w-5 h-5 ml-2" />
+                      إضافة خدمة جديدة
+                    </button>
+
+                    {serviceItems.length > 0 && (
+                      <div className="bg-indigo-100 p-3 rounded-lg">
+                        <p className="text-sm text-indigo-800">
+                          💡 <strong>ملاحظة:</strong> إذا تم إدخال خدمات في الجدول أعلاه، سيتم حساب السعر تلقائياً من مجموع الخدمات.
+                          وإلا سيتم استخدام السعر الشهري المدخل يدوياً.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
