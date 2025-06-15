@@ -17,7 +17,7 @@ import {
 function SubscribeCheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const subscriptionId = searchParams.get('subscription_id')
+  const subscriptionId = searchParams.get('subscription_id') || searchParams.get('order_id')
   const orderType = searchParams.get('type') || 'package' // package أو service
   const serviceName = searchParams.get('service_name')
   const amount = searchParams.get('amount')
