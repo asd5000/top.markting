@@ -434,7 +434,7 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold mb-3">إدارة الصفحات</h3>
                 <p className="text-purple-100 text-sm mb-4">باقات إدارة احترافية لصفحاتك</p>
                 <Link
-                  href="/packages"
+                  href="/plans"
                   className="inline-block bg-white bg-opacity-20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-30 transition-colors"
                 >
                   اطلب الآن

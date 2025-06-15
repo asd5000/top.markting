@@ -255,14 +255,37 @@ export default function PlansPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold mb-6">
-            باقات احترافية لإدارة صفحاتك
+      <section className="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mb-8">
+            <div className="inline-flex items-center bg-white bg-opacity-20 rounded-full px-6 py-3 mb-6">
+              <Package className="w-6 h-6 ml-2" />
+              <span className="font-medium">باقات إدارة الصفحات الاحترافية</span>
+            </div>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+            باقات جاهزة لإدارة صفحاتك
+            <span className="block text-yellow-300">بشكل احترافي</span>
           </h1>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
-            اختر الباقة المناسبة لك واحصل على خدمات متكاملة لإدارة صفحاتك على وسائل التواصل الاجتماعي
+          <p className="text-xl md:text-2xl mb-8 max-w-4xl mx-auto leading-relaxed text-purple-100">
+            اختر الباقة المناسبة لك واحصل على خدمات متكاملة شاملة التصميم والمحتوى والإدارة
+            <span className="block mt-2 font-semibold text-yellow-200">بدون تخصيص - باقات جاهزة فقط!</span>
           </p>
+          <div className="flex items-center justify-center space-x-8 text-sm text-purple-200">
+            <div className="flex items-center">
+              <CheckCircle className="w-5 h-5 ml-2 text-green-300" />
+              <span>باقات جاهزة</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="w-5 h-5 ml-2 text-green-300" />
+              <span>أسعار ثابتة</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="w-5 h-5 ml-2 text-green-300" />
+              <span>اشتراك فوري</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -295,71 +318,113 @@ export default function PlansPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {plans.map((plan) => {
+              {plans.map((plan, index) => {
                 const services = getServicesList(plan)
                 const items = planItems[plan.id] || []
-                
+                const isPopular = index === 1 // الباقة الوسطى تكون الأكثر شعبية
+
                 return (
-                  <div key={plan.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-200">
-                    {plan.image_url && (
-                      <img
-                        src={plan.image_url}
-                        alt={plan.name}
-                        className="w-full h-48 object-cover"
-                      />
+                  <div key={plan.id} className={`relative bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 ${
+                    isPopular ? 'border-yellow-400 scale-105' : 'border-gray-200'
+                  }`}>
+                    {isPopular && (
+                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                          ⭐ الأكثر شعبية
+                        </div>
+                      </div>
                     )}
-                    
+
+                    {plan.image_url && (
+                      <div className="relative">
+                        <img
+                          src={plan.image_url}
+                          alt={plan.name}
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                      </div>
+                    )}
+
                     <div className="p-8">
                       <div className="text-center mb-6">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                        <p className="text-gray-600 mb-4">{plan.package_description}</p>
-                        <div className="flex items-center justify-center mb-4">
-                          <DollarSign className="w-6 h-6 text-green-600 ml-1" />
-                          <span className="text-3xl font-bold text-green-600">{plan.price}</span>
-                          <span className="text-gray-600 mr-2">ج.م / شهر</span>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3">{plan.name}</h3>
+                        <p className="text-gray-600 mb-6 leading-relaxed">{plan.package_description}</p>
+
+                        <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-4 mb-6">
+                          <div className="flex items-center justify-center">
+                            <DollarSign className="w-8 h-8 text-green-600 ml-2" />
+                            <span className="text-4xl font-bold text-green-600">{plan.price}</span>
+                            <span className="text-gray-600 mr-2 text-lg">ج.م / شهر</span>
+                          </div>
+                          <p className="text-sm text-green-700 mt-2 font-medium">سعر ثابت - بدون رسوم إضافية</p>
                         </div>
                       </div>
 
                       {/* خدمات الباقة */}
-                      <div className="space-y-3 mb-6">
-                        <h4 className="font-semibold text-gray-900 mb-3">ما تشمله الباقة:</h4>
-                        
-                        {/* عرض الخدمات من الجدول إذا كانت موجودة */}
-                        {items.length > 0 ? (
-                          items.map((item) => (
-                            <div key={item.id} className="flex items-center text-sm text-gray-700">
-                              <Check className="w-4 h-4 text-green-500 ml-2 flex-shrink-0" />
-                              <span>{item.quantity} {item.service_type}</span>
-                            </div>
-                          ))
-                        ) : (
-                          // عرض الخدمات التقليدية
-                          services.map((service, index) => (
-                            <div key={index} className="flex items-center text-sm text-gray-700">
-                              <Check className="w-4 h-4 text-green-500 ml-2 flex-shrink-0" />
-                              <span>{service}</span>
-                            </div>
-                          ))
-                        )}
-                        
-                        {/* المميزات الإضافية */}
-                        {plan.features && plan.features.length > 0 && (
-                          plan.features.map((feature, index) => (
-                            <div key={index} className="flex items-center text-sm text-gray-700">
-                              <Star className="w-4 h-4 text-yellow-500 ml-2 flex-shrink-0" />
-                              <span>{feature}</span>
-                            </div>
-                          ))
-                        )}
+                      <div className="space-y-4 mb-8">
+                        <h4 className="font-bold text-gray-900 mb-4 text-lg flex items-center">
+                          <Package className="w-5 h-5 ml-2 text-purple-600" />
+                          ما تشمله الباقة:
+                        </h4>
+
+                        <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                          {/* عرض الخدمات من الجدول إذا كانت موجودة */}
+                          {items.length > 0 ? (
+                            items.map((item) => (
+                              <div key={item.id} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                                <div className="flex items-center">
+                                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center ml-3">
+                                    <Check className="w-4 h-4 text-green-600" />
+                                  </div>
+                                  <span className="font-medium text-gray-800">{item.service_type}</span>
+                                </div>
+                                <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
+                                  {item.quantity} قطعة
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            // عرض الخدمات التقليدية
+                            services.map((service, serviceIndex) => (
+                              <div key={serviceIndex} className="flex items-center bg-white rounded-lg p-3 shadow-sm">
+                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center ml-3">
+                                  <Check className="w-4 h-4 text-green-600" />
+                                </div>
+                                <span className="font-medium text-gray-800">{service}</span>
+                              </div>
+                            ))
+                          )}
+
+                          {/* المميزات الإضافية */}
+                          {plan.features && plan.features.length > 0 && (
+                            plan.features.map((feature, featureIndex) => (
+                              <div key={featureIndex} className="flex items-center bg-yellow-50 rounded-lg p-3 shadow-sm">
+                                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center ml-3">
+                                  <Star className="w-4 h-4 text-yellow-600" />
+                                </div>
+                                <span className="font-medium text-gray-800">{feature}</span>
+                              </div>
+                            ))
+                          )}
+                        </div>
                       </div>
 
                       <button
                         onClick={() => handleSubscribe(plan)}
-                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors font-medium flex items-center justify-center"
+                        className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl ${
+                          isPopular
+                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600'
+                            : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
+                        }`}
                       >
-                        <Package className="w-5 h-5 ml-2" />
-                        اشترك الآن
+                        <Package className="w-6 h-6 ml-3" />
+                        🚀 اشترك الآن
                       </button>
+
+                      <p className="text-center text-sm text-gray-500 mt-3">
+                        ✅ بدون تخصيص - باقة جاهزة
+                      </p>
                     </div>
                   </div>
                 )

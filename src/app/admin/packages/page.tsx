@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import RouteGuard from '@/components/admin/RouteGuard'
 import {
@@ -509,13 +510,23 @@ export default function PackagesManagement() {
               </div>
             </div>
 
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
-            >
-              <Plus className="w-4 h-4 ml-2" />
-              إنشاء باقة جديدة
-            </button>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/admin/packages/help"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <AlertCircle className="w-5 h-5 ml-2" />
+                دليل الاستخدام
+              </Link>
+
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                إنشاء باقة جديدة
+              </button>
+            </div>
           </div>
         </div>
         {/* رسائل النجاح/الخطأ */}
@@ -924,110 +935,140 @@ export default function PackagesManagement() {
                   </div>
                 </div>
 
-                {/* جدول تفاصيل الخدمات */}
-                <div className="bg-indigo-50 p-4 rounded-lg">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Calculator className="w-5 h-5 ml-2 text-indigo-600" />
-                    تفاصيل الخدمات والأسعار
+                {/* جدول تفاصيل الخدمات الاحترافي */}
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border border-indigo-200">
+                  <h4 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <Calculator className="w-6 h-6 ml-3 text-indigo-600" />
+                    جدول تفاصيل الخدمات والأسعار
                   </h4>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {serviceItems.length > 0 && (
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white rounded-lg border border-gray-200">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">نوع الخدمة</th>
-                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">العدد</th>
-                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">سعر الوحدة</th>
-                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر الكلي</th>
-                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-200">
-                            {serviceItems.map((item) => (
-                              <tr key={item.id}>
-                                <td className="px-4 py-3">
-                                  <select
-                                    value={item.service_type}
-                                    onChange={(e) => updateServiceItem(item.id, 'service_type', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                  >
-                                    <option value="">اختر نوع الخدمة</option>
-                                    <option value="تصميمات">تصميمات</option>
-                                    <option value="ريلز">ريلز</option>
-                                    <option value="محتوى مكتوب">محتوى مكتوب</option>
-                                    <option value="فيديو تعريفي">فيديو تعريفي</option>
-                                    <option value="رد تلقائي">رد تلقائي</option>
-                                    <option value="متابعة إعلانات">متابعة إعلانات</option>
-                                    <option value="زيادة متابعين">زيادة متابعين</option>
-                                    <option value="إدارة صفحات">إدارة صفحات</option>
-                                  </select>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <input
-                                    type="number"
-                                    value={item.quantity}
-                                    onChange={(e) => updateServiceItem(item.id, 'quantity', Number(e.target.value))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    min="1"
-                                  />
-                                </td>
-                                <td className="px-4 py-3">
-                                  <input
-                                    type="number"
-                                    value={item.unit_price}
-                                    onChange={(e) => updateServiceItem(item.id, 'unit_price', Number(e.target.value))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    min="0"
-                                    step="0.01"
-                                  />
-                                </td>
-                                <td className="px-4 py-3">
-                                  <span className="font-bold text-indigo-600">{item.total_price.toFixed(2)} ج.م</span>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <button
-                                    onClick={() => removeServiceItem(item.id)}
-                                    className="text-red-600 hover:text-red-800"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </td>
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full">
+                            <thead className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                              <tr>
+                                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider">
+                                  🎯 نوع الخدمة
+                                </th>
+                                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider">
+                                  📊 العدد
+                                </th>
+                                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider">
+                                  💰 سعر الوحدة
+                                </th>
+                                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider">
+                                  💵 السعر الكلي
+                                </th>
+                                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider">
+                                  ⚙️ إجراءات
+                                </th>
                               </tr>
-                            ))}
-                          </tbody>
-                          <tfoot className="bg-gray-50">
-                            <tr>
-                              <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900">
-                                إجمالي السعر:
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className="font-bold text-lg text-indigo-600">
-                                  {calculateTotalPrice().toFixed(2)} ج.م
-                                </span>
-                              </td>
-                              <td></td>
-                            </tr>
-                          </tfoot>
-                        </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {serviceItems.map((item, index) => (
+                                <tr key={item.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                                  <td className="px-6 py-4">
+                                    <select
+                                      value={item.service_type}
+                                      onChange={(e) => updateServiceItem(item.id, 'service_type', e.target.value)}
+                                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-sm"
+                                    >
+                                      <option value="">🔽 اختر نوع الخدمة</option>
+                                      <option value="تصميمات">🎨 تصميمات</option>
+                                      <option value="ريلز">🎬 ريلز</option>
+                                      <option value="محتوى مكتوب">📝 محتوى مكتوب</option>
+                                      <option value="فيديو تعريفي">🎥 فيديو تعريفي</option>
+                                      <option value="رد تلقائي">🤖 رد تلقائي</option>
+                                      <option value="متابعة إعلانات">📈 متابعة إعلانات</option>
+                                      <option value="زيادة متابعين">👥 زيادة متابعين</option>
+                                      <option value="إدارة صفحات">📱 إدارة صفحات</option>
+                                    </select>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <input
+                                      type="number"
+                                      value={item.quantity}
+                                      onChange={(e) => updateServiceItem(item.id, 'quantity', Number(e.target.value))}
+                                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-center font-bold"
+                                      min="1"
+                                      placeholder="0"
+                                    />
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        value={item.unit_price}
+                                        onChange={(e) => updateServiceItem(item.id, 'unit_price', Number(e.target.value))}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-center font-bold"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                      />
+                                      <span className="absolute left-3 top-3 text-gray-500 text-sm">ج.م</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="bg-gradient-to-r from-green-100 to-emerald-100 px-4 py-3 rounded-lg border border-green-200">
+                                      <span className="font-bold text-lg text-green-700">
+                                        {item.total_price.toFixed(2)} ج.م
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <button
+                                      onClick={() => removeServiceItem(item.id)}
+                                      className="bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-800 p-3 rounded-lg transition-colors"
+                                      title="حذف الخدمة"
+                                    >
+                                      <Trash2 className="w-5 h-5" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+                              <tr>
+                                <td colSpan={3} className="px-6 py-4 text-right font-bold text-lg">
+                                  💰 إجمالي السعر النهائي:
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="bg-white bg-opacity-20 px-4 py-3 rounded-lg">
+                                    <span className="font-bold text-2xl text-white">
+                                      {calculateTotalPrice().toFixed(2)} ج.م
+                                    </span>
+                                  </div>
+                                </td>
+                                <td></td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
                       </div>
                     )}
 
                     <button
                       onClick={addServiceItem}
-                      className="w-full px-4 py-3 border-2 border-dashed border-indigo-300 rounded-lg hover:border-indigo-500 transition-colors flex items-center justify-center text-indigo-600 hover:text-indigo-800"
+                      className="w-full px-6 py-4 border-2 border-dashed border-indigo-400 rounded-xl hover:border-indigo-600 hover:bg-indigo-50 transition-all duration-300 flex items-center justify-center text-indigo-600 hover:text-indigo-800 font-medium"
                     >
-                      <Plus className="w-5 h-5 ml-2" />
-                      إضافة خدمة جديدة
+                      <Plus className="w-6 h-6 ml-3" />
+                      ➕ إضافة خدمة جديدة للباقة
                     </button>
 
                     {serviceItems.length > 0 && (
-                      <div className="bg-indigo-100 p-3 rounded-lg">
-                        <p className="text-sm text-indigo-800">
-                          💡 <strong>ملاحظة:</strong> إذا تم إدخال خدمات في الجدول أعلاه، سيتم حساب السعر تلقائياً من مجموع الخدمات.
-                          وإلا سيتم استخدام السعر الشهري المدخل يدوياً.
-                        </p>
+                      <div className="bg-gradient-to-r from-blue-100 to-indigo-100 p-4 rounded-xl border border-blue-200">
+                        <div className="flex items-start">
+                          <div className="text-2xl ml-3">💡</div>
+                          <div>
+                            <h5 className="font-bold text-blue-900 mb-2">ملاحظة مهمة:</h5>
+                            <p className="text-sm text-blue-800 leading-relaxed">
+                              <strong>حساب السعر التلقائي:</strong> إذا تم إدخال خدمات في الجدول أعلاه، سيتم حساب السعر تلقائياً من مجموع الخدمات.
+                              وإذا لم يتم إدخال خدمات، سيتم استخدام السعر الشهري المدخل يدوياً في الحقل أعلاه.
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
