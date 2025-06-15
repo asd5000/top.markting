@@ -286,17 +286,23 @@ function SubscribeCheckoutContent() {
 
       console.log('📄 Creating receipt record with data:', {
         user_id: user?.id,
-        subscription_id: subscriptionId,
+        subscription_id: orderType === 'package' ? subscriptionId : null,
+        order_id: orderType === 'service' ? subscriptionId : null,
         receipt_url: receiptUrl,
         payment_method: paymentMethod,
-        amount: subscription?.total_amount,
-        status: 'pending'
+        amount: orderType === 'service'
+          ? parseFloat(orderData?.total_amount) || parseFloat(amount || '0') || 0
+          : parseFloat(subscription?.total_amount) || 0,
+        status: 'pending',
+        orderType: orderType
       })
 
       // إنشاء سجل الإيصال في قاعدة البيانات
       const receiptData = {
         user_id: user?.id || null,
-        subscription_id: subscriptionId,
+        // استخدام الحقل المناسب حسب نوع الطلب
+        subscription_id: orderType === 'package' ? subscriptionId : null,
+        order_id: orderType === 'service' ? subscriptionId : null,
         receipt_url: receiptUrl,
         payment_method: paymentMethod,
         amount: orderType === 'service'
