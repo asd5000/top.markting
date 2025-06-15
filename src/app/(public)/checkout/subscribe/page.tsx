@@ -232,7 +232,7 @@ function SubscribeCheckoutContent() {
         receipt_url: receiptUrl,
         payment_method: paymentMethod,
         amount: orderType === 'service'
-          ? parseFloat(orderData?.total_amount) || parseFloat(amount) || 0
+          ? parseFloat(orderData?.total_amount) || parseFloat(amount || '0') || 0
           : parseFloat(subscription?.total_amount) || 0,
         status: 'pending'
       }
