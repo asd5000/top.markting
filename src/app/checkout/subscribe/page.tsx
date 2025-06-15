@@ -218,25 +218,56 @@ function SubscribeCheckoutContent() {
     setIsSubmitting(true)
 
     try {
-      // رفع الإيصال إلى Supabase Storage
-      const fileName = `receipt_${Date.now()}_${receiptFile.name}`
+      // رفع الإيصال إلى Supabase Storage - تنظيف اسم الملف
+      const fileExtension = receiptFile.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const cleanFileName = receiptFile.name
+        .replace(/\.[^/.]+$/, '') // إزالة الامتداد
+        .replace(/[^a-zA-Z0-9]/g, '_') // استبدال جميع الأحرف غير الإنجليزية والأرقام بـ _
+        .replace(/_{2,}/g, '_') // استبدال _ المتعددة بواحدة
+        .replace(/^_+|_+$/g, '') // إزالة _ من البداية والنهاية
+        .toLowerCase()
 
-      console.log('📤 Uploading receipt file:', fileName)
+      const fileName = `receipt_${Date.now()}_${cleanFileName || 'file'}.${fileExtension}`
+
+      console.log('📤 Uploading receipt file:', {
+        original: receiptFile.name,
+        cleaned: fileName,
+        size: receiptFile.size,
+        type: receiptFile.type
+      })
+
+      // التحقق من صحة الملف قبل الرفع
+      if (!receiptFile || receiptFile.size === 0) {
+        alert('الملف المحدد غير صالح. يرجى اختيار ملف آخر.')
+        return
+      }
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('receipts')
-        .upload(fileName, receiptFile)
+        .upload(fileName, receiptFile, {
+          cacheControl: '3600',
+          upsert: false
+        })
 
       if (uploadError) {
         console.error('❌ Error uploading receipt:', uploadError)
+        console.error('❌ Upload details:', {
+          fileName,
+          fileSize: receiptFile.size,
+          fileType: receiptFile.type
+        })
 
         // معالجة أخطاء محددة
         if (uploadError.message.includes('The resource was not found')) {
           alert('خطأ في إعدادات التخزين. يرجى المحاولة مرة أخرى أو التواصل مع الدعم.')
         } else if (uploadError.message.includes('Payload too large')) {
-          alert('حجم الملف كبير جداً. يرجى اختيار ملف أصغر.')
+          alert('حجم الملف كبير جداً. يرجى اختيار ملف أصغر من 10MB.')
         } else if (uploadError.message.includes('Invalid file type')) {
-          alert('نوع الملف غير مدعوم. يرجى اختيار صورة أو ملف PDF.')
+          alert('نوع الملف غير مدعوم. يرجى اختيار صورة (JPG, PNG) أو ملف PDF.')
+        } else if (uploadError.message.includes('Invalid key')) {
+          alert('خطأ في اسم الملف. يرجى إعادة تسمية الملف باستخدام أحرف إنجليزية فقط والمحاولة مرة أخرى.')
+        } else if (uploadError.message.includes('Duplicate')) {
+          alert('تم رفع هذا الملف من قبل. يرجى اختيار ملف آخر.')
         } else {
           alert(`حدث خطأ أثناء رفع الإيصال: ${uploadError.message}`)
         }
