@@ -263,13 +263,27 @@ export default function ServicePage() {
         user_id: userData.id,
         customer_name: userData.name,
         customer_email: userData.email,
-        customer_phone: userData.phone || '',
+        customer_phone: userData.phone || 'غير محدد',
         service_name: subService.name,
         service_category: service?.name,
         total_amount: subService.price,
+        payment_method: 'pending', // مطلوب في قاعدة البيانات
         status: 'pending',
         notes: `طلب خدمة: ${subService.name} من قسم ${service?.name}`,
         created_at: new Date().toISOString()
+      }
+
+      // التحقق من البيانات المطلوبة
+      if (!orderData.customer_name || !orderData.customer_phone || !orderData.total_amount || !orderData.payment_method) {
+        console.error('❌ Missing required fields:', {
+          customer_name: orderData.customer_name,
+          customer_phone: orderData.customer_phone,
+          total_amount: orderData.total_amount,
+          payment_method: orderData.payment_method
+        })
+        setCartMessage('خطأ في البيانات المطلوبة. يرجى التأكد من تسجيل الدخول بشكل صحيح.')
+        setTimeout(() => setCartMessage(null), 5000)
+        return
       }
 
       console.log('📝 Creating order:', orderData)
@@ -282,15 +296,28 @@ export default function ServicePage() {
 
       if (orderError) {
         console.error('❌ Error creating order:', orderError)
-        setCartMessage('حدث خطأ أثناء إنشاء الطلب')
-        setTimeout(() => setCartMessage(null), 3000)
+        console.error('❌ Order data that failed:', orderData)
+
+        // معالجة أخطاء محددة
+        if (orderError.message.includes('violates not-null constraint')) {
+          setCartMessage('خطأ في البيانات المطلوبة. يرجى التأكد من ملء جميع الحقول.')
+        } else if (orderError.message.includes('invalid input syntax')) {
+          setCartMessage('خطأ في تنسيق البيانات. يرجى المحاولة مرة أخرى.')
+        } else {
+          setCartMessage(`حدث خطأ أثناء إنشاء الطلب: ${orderError.message}`)
+        }
+
+        setTimeout(() => setCartMessage(null), 5000)
         return
       }
 
       console.log('✅ Order created successfully:', orderResult)
 
-      setCartMessage('تم إنشاء الطلب بنجاح! جاري التوجيه للدفع...')
+      setCartMessage(`تم إنشاء طلب "${subService.name}" بنجاح! جاري التوجيه للدفع...`)
       setTimeout(() => setCartMessage(null), 3000)
+
+      // رسالة تأكيد إضافية
+      alert(`تم إنشاء طلب "${subService.name}" بنجاح!\nالمبلغ: ${subService.price} ج.م\nجاري التوجيه لصفحة الدفع...`)
 
       // التوجيه لصفحة الدفع مع معرف الطلب
       setTimeout(() => {
