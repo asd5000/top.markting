@@ -168,7 +168,7 @@ export default function PlansPage() {
       console.log('✅ Subscription created successfully:', subscriptionResult)
 
       // التوجيه مباشرة لصفحة الدفع
-      window.location.href = `/checkout/subscribe?subscription_id=${subscriptionResult.id}&type=package`
+      window.location.href = `/(public)/checkout/subscribe?subscription_id=${subscriptionResult.id}&type=package`
 
     } catch (error) {
       console.error('❌ Error in subscription process:', error)
