@@ -279,8 +279,8 @@ export default function PackagesPage() {
 
       localStorage.setItem('cart', JSON.stringify([cartItem]))
 
-      // توجيه المستخدم لصفحة الدفع
-      window.location.href = '/checkout'
+      // توجيه المستخدم لصفحة السلة أولاً
+      window.location.href = '/cart'
 
     } catch (error) {
       console.error('❌ Error subscribing:', error)

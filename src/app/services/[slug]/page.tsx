@@ -223,8 +223,8 @@ export default function ServicePage() {
       setCartMessage('تم إضافة الخدمة للسلة بنجاح!')
       setTimeout(() => setCartMessage(null), 3000)
 
-      // التوجيه المباشر لصفحة الدفع
-      window.location.href = '/checkout'
+      // التوجيه لصفحة السلة أولاً
+      window.location.href = '/cart'
 
     } catch (error) {
       console.error('❌ Error in buy now:', error)
