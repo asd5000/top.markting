@@ -120,9 +120,57 @@ export default function PlansPage() {
     }
   }
 
-  const handleSubscribe = (plan: Plan) => {
-    setSelectedPlan(plan)
-    setShowSubscriptionForm(true)
+  const handleSubscribe = async (plan: Plan) => {
+    // التحقق من تسجيل الدخول أولاً
+    const savedUser = localStorage.getItem('visitor')
+
+    if (!savedUser) {
+      // إذا لم يكن مسجل دخول، توجيه لصفحة تسجيل الدخول
+      alert('يجب تسجيل الدخول أولاً للاشتراك في الباقات')
+      window.location.href = '/visitor-login'
+      return
+    }
+
+    const userData = JSON.parse(savedUser)
+    console.log('👤 User data found:', userData)
+
+    try {
+      // إنشاء اشتراك مباشر بدون نموذج
+      const subscriptionData = {
+        plan_id: plan.id,
+        user_id: userData.id,
+        customer_name: userData.name,
+        customer_phone: userData.phone || '',
+        customer_email: userData.email || '',
+        status: 'pending',
+        total_amount: plan.price,
+        notes: `اشتراك في باقة ${plan.name}`,
+        created_at: new Date().toISOString()
+      }
+
+      console.log('📝 Creating subscription:', subscriptionData)
+
+      const { data: subscriptionResult, error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .insert([subscriptionData])
+        .select()
+        .single()
+
+      if (subscriptionError) {
+        console.error('❌ Error creating subscription:', subscriptionError)
+        alert(`حدث خطأ أثناء إنشاء الاشتراك: ${subscriptionError.message}`)
+        return
+      }
+
+      console.log('✅ Subscription created successfully:', subscriptionResult)
+
+      // التوجيه مباشرة لصفحة الدفع
+      window.location.href = `/checkout/subscribe?subscription_id=${subscriptionResult.id}&type=package`
+
+    } catch (error) {
+      console.error('❌ Error in subscription process:', error)
+      alert('حدث خطأ أثناء إنشاء الاشتراك')
+    }
   }
 
   const submitSubscription = async () => {

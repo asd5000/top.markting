@@ -18,9 +18,13 @@ function SubscribeCheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const subscriptionId = searchParams.get('subscription_id')
-  
+  const orderType = searchParams.get('type') || 'package' // package أو service
+  const serviceName = searchParams.get('service_name')
+  const amount = searchParams.get('amount')
+
   const [subscription, setSubscription] = useState<any>(null)
   const [packageData, setPackageData] = useState<any>(null)
+  const [orderData, setOrderData] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const [paymentMethod, setPaymentMethod] = useState('vodafone_cash')
@@ -29,10 +33,14 @@ function SubscribeCheckoutContent() {
 
   useEffect(() => {
     if (subscriptionId) {
-      loadSubscriptionData()
+      if (orderType === 'service') {
+        loadServiceOrderData()
+      } else {
+        loadSubscriptionData()
+      }
     }
     checkUserSession()
-  }, [subscriptionId])
+  }, [subscriptionId, orderType])
 
   const checkUserSession = () => {
     const savedUser = localStorage.getItem('visitor')
@@ -41,6 +49,51 @@ function SubscribeCheckoutContent() {
       return
     }
     setUser(JSON.parse(savedUser))
+  }
+
+  const loadServiceOrderData = async () => {
+    try {
+      setLoading(true)
+      console.log('🔄 Loading service order data for ID:', subscriptionId)
+
+      if (!subscriptionId) {
+        console.error('❌ No order ID provided')
+        alert('معرف الطلب مفقود')
+        router.push('/services')
+        return
+      }
+
+      // تحميل بيانات الطلب من جدول orders
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', subscriptionId)
+        .single()
+
+      if (orderError) {
+        console.error('❌ Error loading order:', orderError)
+        alert(`حدث خطأ في تحميل بيانات الطلب: ${orderError.message}`)
+        router.push('/services')
+        return
+      }
+
+      if (!orderData) {
+        console.error('❌ No order found with ID:', subscriptionId)
+        alert('لم يتم العثور على الطلب')
+        router.push('/services')
+        return
+      }
+
+      console.log('✅ Service order loaded:', orderData)
+      setOrderData(orderData)
+
+    } catch (error) {
+      console.error('❌ Error loading service order data:', error)
+      alert('حدث خطأ أثناء تحميل البيانات')
+      router.push('/services')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const loadSubscriptionData = async () => {
@@ -178,7 +231,9 @@ function SubscribeCheckoutContent() {
         subscription_id: subscriptionId,
         receipt_url: receiptUrl,
         payment_method: paymentMethod,
-        amount: parseFloat(subscription?.total_amount) || 0,
+        amount: orderType === 'service'
+          ? parseFloat(orderData?.total_amount) || parseFloat(amount) || 0
+          : parseFloat(subscription?.total_amount) || 0,
         status: 'pending'
       }
 
@@ -195,25 +250,26 @@ function SubscribeCheckoutContent() {
 
       console.log('✅ Receipt record created successfully:', receiptResult)
 
-      // تحديث حالة الاشتراك إلى "في انتظار الموافقة"
-      console.log('🔄 Updating subscription status to waiting approval...')
+      // تحديث حالة الطلب/الاشتراك إلى "في انتظار الموافقة"
+      console.log('🔄 Updating order/subscription status to waiting approval...')
 
+      const tableName = orderType === 'service' ? 'orders' : 'subscriptions'
       const { error: updateError } = await supabase
-        .from('subscriptions')
+        .from(tableName)
         .update({
-          status: 'suspended', // في انتظار موافقة الإدارة
+          status: orderType === 'service' ? 'pending_payment' : 'suspended', // في انتظار موافقة الإدارة
           payment_method: paymentMethod,
           updated_at: new Date().toISOString()
         })
         .eq('id', subscriptionId)
 
       if (updateError) {
-        console.error('❌ Error updating subscription:', updateError)
-        alert(`حدث خطأ أثناء تحديث حالة الاشتراك: ${updateError.message}`)
+        console.error('❌ Error updating order/subscription:', updateError)
+        alert(`حدث خطأ أثناء تحديث حالة ${orderType === 'service' ? 'الطلب' : 'الاشتراك'}: ${updateError.message}`)
         return
       }
 
-      console.log('✅ Subscription status updated successfully')
+      console.log('✅ Order/Subscription status updated successfully')
 
       // توجيه المستخدم إلى صفحة النجاح مع تمرير معلومات الاشتراك
       const successUrl = `/receipt-success?subscription_id=${subscriptionId}&payment_method=${paymentMethod}`
@@ -273,18 +329,23 @@ function SubscribeCheckoutContent() {
     )
   }
 
-  if (!subscription || !packageData) {
+  if ((orderType === 'package' && (!subscription || !packageData)) ||
+      (orderType === 'service' && !orderData)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir="rtl">
         <div className="text-center">
           <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">اشتراك غير موجود</h2>
-          <p className="text-gray-600 mb-6">لم يتم العثور على بيانات الاشتراك</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {orderType === 'service' ? 'طلب غير موجود' : 'اشتراك غير موجود'}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {orderType === 'service' ? 'لم يتم العثور على بيانات الطلب' : 'لم يتم العثور على بيانات الاشتراك'}
+          </p>
           <button
-            onClick={() => router.push('/packages')}
+            onClick={() => router.push(orderType === 'service' ? '/services' : '/packages')}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            العودة للباقات
+            {orderType === 'service' ? 'العودة للخدمات' : 'العودة للباقات'}
           </button>
         </div>
       </div>
@@ -295,38 +356,69 @@ function SubscribeCheckoutContent() {
     <div className="min-h-screen bg-gray-50 py-8" dir="rtl">
       <div className="max-w-2xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">إتمام الاشتراك</h1>
-          <p className="text-gray-600">ارفع إيصال الدفع لتفعيل اشتراكك</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {orderType === 'service' ? 'إتمام طلب الخدمة' : 'إتمام الاشتراك'}
+          </h1>
+          <p className="text-gray-600">
+            {orderType === 'service' ? 'ارفع إيصال الدفع لتأكيد طلبك' : 'ارفع إيصال الدفع لتفعيل اشتراكك'}
+          </p>
         </div>
 
-        {/* Package Summary */}
+        {/* Order/Package Summary */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
             <Package className="w-6 h-6 ml-2" />
-            ملخص الباقة
+            {orderType === 'service' ? 'ملخص الطلب' : 'ملخص الباقة'}
           </h2>
-          
+
           <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-blue-900 mb-2">{packageData.name}</h3>
-            <p className="text-blue-700 mb-4">{packageData.description}</p>
-            
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{packageData.max_designs || 0}</div>
-                <div className="text-sm text-blue-600">تصميم شهرياً</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{packageData.max_videos || 0}</div>
-                <div className="text-sm text-blue-600">فيديو شهرياً</div>
-              </div>
-            </div>
-            
-            <div className="border-t border-blue-200 pt-4">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-blue-900">المبلغ المطلوب:</span>
-                <span className="text-2xl font-bold text-blue-600">{subscription.total_amount} ج.م</span>
-              </div>
-            </div>
+            {orderType === 'service' ? (
+              // عرض بيانات الخدمة
+              <>
+                <h3 className="text-lg font-bold text-blue-900 mb-2">
+                  {orderData?.service_name || serviceName || 'خدمة مخصصة'}
+                </h3>
+                <p className="text-blue-700 mb-4">
+                  {orderData?.service_category && `من قسم: ${orderData.service_category}`}
+                </p>
+                {orderData?.notes && (
+                  <p className="text-blue-600 text-sm mb-4">{orderData.notes}</p>
+                )}
+
+                <div className="border-t border-blue-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold text-blue-900">المبلغ المطلوب:</span>
+                    <span className="text-2xl font-bold text-blue-600">
+                      {orderData?.total_amount || amount || 0} ج.م
+                    </span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              // عرض بيانات الباقة
+              <>
+                <h3 className="text-lg font-bold text-blue-900 mb-2">{packageData?.name}</h3>
+                <p className="text-blue-700 mb-4">{packageData?.description}</p>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{packageData?.max_designs || 0}</div>
+                    <div className="text-sm text-blue-600">تصميم شهرياً</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{packageData?.max_videos || 0}</div>
+                    <div className="text-sm text-blue-600">فيديو شهرياً</div>
+                  </div>
+                </div>
+
+                <div className="border-t border-blue-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold text-blue-900">المبلغ المطلوب:</span>
+                    <span className="text-2xl font-bold text-blue-600">{subscription?.total_amount} ج.م</span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -438,7 +530,7 @@ function SubscribeCheckoutContent() {
               disabled={isSubmitting || (paymentMethod !== 'whatsapp' && !receiptFile)}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              {isSubmitting ? 'جاري الإرسال...' : 'تأكيد الاشتراك'}
+              {isSubmitting ? 'جاري الإرسال...' : (orderType === 'service' ? 'تأكيد الطلب' : 'تأكيد الاشتراك')}
               {!isSubmitting && <ArrowRight className="w-4 h-4 mr-2" />}
             </button>
           </form>

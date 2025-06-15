@@ -257,32 +257,44 @@ export default function ServicePage() {
         return
       }
 
-      // إضافة إلى localStorage
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-      const existingItem = cart.find((item: any) => item.id === subService.id)
-
-      if (existingItem) {
-        existingItem.quantity += 1
-      } else {
-        cart.push({
-          id: subService.id,
-          name: subService.name,
-          price: subService.price,
-          service_name: service?.name,
-          quantity: 1,
-          image_url: subService.image_url,
-          type: 'service',
-          user_id: userData.id
-        })
+      // إنشاء طلب مباشر في قاعدة البيانات
+      const orderData = {
+        user_id: userData.id,
+        customer_name: userData.name,
+        customer_email: userData.email,
+        customer_phone: userData.phone || '',
+        service_name: subService.name,
+        service_category: service?.name,
+        total_amount: subService.price,
+        status: 'pending',
+        notes: `طلب خدمة: ${subService.name} من قسم ${service?.name}`,
+        created_at: new Date().toISOString()
       }
 
-      localStorage.setItem('cart', JSON.stringify(cart))
+      console.log('📝 Creating order:', orderData)
 
-      setCartMessage('تم إضافة الخدمة للسلة بنجاح!')
+      const { data: orderResult, error: orderError } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select()
+        .single()
+
+      if (orderError) {
+        console.error('❌ Error creating order:', orderError)
+        setCartMessage('حدث خطأ أثناء إنشاء الطلب')
+        setTimeout(() => setCartMessage(null), 3000)
+        return
+      }
+
+      console.log('✅ Order created successfully:', orderResult)
+
+      setCartMessage('تم إنشاء الطلب بنجاح! جاري التوجيه للدفع...')
       setTimeout(() => setCartMessage(null), 3000)
 
-      // التوجيه لصفحة السلة أولاً
-      window.location.href = '/cart'
+      // التوجيه لصفحة الدفع مع معرف الطلب
+      setTimeout(() => {
+        window.location.href = `/checkout/subscribe?subscription_id=${orderResult.id}&type=service&service_name=${encodeURIComponent(subService.name)}&amount=${subService.price}`
+      }, 1500)
 
     } catch (error) {
       console.error('❌ Error in buy now:', error)
