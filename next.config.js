@@ -24,6 +24,16 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
 
+  // إصلاح مشاكل webpack
+  webpack: (config, { isServer }) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      bufferutil: false,
+      'utf-8-validate': false,
+    }
+    return config
+  },
+
   // إعادة التوجيه
   async redirects() {
     return []

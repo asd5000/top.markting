@@ -216,9 +216,6 @@ export default function HomePage() {
               <Link href="/plans" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                 📦 الباقات
               </Link>
-              <Link href="/store" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-                🛒 المتجر
-              </Link>
               <Link href="/portfolio" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                 🎨 معرض الأعمال
               </Link>
