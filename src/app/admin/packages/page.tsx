@@ -9,7 +9,7 @@ import {
   DollarSign, Calendar, Settings, Star,
   CheckCircle, XCircle, Clock, ArrowLeft,
   Save, AlertCircle, Palette, Video, Target,
-  Calculator, List
+  Calculator, List, Upload
 } from 'lucide-react'
 
 interface PackageData {
