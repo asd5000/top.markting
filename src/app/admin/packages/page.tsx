@@ -8,9 +8,9 @@ import {
   Package, Plus, Edit, Trash2, Eye, Users,
   DollarSign, Calendar, Settings, Star,
   CheckCircle, XCircle, Clock, ArrowLeft,
-  Save, AlertCircle, Palette, Video, Target
+  Save, AlertCircle, Palette, Video, Target,
+  Calculator, List
 } from 'lucide-react'
-import Link from 'next/link'
 
 interface PackageData {
   id: string
