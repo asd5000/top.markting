@@ -105,9 +105,9 @@ export default function RegisterPage() {
         // المستخدم مسجل دخول تلقائياً
         setSuccess('تم إنشاء الحساب وتسجيل الدخول بنجاح! جاري التوجيه...')
 
-        // التوجيه لصفحة لوحة تحكم الزائر
+        // التوجيه للصفحة الرئيسية
         setTimeout(() => {
-          router.push('/visitor-dashboard')
+          router.push('/')
         }, 2000)
       } else {
         // في حالة عدم تسجيل الدخول التلقائي
@@ -128,7 +128,7 @@ export default function RegisterPage() {
         } else {
           setSuccess('تم إنشاء الحساب وتسجيل الدخول بنجاح! جاري التوجيه...')
           setTimeout(() => {
-            router.push('/visitor-dashboard')
+            router.push('/')
           }, 2000)
         }
       }

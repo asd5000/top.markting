@@ -8,8 +8,8 @@ export default function TestRedirect() {
     
     // اختبار التوجيه بعد 2 ثانية
     setTimeout(() => {
-      console.log('🚀 Redirecting to visitor dashboard...')
-      window.location.href = '/visitor-dashboard'
+      console.log('🚀 Redirecting to home page...')
+      window.location.href = '/'
     }, 2000)
   }, [])
 
@@ -20,7 +20,7 @@ export default function TestRedirect() {
           اختبار التوجيه
         </h1>
         <p className="text-gray-600">
-          سيتم التوجيه إلى لوحة التحكم خلال ثانيتين...
+          سيتم التوجيه إلى الصفحة الرئيسية خلال ثانيتين...
         </p>
         <div className="mt-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>

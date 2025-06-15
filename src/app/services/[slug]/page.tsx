@@ -252,8 +252,9 @@ export default function ServicePage() {
       }
 
       if (!userData) {
-        console.log('❌ No user session found')
-        setShowAuthModal(true)
+        console.log('❌ No user session found, redirecting to login')
+        alert('يجب تسجيل الدخول أولاً لإتمام عملية الشراء')
+        window.location.href = '/visitor-login'
         return
       }
 

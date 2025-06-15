@@ -137,6 +137,7 @@ export default function PlansPage() {
     try {
       // إنشاء اشتراك مباشر بدون نموذج
       const subscriptionData = {
+        package_id: plan.id,
         plan_id: plan.id,
         user_id: userData.id,
         customer_name: userData.name,

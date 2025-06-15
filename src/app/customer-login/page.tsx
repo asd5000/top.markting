@@ -101,10 +101,10 @@ export default function CustomerLoginPage() {
 
         setSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...')
 
-        // توجيه لصفحة لوحة تحكم الزائر
+        // توجيه للصفحة الرئيسية
         setTimeout(() => {
-          console.log('🚀 Redirecting to visitor dashboard...')
-          window.location.href = '/visitor-dashboard'
+          console.log('🚀 Redirecting to home page...')
+          window.location.href = '/'
         }, 1000)
       }
 
