@@ -14,7 +14,18 @@ import {
   Package,
   DollarSign,
   Phone,
-  MessageCircle
+  MessageCircle,
+  Search,
+  Filter,
+  Grid,
+  List,
+  Badge,
+  Eye,
+  ShoppingCart,
+  Zap,
+  Award,
+  Heart,
+  Share2
 } from 'lucide-react'
 
 interface Service {
@@ -36,6 +47,7 @@ interface SubService {
   service_id: string
   name: string
   description: string
+  short_description: string
   price: number
   image_url: string
   icon_url: string
@@ -44,6 +56,12 @@ interface SubService {
   delivery_time: string
   status: string
   is_active: boolean
+  is_featured: boolean
+  badge_text: string
+  badge_color: string
+  gallery_images: string[]
+  detailed_description: string
+  purchase_enabled: boolean
 }
 
 export default function ServicePage() {
@@ -52,16 +70,26 @@ export default function ServicePage() {
   
   const [service, setService] = useState<Service | null>(null)
   const [subServices, setSubServices] = useState<SubService[]>([])
+  const [filteredSubServices, setFilteredSubServices] = useState<SubService[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cartMessage, setCartMessage] = useState<string | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [priceFilter, setPriceFilter] = useState('all')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [selectedSubService, setSelectedSubService] = useState<SubService | null>(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     loadServiceData()
     checkAuth()
   }, [slug])
+
+  useEffect(() => {
+    filterSubServices()
+  }, [subServices, searchTerm, priceFilter])
 
   const checkAuth = async () => {
     try {
@@ -70,6 +98,36 @@ export default function ServicePage() {
     } catch (error) {
       console.error('Error checking auth:', error)
     }
+  }
+
+  const filterSubServices = () => {
+    let filtered = subServices
+
+    // فلترة بالبحث
+    if (searchTerm) {
+      filtered = filtered.filter(subService =>
+        subService.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        subService.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (subService.short_description && subService.short_description.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+    }
+
+    // فلترة بالسعر
+    if (priceFilter !== 'all') {
+      switch (priceFilter) {
+        case 'low':
+          filtered = filtered.filter(subService => subService.price <= 500)
+          break
+        case 'medium':
+          filtered = filtered.filter(subService => subService.price > 500 && subService.price <= 1500)
+          break
+        case 'high':
+          filtered = filtered.filter(subService => subService.price > 1500)
+          break
+      }
+    }
+
+    setFilteredSubServices(filtered)
   }
 
   // دالة لتحويل slug إلى اسم الخدمة
@@ -349,52 +407,195 @@ export default function ServicePage() {
 
       {/* Sub Services */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">خدماتنا في {service.name}</h2>
           <p className="text-gray-600">اختر الخدمة التي تناسب احتياجاتك</p>
         </div>
 
-        {subServices.length === 0 ? (
+        {/* Search and Filters */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="ابحث في الخدمات..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Price Filter */}
+            <div>
+              <select
+                value={priceFilter}
+                onChange={(e) => setPriceFilter(e.target.value)}
+                className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">جميع الأسعار</option>
+                <option value="low">أقل من 500 ج.م</option>
+                <option value="medium">500 - 1500 ج.م</option>
+                <option value="high">أكثر من 1500 ج.م</option>
+              </select>
+            </div>
+
+            {/* View Mode */}
+            <div className="flex items-center justify-center space-x-2">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-3 rounded-lg transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Grid className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-3 rounded-lg transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <List className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Results Count */}
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              {filteredSubServices.length} من {subServices.length} خدمة
+            </span>
+            {(searchTerm || priceFilter !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchTerm('')
+                  setPriceFilter('all')
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                مسح الفلاتر
+              </button>
+            )}
+          </div>
+        </div>
+
+        {filteredSubServices.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-medium text-gray-900 mb-2">لا توجد خدمات فرعية</h3>
-            <p className="text-gray-600">سيتم إضافة خدمات فرعية قريباً</p>
+            <h3 className="text-xl font-medium text-gray-900 mb-2">
+              {searchTerm || priceFilter !== 'all' ? 'لا توجد نتائج للبحث' : 'لا توجد خدمات فرعية'}
+            </h3>
+            <p className="text-gray-600">
+              {searchTerm || priceFilter !== 'all' ? 'جرب تغيير معايير البحث' : 'سيتم إضافة خدمات فرعية قريباً'}
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {subServices.map((subService) => (
+          <div className={`${
+            viewMode === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'
+              : 'space-y-6'
+          }`}>
+            {filteredSubServices.map((subService) => (
               <div
                 key={subService.id}
-                className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow"
+                className={`bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 ${
+                  viewMode === 'list' ? 'flex' : ''
+                }`}
               >
                 {/* صورة الخدمة الفرعية */}
-                {subService.image_url && (
-                  <div className="h-48 overflow-hidden">
+                <div className={`relative overflow-hidden ${
+                  viewMode === 'list' ? 'w-64 h-48' : 'h-56'
+                }`}>
+                  {subService.image_url ? (
                     <img
                       src={subService.image_url}
                       alt={subService.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
                     />
-                  </div>
-                )}
-
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{subService.name}</h3>
-                  <p className="text-gray-600 mb-4">{subService.description}</p>
-
-                  {/* السعر */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <DollarSign className="w-5 h-5 text-green-600 ml-1" />
-                      <span className="text-2xl font-bold text-green-600">
-                        {subService.price} ج.م
-                      </span>
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <Package className="w-12 h-12 text-white" />
                     </div>
-                    
+                  )}
+
+                  {/* Badges */}
+                  <div className="absolute top-4 right-4 flex flex-col space-y-2">
+                    {subService.is_featured && (
+                      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center">
+                        <Star className="w-3 h-3 ml-1" />
+                        مميز
+                      </div>
+                    )}
+                    {subService.badge_text && (
+                      <div
+                        className="text-white px-3 py-1 rounded-full text-xs font-bold"
+                        style={{ backgroundColor: subService.badge_color || '#10B981' }}
+                      >
+                        {subService.badge_text}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="absolute top-4 left-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="bg-white bg-opacity-90 p-2 rounded-full hover:bg-opacity-100 transition-colors">
+                      <Heart className="w-4 h-4 text-gray-600" />
+                    </button>
+                    <button className="bg-white bg-opacity-90 p-2 rounded-full hover:bg-opacity-100 transition-colors">
+                      <Share2 className="w-4 h-4 text-gray-600" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className={`p-6 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+                      {subService.name}
+                    </h3>
+                    {subService.icon_url && (
+                      <img
+                        src={subService.icon_url}
+                        alt=""
+                        className="w-8 h-8 rounded-lg object-cover"
+                      />
+                    )}
+                  </div>
+
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                    {subService.short_description || subService.description}
+                  </p>
+
+                  {/* السعر والوقت */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center">
+                      {subService.price > 0 ? (
+                        <>
+                          <DollarSign className="w-5 h-5 text-green-600 ml-1" />
+                          <span className="text-2xl font-bold text-green-600">
+                            {subService.price} ج.م
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-lg font-semibold text-blue-600">
+                          حسب الطلب
+                        </span>
+                      )}
+                    </div>
+
                     {subService.delivery_time && (
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Clock className="w-4 h-4 ml-1" />
-                        {subService.delivery_time}
+                      <div className="flex items-center bg-blue-50 px-3 py-1 rounded-full">
+                        <Clock className="w-4 h-4 text-blue-600 ml-1" />
+                        <span className="text-sm text-blue-600 font-medium">
+                          {subService.delivery_time}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -402,32 +603,58 @@ export default function ServicePage() {
                   {/* المميزات */}
                   {subService.features && subService.features.length > 0 && (
                     <div className="mb-6">
-                      <h4 className="font-medium text-gray-900 mb-2">المميزات:</h4>
-                      <ul className="space-y-2">
-                        {subService.features.map((feature, index) => (
-                          <li key={index} className="flex items-center text-sm text-gray-700">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <Award className="w-5 h-5 text-blue-600 ml-2" />
+                        المميزات:
+                      </h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        {subService.features.slice(0, viewMode === 'list' ? 6 : 4).map((feature, index) => (
+                          <div key={index} className="flex items-center text-sm text-gray-700 bg-gray-50 rounded-lg p-2">
                             <CheckCircle className="w-4 h-4 text-green-500 ml-2 flex-shrink-0" />
-                            {feature}
-                          </li>
+                            <span>{feature}</span>
+                          </div>
                         ))}
-                      </ul>
+                        {subService.features.length > (viewMode === 'list' ? 6 : 4) && (
+                          <div className="text-xs text-blue-600 font-medium">
+                            +{subService.features.length - (viewMode === 'list' ? 6 : 4)} مميزة أخرى
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
                   {/* أزرار الإجراء */}
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => buyNow(subService)}
-                      className="flex-1 bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      اشتري الآن
-                    </button>
+                  <div className="space-y-3">
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={() => {
+                          setSelectedSubService(subService)
+                          setShowModal(true)
+                        }}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center py-3 px-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-medium flex items-center justify-center"
+                      >
+                        <Eye className="w-4 h-4 ml-2" />
+                        عرض التفاصيل
+                      </button>
+
+                      {subService.purchase_enabled !== false && (
+                        <button
+                          onClick={() => buyNow(subService)}
+                          className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white text-center py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all font-medium flex items-center justify-center"
+                        >
+                          <ShoppingCart className="w-4 h-4 ml-2" />
+                          اشتري الآن
+                        </button>
+                      )}
+                    </div>
+
                     <a
-                      href={`https://wa.me/201068275557?text=أريد طلب خدمة: ${subService.name} - ${subService.price} ج.م`}
+                      href={`https://wa.me/201068275557?text=أريد طلب خدمة: ${subService.name} - ${subService.price > 0 ? subService.price + ' ج.م' : 'حسب الطلب'}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-green-600 text-white text-center py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                      className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-center py-3 px-4 rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all font-medium flex items-center justify-center"
                     >
+                      <MessageCircle className="w-4 h-4 ml-2" />
                       طلب عبر واتساب
                     </a>
                   </div>
@@ -465,6 +692,132 @@ export default function ServicePage() {
           </div>
         </div>
       </div>
+
+      {/* Service Details Modal */}
+      {showModal && selectedSubService && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="relative">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedSubService.name}</h2>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-gray-600 p-2"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6">
+                {/* Image Gallery */}
+                {selectedSubService.gallery_images && selectedSubService.gallery_images.length > 0 ? (
+                  <div className="mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedSubService.gallery_images.map((image, index) => (
+                        <img
+                          key={index}
+                          src={image}
+                          alt={`${selectedSubService.name} ${index + 1}`}
+                          className="w-full h-64 object-cover rounded-xl"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : selectedSubService.image_url && (
+                  <div className="mb-6">
+                    <img
+                      src={selectedSubService.image_url}
+                      alt={selectedSubService.name}
+                      className="w-full h-64 object-cover rounded-xl"
+                    />
+                  </div>
+                )}
+
+                {/* Detailed Description */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">وصف تفصيلي</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    {selectedSubService.detailed_description || selectedSubService.description}
+                  </p>
+                </div>
+
+                {/* Features */}
+                {selectedSubService.features && selectedSubService.features.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">جميع المميزات</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {selectedSubService.features.map((feature, index) => (
+                        <div key={index} className="flex items-center bg-green-50 rounded-lg p-3">
+                          <CheckCircle className="w-5 h-5 text-green-500 ml-3 flex-shrink-0" />
+                          <span className="text-gray-700">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Price and Actions */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      {selectedSubService.price > 0 ? (
+                        <>
+                          <DollarSign className="w-6 h-6 text-green-600 ml-2" />
+                          <span className="text-3xl font-bold text-green-600">
+                            {selectedSubService.price} ج.م
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-2xl font-bold text-blue-600">
+                          حسب الطلب
+                        </span>
+                      )}
+                    </div>
+
+                    {selectedSubService.delivery_time && (
+                      <div className="flex items-center bg-blue-100 px-4 py-2 rounded-lg">
+                        <Clock className="w-5 h-5 text-blue-600 ml-2" />
+                        <span className="text-blue-600 font-medium">
+                          {selectedSubService.delivery_time}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex space-x-4">
+                    {selectedSubService.purchase_enabled !== false && (
+                      <button
+                        onClick={() => {
+                          buyNow(selectedSubService)
+                          setShowModal(false)
+                        }}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-medium flex items-center justify-center"
+                      >
+                        <ShoppingCart className="w-5 h-5 ml-2" />
+                        اشتري الآن
+                      </button>
+                    )}
+
+                    <a
+                      href={`https://wa.me/201068275557?text=أريد طلب خدمة: ${selectedSubService.name} - ${selectedSubService.price > 0 ? selectedSubService.price + ' ج.م' : 'حسب الطلب'}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all font-medium flex items-center justify-center"
+                    >
+                      <MessageCircle className="w-5 h-5 ml-2" />
+                      طلب عبر واتساب
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Auth Modal */}
       <AuthModal
