@@ -72,7 +72,11 @@ function SubscribeCheckoutContent() {
 
       if (orderError) {
         console.error('❌ Error loading order:', orderError)
-        alert(`حدث خطأ في تحميل بيانات الطلب: ${orderError.message}`)
+        if (orderError.code === 'PGRST116') {
+          alert('لم يتم العثور على الطلب المطلوب')
+        } else {
+          alert(`حدث خطأ في تحميل بيانات الطلب: ${orderError.message}`)
+        }
         router.push('/services')
         return
       }
@@ -116,7 +120,11 @@ function SubscribeCheckoutContent() {
 
       if (subscriptionError) {
         console.error('❌ Error loading subscription:', subscriptionError)
-        alert(`حدث خطأ في تحميل بيانات الاشتراك: ${subscriptionError.message}`)
+        if (subscriptionError.code === 'PGRST116') {
+          alert('لم يتم العثور على الاشتراك المطلوب')
+        } else {
+          alert(`حدث خطأ في تحميل بيانات الاشتراك: ${subscriptionError.message}`)
+        }
         router.push('/packages')
         return
       }
@@ -254,13 +262,24 @@ function SubscribeCheckoutContent() {
       console.log('🔄 Updating order/subscription status to waiting approval...')
 
       const tableName = orderType === 'service' ? 'orders' : 'subscriptions'
+      const updateData = orderType === 'service'
+        ? {
+            status: 'pending',
+            payment_status: 'pending',
+            payment_method: paymentMethod,
+            receipt_url: receiptUrl,
+            updated_at: new Date().toISOString()
+          }
+        : {
+            status: 'pending',
+            payment_method: paymentMethod,
+            receipt_url: receiptUrl,
+            updated_at: new Date().toISOString()
+          }
+
       const { error: updateError } = await supabase
         .from(tableName)
-        .update({
-          status: orderType === 'service' ? 'pending_payment' : 'suspended', // في انتظار موافقة الإدارة
-          payment_method: paymentMethod,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', subscriptionId)
 
       if (updateError) {

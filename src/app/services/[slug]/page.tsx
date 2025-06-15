@@ -294,7 +294,7 @@ export default function ServicePage() {
 
       // التوجيه لصفحة الدفع مع معرف الطلب
       setTimeout(() => {
-        window.location.href = `/(public)/checkout/subscribe?order_id=${orderResult.id}&type=service&service_name=${encodeURIComponent(subService.name)}&amount=${subService.price}`
+        window.location.href = `/checkout/subscribe?order_id=${orderResult.id}&type=service&service_name=${encodeURIComponent(subService.name)}&amount=${subService.price}`
       }, 1500)
 
     } catch (error) {
