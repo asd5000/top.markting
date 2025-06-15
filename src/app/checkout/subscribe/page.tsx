@@ -184,6 +184,25 @@ function SubscribeCheckoutContent() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      // التحقق من حجم الملف (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('حجم الملف كبير جداً. يرجى اختيار ملف أصغر من 10MB')
+        return
+      }
+
+      // التحقق من نوع الملف
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf']
+      if (!allowedTypes.includes(file.type)) {
+        alert('نوع الملف غير مدعوم. يرجى اختيار صورة (JPG, PNG, GIF) أو ملف PDF')
+        return
+      }
+
+      console.log('✅ File selected:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      })
+
       setReceiptFile(file)
     }
   }
@@ -210,7 +229,17 @@ function SubscribeCheckoutContent() {
 
       if (uploadError) {
         console.error('❌ Error uploading receipt:', uploadError)
-        alert(`حدث خطأ أثناء رفع الإيصال: ${uploadError.message}`)
+
+        // معالجة أخطاء محددة
+        if (uploadError.message.includes('The resource was not found')) {
+          alert('خطأ في إعدادات التخزين. يرجى المحاولة مرة أخرى أو التواصل مع الدعم.')
+        } else if (uploadError.message.includes('Payload too large')) {
+          alert('حجم الملف كبير جداً. يرجى اختيار ملف أصغر.')
+        } else if (uploadError.message.includes('Invalid file type')) {
+          alert('نوع الملف غير مدعوم. يرجى اختيار صورة أو ملف PDF.')
+        } else {
+          alert(`حدث خطأ أثناء رفع الإيصال: ${uploadError.message}`)
+        }
         return
       }
 
@@ -529,7 +558,9 @@ function SubscribeCheckoutContent() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 رفع إيصال الدفع *
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+
+              {/* Drag & Drop Area */}
+              <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer">
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <div className="space-y-2">
                   <p className="text-gray-600">اضغط لرفع إيصال الدفع</p>
@@ -543,11 +574,38 @@ function SubscribeCheckoutContent() {
                   required
                 />
               </div>
+
+              {/* Alternative Button */}
+              <div className="mt-3">
+                <label className="inline-flex items-center justify-center w-full py-3 px-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <Upload className="w-5 h-5 text-gray-600 ml-2" />
+                  <span className="text-gray-700 font-medium">اختر ملف الإيصال</span>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
               {receiptFile && (
                 <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center">
-                    <Check className="w-5 h-5 text-green-600 ml-2" />
-                    <span className="text-green-700 font-medium">تم رفع الملف: {receiptFile.name}</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Check className="w-5 h-5 text-green-600 ml-2" />
+                      <span className="text-green-700 font-medium">تم رفع الملف: {receiptFile.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setReceiptFile(null)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      إزالة
+                    </button>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600">
+                    الحجم: {(receiptFile.size / 1024 / 1024).toFixed(2)} MB
                   </div>
                 </div>
               )}
