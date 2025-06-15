@@ -502,70 +502,107 @@ function SubscribeCheckoutContent() {
                     className="ml-3"
                   />
                   <MessageCircle className="w-5 h-5 text-green-600 ml-2" />
-                  <span className="font-medium">واتساب (للدفع خارج مصر)</span>
+                  <span className="font-medium">واتساب (للدفع خارج مصر) - 01068275557</span>
                 </label>
               </div>
             </div>
 
             {/* Payment Instructions */}
-            {paymentMethod && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">
-                  {getPaymentInstructions()?.title}
-                </h4>
-                <p className="text-blue-800 text-sm mb-2">
-                  الرقم: <span className="font-bold">{getPaymentInstructions()?.number}</span>
-                </p>
-                <p className="text-blue-700 text-sm">
+            {getPaymentInstructions() && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h3 className="font-bold text-yellow-800 mb-2">
+                  تعليمات الدفع - {getPaymentInstructions()?.title}
+                </h3>
+                <p className="text-yellow-700 mb-3">
                   {getPaymentInstructions()?.instructions}
                 </p>
-              </div>
-            )}
-
-            {/* Receipt Upload */}
-            {paymentMethod !== 'whatsapp' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">رفع إيصال الدفع *</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="receipt-upload"
-                  />
-                  <label htmlFor="receipt-upload" className="cursor-pointer">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">
-                      {receiptFile ? receiptFile.name : 'اضغط لرفع صورة الإيصال'}
-                    </p>
-                  </label>
+                <div className="bg-yellow-100 rounded-lg p-3">
+                  <p className="text-yellow-800 font-bold text-center">
+                    رقم المحفظة: {getPaymentInstructions()?.number}
+                  </p>
                 </div>
               </div>
             )}
 
+            {/* File Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                رفع إيصال الدفع *
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <div className="space-y-2">
+                  <p className="text-gray-600">اضغط لرفع إيصال الدفع</p>
+                  <p className="text-sm text-gray-500">PNG, JPG, PDF حتى 10MB</p>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  required
+                />
+              </div>
+              {receiptFile && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center">
+                    <Check className="w-5 h-5 text-green-600 ml-2" />
+                    <span className="text-green-700 font-medium">تم رفع الملف: {receiptFile.name}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
             <button
               type="submit"
-              disabled={isSubmitting || (paymentMethod !== 'whatsapp' && !receiptFile)}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              disabled={isSubmitting || !receiptFile}
+              className={`w-full py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center ${
+                isSubmitting || !receiptFile
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
-              {isSubmitting ? 'جاري الإرسال...' : (orderType === 'service' ? 'تأكيد الطلب' : 'تأكيد الاشتراك')}
-              {!isSubmitting && <ArrowRight className="w-4 h-4 mr-2" />}
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+                  جاري الإرسال...
+                </>
+              ) : (
+                <>
+                  <Check className="w-5 h-5 ml-2" />
+                  تأكيد الدفع
+                </>
+              )}
             </button>
           </form>
+        </div>
+
+        {/* Support Contact */}
+        <div className="mt-6 text-center">
+          <p className="text-gray-600 mb-2">تحتاج مساعدة؟</p>
+          <a
+            href="https://wa.me/201068275557"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-green-600 hover:text-green-700 font-medium"
+          >
+            <MessageCircle className="w-4 h-4 ml-1" />
+            تواصل معنا عبر واتساب
+          </a>
         </div>
       </div>
     </div>
   )
 }
 
-export default function SubscribeCheckoutPage() {
+export default function SubscribeCheckout() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir="rtl">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">جاري تحميل بيانات الاشتراك...</p>
+          <p className="text-gray-600">جاري التحميل...</p>
         </div>
       </div>
     }>

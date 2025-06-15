@@ -203,13 +203,21 @@ export default function CartPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <Link
-                    href="/checkout/subscribe"
+                  <button
+                    onClick={() => {
+                      // التوجيه إلى صفحة الدفع مع معرف الاشتراك
+                      const cartItems = JSON.parse(localStorage.getItem('cart') || '[]')
+                      if (cartItems.length > 0 && cartItems[0].subscription_id) {
+                        window.location.href = `/checkout/subscribe?subscription_id=${cartItems[0].subscription_id}&type=package`
+                      } else {
+                        alert('خطأ في بيانات الطلب. يرجى المحاولة مرة أخرى.')
+                      }
+                    }}
                     className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
                   >
                     <CreditCard className="w-5 h-5 ml-2" />
                     إتمام الطلب
-                  </Link>
+                  </button>
 
                   <a
                     href={`https://wa.me/201068275557?text=${encodeURIComponent(generateWhatsAppMessage())}`}
