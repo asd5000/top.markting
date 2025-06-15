@@ -89,6 +89,13 @@ export default function AdminLayout({
       menuItem: 'services'
     },
     {
+      name: 'إدارة المتجر',
+      href: '/admin/store',
+      icon: Package,
+      current: pathname === '/admin/store',
+      menuItem: 'store'
+    },
+    {
       name: 'إدارة الطلبات',
       href: '/admin/orders',
       icon: ShoppingCart,

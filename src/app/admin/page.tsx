@@ -170,6 +170,14 @@ export default function AdminDashboard() {
           <p className="text-gray-600 text-sm">إدارة العقارات والعملاء</p>
         </a>
 
+        <a href="/admin/store" className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+          <div className="flex items-center mb-4">
+            <Package className="w-8 h-8 text-indigo-600" />
+            <h3 className="text-lg font-semibold text-gray-900 mr-3">إدارة المتجر</h3>
+          </div>
+          <p className="text-gray-600 text-sm">إدارة المنتجات والمخزون</p>
+        </a>
+
         <a href="/admin/orders" className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
           <div className="flex items-center mb-4">
             <ShoppingCart className="w-8 h-8 text-orange-600" />
