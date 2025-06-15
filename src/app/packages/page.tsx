@@ -201,7 +201,7 @@ export default function PackagesPage() {
     }
 
     if (!userData) {
-      alert('يرجى تسجيل الدخول أولاً')
+      alert('يرجى تسجيل الدخول أولاً للاشتراك في الباقات')
       window.location.href = '/visitor-login'
       return
     }
@@ -259,6 +259,8 @@ export default function PackagesPage() {
           alert('خطأ في معرف الباقة. يرجى إعادة تحميل الصفحة والمحاولة مرة أخرى.')
         } else if (error.message.includes('violates check constraint')) {
           alert('خطأ في بيانات الاشتراك. يرجى المحاولة مرة أخرى.')
+        } else if (error.message.includes('duplicate key value')) {
+          alert('لديك اشتراك نشط بالفعل في هذه الباقة.')
         } else {
           alert(`حدث خطأ أثناء إنشاء الاشتراك: ${error.message}`)
         }
@@ -279,8 +281,13 @@ export default function PackagesPage() {
 
       localStorage.setItem('cart', JSON.stringify([cartItem]))
 
+      // رسالة تأكيد
+      alert(`تم إنشاء اشتراك ${pkg.name} بنجاح! جاري التوجيه لإتمام الدفع...`)
+
       // توجيه المستخدم لصفحة السلة أولاً
-      window.location.href = '/cart'
+      setTimeout(() => {
+        window.location.href = '/cart'
+      }, 1000)
 
     } catch (error) {
       console.error('❌ Error subscribing:', error)
